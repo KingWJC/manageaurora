@@ -1,0 +1,558 @@
+/*
+
+	栅格系统：
+
+		栅格系统采用业界比较常见的 12 等分规则，内置移动设备、平板、桌面中等和大型屏幕的多终端适配处理，最低能支持到ie9。
+		为了丰富网页布局，简化 HTML/CSS 代码的耦合，并提升多终端的适配能力，
+		ui 在 3.0 的版本中引进了自己的一套具备响应式能力的栅格系统。
+		我们将容器进行了 12 等分，预设了 5*12 种 CSS 排列类，它们在移动设备、平板、桌面中/大尺寸四种不同的屏幕下发挥着各自的作用。
+
+	栅格布局规则：
+		1. 采用 row 来定义行
+		2. 采用类似 col-* 这样的预设类来定义一组列（column），且放在行（row）内
+		3. 列可以同时出现最多五种不同的组合，分别是：number（超小屏幕，如手机480以下）、xs（超小屏幕，如手机适配宽度大于480）、sm（小屏幕，如平板适配宽度大于768）、md（桌面中等屏幕适配宽度大于992）、lg（桌面大型屏幕适配宽度大于1200），以呈现更加动态灵活的布局。
+		4. 可对列追加类似 col-space5、 col-md-offset3 这样的预设类来定义列的间距和偏移。
+		5. 最后，在列（column）元素中放入你自己的任意元素填充内容，完成布局！
+	响应式规则:
+		栅格的响应式能力，得益于CSS3媒体查询（Media Queries）的强力支持，从而针对四类不同尺寸的屏幕，进行相应的适配处理
+			超小屏幕(手机<480px)	超小屏幕(手机>=480px)		小屏幕(平板≥768px)		中等屏幕(桌面≥992px)	大型屏幕(桌面≥1200px)
+			.container的值		auto					auto						750px					970px					1170px
+			标记						xs						xs							sm						md						lg
+			列对应类X为1-12的等分数值	col-X			col-xsX				col-smX			col-mdX			col-lgX
+			总列数						12
+			响应行为					始终按设定的比例水平排列 在当前屏幕下水平排列，如果屏幕大小低于临界值则堆叠排列
+	响应式公共类：
+		类名（class）			  说明
+		show-*-block		  定义不同设备下的 display: block; * 可选值有：xs、sm、md、lg
+		show-*-inline		  定义不同设备下的 display: inline; * 可选值同上
+		show-*-inline-block	  定义不同设备下的 display: inline-block; * 可选值同上
+		hide-*				  定义不同设备下的隐藏类，即： display: none; * 可选值同上
+	布局容器
+		将栅格放入一个带有 class="container" 的特定的容器中，以便在小屏幕以上的设备中固定宽度，让列可控。
+		当然，你也可以不固定容器宽度。将栅格或其它元素放入100% 适应容器中，那么宽度将不会固定
+	列间距
+		通过“列间距”的预设类，来设定列之间的间距。且一行中最左的列不会出现左边距，最右的列不会出现右边距。列间距在保证排版美观的同时，还可以进一步保证分列的宽度精细程度。
+		我们结合网页常用的边距，预设了 12 种不同尺寸的边距，分别是：col-spaceX(X= 1,3,5,8,10,12,15,18,20,22,28,30)
+	列偏移
+		对列追加 类似 col-md-offsetX(X为1 - 12) 的预设类，从而让列向右偏移。其中 X 号代表的是偏移占据的列数。
+	栅格嵌套
+		理论上，你可以对栅格进行无穷层次的嵌套，这更加增强了栅格的表现能力。而嵌套的使用非常简单。在列元素（col-mdX）中插入一个行元素（row），即可完成嵌套。
+ */
+.lc-row:after,
+.lc-row:before {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.lc-hide {
+  display: none !important
+}
+
+.lc-show,
+.lc-show-block {
+  display: block !important
+}
+
+.lc-show-inline {
+  display: inline !important
+}
+
+.lc-show-inline-block {
+  display: inline-block !important
+}
+
+/*定义列*/
+.lc-col-lg1, .lc-col-lg2, .lc-col-lg3, .lc-col-lg4, .lc-col-lg5, .lc-col-lg6, .lc-col-lg7, .lc-col-lg8, .lc-col-lg9, .lc-col-lg10, .lc-col-lg11, .lc-col-lg12,
+.lc-col-md1, .lc-col-md2, .lc-col-md3, .lc-col-md4, .lc-col-md5, .lc-col-md6, .lc-col-md7, .lc-col-md8, .lc-col-md9, .lc-col-md10, .lc-col-md11, .lc-col-md12,
+.lc-col-sm1, .lc-col-sm2, .lc-col-sm3, .lc-col-sm4, .lc-col-sm5, .lc-col-sm6, .lc-col-sm7, .lc-col-sm8, .lc-col-sm9, .lc-col-sm10, .lc-col-sm11, .lc-col-sm12,
+.lc-col-xs1, .lc-col-xs2, .lc-col-xs3, .lc-col-xs4, .lc-col-xs5, .lc-col-xs6, .lc-col-xs7, .lc-col-xs8, .lc-col-xs9, .lc-col-xs10, .lc-col-xs11, .lc-col-xs12,
+.lc-col-1, .lc-col-2, .lc-col-3, .lc-col-4, .lc-col-5, .lc-col-6, .lc-col-7, .lc-col-8, .lc-col-9, .lc-col-10, .lc-col-11, .lc-col-12 {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* xs超小屏幕 如手机 */
+.lc-col-1, .lc-col-2, .lc-col-3, .lc-col-4, .lc-col-5, .lc-col-6, .lc-col-7, .lc-col-8, .lc-col-9, .lc-col-10, .lc-col-11, .lc-col-12 {
+  float: left;
+}
+
+.lc-col-1 {
+  width: 8.33333333%
+}
+
+.lc-col-2 {
+  width: 16.66666667%
+}
+
+.lc-col-3 {
+  width: 25%
+}
+
+.lc-col-4 {
+  width: 33.33333333%
+}
+
+.lc-col-5 {
+  width: 41.66666667%
+}
+
+.lc-col-6 {
+  width: 50%
+}
+
+.lc-col-7 {
+  width: 58.33333333%
+}
+
+.lc-col-8 {
+  width: 66.66666667%
+}
+
+.lc-col-9 {
+  width: 75%
+}
+
+.lc-col-10 {
+  width: 83.33333333%
+}
+
+.lc-col-11 {
+  width: 91.66666667%
+}
+
+.lc-col-12 {
+  width: 100%
+}
+
+/* 定义列的偏移 */
+.lc-col-offset1 {
+  margin-left: 8.33333333%
+}
+
+.lc-col-offset2 {
+  margin-left: 16.66666667%
+}
+
+.lc-col-offset3 {
+  margin-left: 25%
+}
+
+.lc-col-offset4 {
+  margin-left: 33.33333333%
+}
+
+.lc-col-offset5 {
+  margin-left: 41.66666667%
+}
+
+.lc-col-offset6 {
+  margin-left: 50%
+}
+
+.lc-col-offset7 {
+  margin-left: 58.33333333%
+}
+
+.lc-col-offset8 {
+  margin-left: 66.66666667%
+}
+
+.lc-col-offset9 {
+  margin-left: 75%
+}
+
+.lc-col-offset10 {
+  margin-left: 83.33333333%
+}
+
+.lc-col-offset11 {
+  margin-left: 91.66666667%
+}
+
+.lc-col-offset12 {
+  margin-left: 100%
+}
+
+/* 定义列的间距 */
+/*.lc-col-space1{margin:-.5px}.lc-col-space1>*{padding:.5px}
+.lc-col-space3{margin:-1.5px}.lc-col-space3>*{padding:1.5px}
+.lc-col-space5{margin:-2.5px}.lc-col-space5>*{padding:2.5px}
+.lc-col-space8{margin:-3.5px}.lc-col-space8>*{padding:3.5px}
+.lc-col-space10{margin:-5px}.lc-col-space10>*{padding:5px}
+.lc-col-space12{margin:-6px}.lc-col-space12>*{padding:6px}
+.lc-col-space15{margin:-7.5px}.lc-col-space15>*{padding:7.5px}
+.lc-col-space18{margin:-9px}.lc-col-space18>*{padding:9px}
+.lc-col-space20{margin:-10px}.lc-col-space20>*{padding:10px}
+.lc-col-space22{margin:-11px}.lc-col-space22>*{padding:11px}
+.lc-col-space25{margin:-12.5px}.lc-col-space25>*{padding:12.5px}
+.lc-col-space30{margin:-15px}.lc-col-space30>*{padding:15px}*/
+
+@media screen and (min-width: $screen-min-xs) {
+  .lc-hide-xs {
+    display: none !important
+  }
+  .lc-show-xs,
+  .lc-show-xs-block {
+    display: block !important
+  }
+  .lc-show-xs-inline {
+    display: inline !important
+  }
+  .lc-show-xs-inline-block {
+    display: inline-block !important
+  }
+  .lc-col-xs1, .lc-col-xs2, .lc-col-xs3, .lc-col-xs4, .lc-col-xs5, .lc-col-xs6, .lc-col-xs7, .lc-col-xs8, .lc-col-xs9, .lc-col-xs10, .lc-col-xs11, .lc-col-xs12 {
+    float: left;
+  }
+  .lc-col-xs1 {
+    width: 8.33333333%
+  }
+  .lc-col-xs2 {
+    width: 16.66666667%
+  }
+  .lc-col-xs3 {
+    width: 25%
+  }
+  .lc-col-xs4 {
+    width: 33.33333333%
+  }
+  .lc-col-xs5 {
+    width: 41.66666667%
+  }
+  .lc-col-xs6 {
+    width: 50%
+  }
+  .lc-col-xs7 {
+    width: 58.33333333%
+  }
+  .lc-col-xs8 {
+    width: 66.66666667%
+  }
+  .lc-col-xs9 {
+    width: 75%
+  }
+  .lc-col-xs10 {
+    width: 83.33333333%
+  }
+  .lc-col-xs11 {
+    width: 91.66666667%
+  }
+  .lc-col-xs12 {
+    width: 100%
+  }
+  /* 定义列的偏移 */
+  .lc-col-xs-offset1 {
+    margin-left: 8.33333333%
+  }
+  .lc-col-xs-offset2 {
+    margin-left: 16.66666667%
+  }
+  .lc-col-xs-offset3 {
+    margin-left: 25%
+  }
+  .lc-col-xs-offset4 {
+    margin-left: 33.33333333%
+  }
+  .lc-col-xs-offset5 {
+    margin-left: 41.66666667%
+  }
+  .lc-col-xs-offset6 {
+    margin-left: 50%
+  }
+  .lc-col-xs-offset7 {
+    margin-left: 58.33333333%
+  }
+  .lc-col-xs-offset8 {
+    margin-left: 66.66666667%
+  }
+  .lc-col-xs-offset9 {
+    margin-left: 75%
+  }
+  .lc-col-xs-offset10 {
+    margin-left: 83.33333333%
+  }
+  .lc-col-xs-offset11 {
+    margin-left: 91.66666667%
+  }
+  .lc-col-xs-offset12 {
+    margin-left: 100%
+  }
+}
+
+/* sm小屏幕 如平板 （pad竖屏,手机横屏） */
+@media screen and (min-width: $screen-min-sm) {
+  .lc-hide-sm {
+    display: none !important
+  }
+  .lc-show-sm,
+  .lc-show-sm-block {
+    display: block !important
+  }
+  .lc-show-sm-inline {
+    display: inline !important
+  }
+  .lc-show-sm-inline-block {
+    display: inline-block !important
+  }
+  .lc-col-sm1, .lc-col-sm2, .lc-col-sm3, .lc-col-sm4, .lc-col-sm5, .lc-col-sm6, .lc-col-sm7, .lc-col-sm8, .lc-col-sm9, .lc-col-sm10, .lc-col-sm11, .lc-col-sm12 {
+    float: left
+  }
+  .lc-col-sm1 {
+    width: 8.33333333%
+  }
+  .lc-col-sm2 {
+    width: 16.66666667%
+  }
+  .lc-col-sm3 {
+    width: 25%
+  }
+  .lc-col-sm4 {
+    width: 33.33333333%
+  }
+  .lc-col-sm5 {
+    width: 41.66666667%
+  }
+  .lc-col-sm6 {
+    width: 50%
+  }
+  .lc-col-sm7 {
+    width: 58.33333333%
+  }
+  .lc-col-sm8 {
+    width: 66.66666667%
+  }
+  .lc-col-sm9 {
+    width: 75%
+  }
+  .lc-col-sm10 {
+    width: 83.33333333%
+  }
+  .lc-col-sm11 {
+    width: 91.66666667%
+  }
+  .lc-col-sm12 {
+    width: 100%
+  }
+  .lc-col-sm-offset1 {
+    margin-left: 8.33333333%
+  }
+  .lc-col-sm-offset2 {
+    margin-left: 16.66666667%
+  }
+  .lc-col-sm-offset3 {
+    margin-left: 25%
+  }
+  .lc-col-sm-offset4 {
+    margin-left: 33.33333333%
+  }
+  .lc-col-sm-offset5 {
+    margin-left: 41.66666667%
+  }
+  .lc-col-sm-offset6 {
+    margin-left: 50%
+  }
+  .lc-col-sm-offset7 {
+    margin-left: 58.33333333%
+  }
+  .lc-col-sm-offset8 {
+    margin-left: 66.66666667%
+  }
+  .lc-col-sm-offset9 {
+    margin-left: 75%
+  }
+  .lc-col-sm-offset10 {
+    margin-left: 83.33333333%
+  }
+  .lc-col-sm-offset11 {
+    margin-left: 91.66666667%
+  }
+  .lc-col-sm-offset12 {
+    margin-left: 100%
+  }
+}
+
+/* md 桌面中等屏幕 （PAD 横屏） */
+@media screen and (min-width: $screen-min-md) {
+  .lc-hide-md {
+    display: none !important
+  }
+  .lc-show-md,
+  .lc-show-md-block {
+    display: block !important
+  }
+  .lc-show-md-inline {
+    display: inline !important
+  }
+  .lc-show-md-inline-block {
+    display: inline-block !important
+  }
+  .lc-col-md1, .lc-col-md2, .lc-col-md3, .lc-col-md4, .lc-col-md5, .lc-col-md6, .lc-col-md7, .lc-col-md8, .lc-col-md9, .lc-col-md10, .lc-col-md11, .lc-col-md12 {
+    float: left
+  }
+  .lc-col-md1 {
+    width: 8.33333333%
+  }
+  .lc-col-md2 {
+    width: 16.66666667%
+  }
+  .lc-col-md3 {
+    width: 25%
+  }
+  .lc-col-md4 {
+    width: 33.33333333%
+  }
+  .lc-col-md5 {
+    width: 41.66666667%
+  }
+  .lc-col-md6 {
+    width: 50%
+  }
+  .lc-col-md7 {
+    width: 58.33333333%
+  }
+  .lc-col-md8 {
+    width: 66.66666667%
+  }
+  .lc-col-md9 {
+    width: 75%
+  }
+  .lc-col-md10 {
+    width: 83.33333333%
+  }
+  .lc-col-md11 {
+    width: 91.66666667%
+  }
+  .lc-col-md12 {
+    width: 100%
+  }
+  .lc-col-md-offset1 {
+    margin-left: 8.33333333%
+  }
+  .lc-col-md-offset2 {
+    margin-left: 16.66666667%
+  }
+  .lc-col-md-offset3 {
+    margin-left: 25%
+  }
+  .lc-col-md-offset4 {
+    margin-left: 33.33333333%
+  }
+  .lc-col-md-offset5 {
+    margin-left: 41.66666667%
+  }
+  .lc-col-md-offset6 {
+    margin-left: 50%
+  }
+  .lc-col-md-offset7 {
+    margin-left: 58.33333333%
+  }
+  .lc-col-md-offset8 {
+    margin-left: 66.66666667%
+  }
+  .lc-col-md-offset9 {
+    margin-left: 75%
+  }
+  .lc-col-md-offset10 {
+    margin-left: 83.33333333%
+  }
+  .lc-col-md-offset11 {
+    margin-left: 91.66666667%
+  }
+  .lc-col-md-offset12 {
+    margin-left: 100%
+  }
+}
+
+/* lg 桌面大屏幕 */
+@media screen and (min-width: $screen-min-lg) {
+  .lc-hide-lg {
+    display: none !important
+  }
+  .lc-show-lg,
+  .lc-show-lg-block {
+    display: block !important
+  }
+  .lc-show-lg-inline {
+    display: inline !important
+  }
+  .lc-show-lg-inline-block {
+    display: inline-block !important
+  }
+  .lc-col-lg1, .lc-col-lg2, .lc-col-lg3, .lc-col-lg4, .lc-col-lg5, .lc-col-lg6, .lc-col-lg7, .lc-col-lg8, .lc-col-lg9, .lc-col-lg10, .lc-col-lg11, .lc-col-lg12 {
+    float: left
+  }
+  .lc-col-lg1 {
+    width: 8.33333333%
+  }
+  .lc-col-lg2 {
+    width: 16.66666667%
+  }
+  .lc-col-lg3 {
+    width: 25%
+  }
+  .lc-col-lg4 {
+    width: 33.33333333%
+  }
+  .lc-col-lg5 {
+    width: 41.66666667%
+  }
+  .lc-col-lg6 {
+    width: 50%
+  }
+  .lc-col-lg7 {
+    width: 58.33333333%
+  }
+  .lc-col-lg8 {
+    width: 66.66666667%
+  }
+  .lc-col-lg9 {
+    width: 75%
+  }
+  .lc-col-lg10 {
+    width: 83.33333333%
+  }
+  .lc-col-lg11 {
+    width: 91.66666667%
+  }
+  .lc-col-lg12 {
+    width: 100%
+  }
+  .lc-col-lg-offset1 {
+    margin-left: 8.33333333%
+  }
+  .lc-col-lg-offset2 {
+    margin-left: 16.66666667%
+  }
+  .lc-col-lg-offset3 {
+    margin-left: 25%
+  }
+  .lc-col-lg-offset4 {
+    margin-left: 33.33333333%
+  }
+  .lc-col-lg-offset5 {
+    margin-left: 41.66666667%
+  }
+  .lc-col-lg-offset6 {
+    margin-left: 50%
+  }
+  .lc-col-lg-offset7 {
+    margin-left: 58.33333333%
+  }
+  .lc-col-lg-offset8 {
+    margin-left: 66.66666667%
+  }
+  .lc-col-lg-offset9 {
+    margin-left: 75%
+  }
+  .lc-col-lg-offset10 {
+    margin-left: 83.33333333%
+  }
+  .lc-col-lg-offset11 {
+    margin-left: 91.66666667%
+  }
+  .lc-col-lg-offset12 {
+    margin-left: 100%
+  }
+}

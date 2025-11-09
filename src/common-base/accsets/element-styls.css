@@ -1,0 +1,120 @@
+.table-content-view{
+  max-height: 100%;
+}
+.el-table thead th,
+.el-table thead.is-group th {
+  background-color: #f2f3f4;
+  color: #333333;
+}
+
+.el-table .success-row, .el-table .success-row > td {
+  color: #CDFFCC !important;
+}
+.el-table .info-row, .el-table .info-row > td {
+  color: #f0f9eb !important;
+}
+.el-table .warning-row, .el-table .warning-row > td{
+  color: #FFE5AC !important;
+}
+.el-table .danger-row, .el-table .danger-row > td {
+  color: #E06E6E !important;
+}
+.el-table .disabled-row, .el-table .disabled-row > td {
+  color: #c5c8ce !important;
+}
+
+.el-menu-item, .el-submenu__title,.el-submenu .el-menu-item{
+  height: 40px;
+  line-height: 40px;
+}
+.el-input--small .el-input__inner{
+  height: 2.2857rem;
+}
+.el-input--suffix .el-input__inner,.el-input__inner{
+  padding-left: 5px;
+  padding-right: 0;
+}
+.el-input-number.is-controls-right .el-input__inner {
+  padding-left: 5px;
+  padding-right: 32px;
+}
+.el-input-number .el-input__inner{
+  text-align: left;
+}
+.el-date-editor .el-input__inner{
+  padding-left: 30px;
+}
+.el-date-editor--date .el-input__inner{
+  padding-left: 30px;
+}
+.el-date-editor.el-input, .el-date-editor.el-input__inner {
+   width: 100%;
+}
+.el-dialog{
+  max-width: 98%;
+}
+.el-checkbox{
+  margin-right: 15px;
+}
+.el-checkbox + .logical-operator-or{
+  margin-left: -15px;
+}
+.el-radio{
+  /* line-height: 32px; */
+  line-height: 2.2857rem;
+  height: 2.2857rem;
+}
+.el-select-dropdown{
+  max-width: 96%;
+}
+.el-radio-group label{
+  margin: 0;
+}
+.el-radio-group label:not(:first-child){
+  margin-left: 0px;
+}
+.vue-treeselect__control{
+  height: 32px !important;
+}
+.vue-treeselect__placeholder, .vue-treeselect__single-value{
+  line-height: 30px !important;
+}
+.viewport-header .el-menu .el-submenu__title{
+  padding: 0;
+}
+.viewport-header .el-submenu [class^=el-icon-] {
+  vertical-align: middle;
+  margin-right: 2px;
+  width: auto;
+  text-align: center;
+  font-size: inherit;
+}
+.el-submenu.is-active .el-submenu__title{
+  border-bottom-width: 0;
+}
+.el-menu--horizontal>.el-submenu.is-active .el-submenu__title{
+  border-bottom-width: 0;
+}
+.el-menu--horizontal .el-menu .el-menu-item .current{
+  position: relative;
+  color: #409EFF;
+  font-weight: bold;
+}
+.el-menu--horizontal .el-menu .el-menu-item .current:before{
+  position: absolute;
+  left: -10px;
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 1.5em;
+  background-color: #409EFF;
+}
+.el-table th{
+  text-align: center!important;
+}
+/*.el-menu--horizontal .el-menu .el-submenu__title > div{*/
+  /*display: inline-block;*/
+/*}*/
+.el-tabs__header.is-top{
+  padding: 0 15px;
+}

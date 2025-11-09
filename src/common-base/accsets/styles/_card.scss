@@ -1,0 +1,70 @@
+/**
+ * 卡片列表
+ * 卡片列表在APP中是比较常见的布局样式(PC端一样)，可以结合栅格系统实现漂亮的布局样式。
+ */
+
+.card{
+    &:not(:first-child){
+        margin-top: 10px;
+    }
+    &-body{
+        border-radius: 2px;
+        background-color: $background-default-color;
+    }
+    &-shadow{
+        box-shadow: 0 0 4px 0 rgba(0, 0, 0, .25);
+    }
+    //&:last-child {
+    //    margin-bottom: 0;
+    //}
+    &-header,
+    &-footer,
+    &-content,
+    &-content-padded,
+    &-content-padded-vertical,
+    &-content-padded-horizontal{
+        position: relative;
+        @extend .clearfix;
+    }
+    content-padded,
+    content-padded-horizontal,
+    content-padded-vertical,
+    &-content{
+        &:after{
+            content: '';
+            display: block;
+            height: 0;
+            clear: both;
+        }
+    }
+    &-header,
+    &-footer{
+        line-height: $card-header-line-height;
+        padding: $card-header-padding;
+        color: #333;
+    }
+    &-header{
+        border-bottom: 1px solid $border-color;
+        border-radius: 2px 2px 0 0;
+    }
+    &-footer{
+        border-top: 1px solid $border-color;
+        border-radius: 0 0 2px 2px;
+        color: #999;
+    }
+    &-content-padded{
+        padding: 10px 16px;
+    }
+    // 水平方向
+    &-content-padded-horizontal{
+        padding: 0 16px;
+    }
+    // 垂直方向
+    &-content-padded-vertical{
+        padding: 10px 0;
+    }
+    img{
+        display: block;
+        max-width: 100%;
+    }
+}

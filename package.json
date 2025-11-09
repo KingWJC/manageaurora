@@ -1,0 +1,113 @@
+{
+  "name": "manageaurora",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "local": "npx --max-old-space-size=4096 vue-cli-service serve --mode local",
+    "dev": "vue-cli-service serve --mode development",
+    "test": "vue-cli-service serve --mode test",
+    "pro": "vue-cli-service serve --mode pro",
+    "build-test": "vue-cli-service build --mode test --no-module",
+    "build-apptest": "vue-cli-service build --mode apptest --no-module",
+    "build": "vue-cli-service build --mode production --no-module",
+    "build-app": "vue-cli-service build --mode app --no-module",
+    "lint": "npx --max-old-space-size=4096 vue-cli-service lint"
+  },
+  "dependencies": {
+    "@antv/x6": "^2.18.1",
+    "@antv/x6-plugin-clipboard": "^2.1.6",
+    "@antv/x6-plugin-dnd": "^2.1.1",
+    "@antv/x6-plugin-export": "^2.1.6",
+    "@antv/x6-plugin-history": "^2.2.4",
+    "@antv/x6-plugin-keyboard": "^2.2.3",
+    "@antv/x6-plugin-selection": "^2.2.2",
+    "@antv/x6-plugin-snapline": "^2.1.7",
+    "@antv/x6-plugin-transform": "^2.1.8",
+    "@riophae/vue-treeselect": "^0.4.0",
+    "better-scroll": "^2.0.6",
+    "core-js": "^3.25.1",
+    "crypto-js": "^3.1.9-1",
+    "echarts": "^4.5.0",
+    "encryptlong": "^3.1.4",
+    "html2canvas": "^1.0.0-rc.5",
+    "jsbarcode": "^3.11.3",
+    "jssha": "^3.2.0",
+    "md5": "^2.2.1",
+    "pinyin-pro": "^3.23.1",
+    "pivottable": "^2.23.0",
+    "qrcode": "^1.4.4",
+    "tim-js-sdk": "^2.27.5",
+    "v-viewer": "1.5.1",
+    "vconsole": "^3.3.4",
+    "viewerjs": "^1.11.2",
+    "wangeditor": "^4.7.11",
+    "weixin-jsapi": "^1.1.0",
+    "xlsx": "^0.15.4",
+    "bignumber.js": "^9.1.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.19.0",
+    "@babel/eslint-parser": "^7.18.9",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-plugin-eslint": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "babel-plugin-component": "^1.1.1",
+    "babel-plugin-import": "^1.13.5",
+    "compression-webpack-plugin": "^10.0.0",
+    "copy-webpack-plugin": "11.0.0",
+    "element-ui": "^2.13.0",
+    "eslint": "^8.23.0",
+    "eslint-plugin-vue": "^9.4.0",
+    "sass": "^1.54.9",
+    "sass-loader": "^13.0.2",
+    "vue": "2.6.11",
+    "vue-router": "^3.4.9",
+    "vue-template-compiler": "2.6.11",
+    "vuex": "^3.6.0",
+    "webpack": "^5.74.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended",
+      "./src/common-base/.eslintrc.json"
+    ],
+    "ignorePatterns": [
+      "/src/common-base"
+    ],
+    "rules": {
+      "no-debugger": "off",
+      "no-console": "off",
+      "no-useless-escape": "off",
+      "no-prototype-builtins": "off",
+      "vue/no-unused-components": "off",
+      "vue/multi-word-component-names": "off",
+      "vue/no-mutating-props": "off",
+      "vue/no-reserved-component-names": "off"
+    },
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "globals": {
+      "vue": true,
+      "define": true,
+      "LonchJsApi": true,
+      "process": true,
+      "wx": true,
+      "vm": true
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions"
+  ]
+}

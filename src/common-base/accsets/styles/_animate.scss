@@ -1,0 +1,231 @@
+/* 动画
+ * animation: name duration timing-function delay iteration-count direction;
+ * animation-name: 规定需要绑定到选择器的 keyframe 名称
+ * animation-duration:	规定完成动画所花费的时间，以秒或毫秒计
+ * 		number 默认ms,ms毫秒,s秒
+ * animation-timing-function:规定动画的速度曲线
+ * 		linear：动画从头到尾的速度是相同的。
+ * 		ease:默认。动画以低速开始，然后加快，在结束前变慢
+ * 		ease-in:动画以低速开始。
+ * 		ease-out:动画以低速结束
+ * 		ease-in-out:动画以低速开始和结束。
+ * 		cubic-bezier(n,n,n,n):使用名为三次贝塞尔（Cubic Bezier）函数的数学函数，来生成速度曲线。您能够在该函数中使用自己的值,可能的值是从 0 到 1 的数值
+ * animation-delay:	规定在动画开始之前的延迟
+ * 		number 默认ms,ms毫秒,s秒
+ * animation-iteration-count:规定动画应该播放的次数
+ * 		n
+ * 		infinite:
+ * animation-direction:	规定是否应该轮流反向播放动画。
+ * 		normal 	默认值。动画应该正常播放。
+ * 		alternate:则动画会在奇数次数（1、3、5 等等）正常播放，而在偶数次数（2、4、6 等等）向后播放
+ */
+.animated {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  &-fast {
+    animation-duration: 300ms;
+  }
+  &-slow {
+    animation-duration: 2000ms;
+  }
+  &-linear {
+    animation-timing-function: linear;
+  }
+  &-ease {
+    animation-timing-function: ease;
+  }
+  &-easein {
+    animation-timing-function: ease-in;
+  }
+  &-easeout {
+    animation-timing-function: ease-out;
+  }
+  &-easeinout {
+    animation-timing-function: ease-in-out;
+  }
+  &-infinite {
+    animation-iteration-count: infinite;
+  }
+  &-propertyAll {
+    transition-property: all;
+  }
+  &-property-width {
+    transition-property: width;
+  }
+  &-property-height {
+    transition-property: height;
+  }
+}
+
+//.hinge {
+//    -webkit-animation-duration: 2s;
+//    -moz-animation-duration: 2s;
+//    -ms-animation-duration: 2s;
+//    -o-animation-duration: 2s;
+//    animation-duration: 2s;
+//}
+//.fast {
+//  animation-duration: 300ms;
+//}
+//
+//.slow {
+//  animation-duration: 2000ms;
+//}
+
+///
+//.flipOutX,
+//.flipOutY,
+//.bounceIn,
+//.bounceOut {
+//    -webkit-animation-duration: .75s;
+//    -moz-animation-duration: .75s;
+//    -ms-animation-duration: .75s;
+//    -o-animation-duration: .75s;
+//    animation-duration: .75s;
+//}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fadeIn {
+  animation-name: fadeIn;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fadeOut {
+  @extend .animated;
+  animation-name: fadeOut;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    -webkit-transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    opacity: 1;
+    -webkit-transform: none;
+    transform: none;
+  }
+}
+
+.fadeInDown {
+  @extend .animated;
+  animation-name: fadeInDown;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translate3d(-100%, 0, 0);
+    visibility: visible;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slideInLeft {
+  @extend .animated;
+  animation-name: slideInLeft;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translate3d(100%, 0, 0);
+    visibility: visible;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slideInRight {
+  @extend .animated;
+  animation-name: slideInRight;
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    visibility: hidden;
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+.slideOutLeft {
+  @extend .animated;
+  animation-name: slideOutLeft;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    visibility: hidden;
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+.slideOutRight {
+  @extend .animated;
+  animation-name: slideOutRight;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translate3d(0, -100%, 0);
+    visibility: visible;
+    height: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    height: inherit;
+  }
+}
+
+.slideInDown {
+  @extend .animated;
+  animation-name: slideInDown;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+    visibility: visible;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slideInUp {
+  @extend .animated;
+  animation-name: slideInUp;
+}

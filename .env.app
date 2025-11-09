@@ -1,0 +1,5 @@
+NODE_ENV = 'production'
+VUE_APP_NAME='app-production'
+VUE_APP_MODE = 'production'
+VUE_APP_CDN = 'app'
+VUE_APP_COMMENT='app应用包'

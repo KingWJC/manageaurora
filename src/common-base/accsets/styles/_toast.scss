@@ -1,0 +1,56 @@
+.toast {
+  position: relative;
+  z-index: 10000;
+  &-mask {
+    position: fixed;
+    display: block;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: $mask-background-color;
+  }
+  &-content {
+    position: fixed;
+    left: 50%;
+    margin-left: -50px;
+    display: inline-block;
+    max-width: 300px;
+    padding: 16px;
+    line-height: 24px;
+    border-radius: 6px;
+    background-color: $toast-background-color;
+    color: $toast-color;
+    box-shadow: 0 0 3px 0 rgba(0, 0, 0, .1);
+    &-top {
+      top: 0;
+    }
+    &-center {
+      top: 50%;
+    }
+    &-bottom {
+      bottom: 0;
+    }
+  }
+}
+
+.modal-fade-enter, .modal-fade-leave-to {
+  transform: scale(0);
+}
+
+.modal-fade-enter-active {
+  animation: fade-in 300ms;
+}
+
+.modal-fade-leave-active {
+  animation: fade-in 300ms reverse;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

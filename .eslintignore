@@ -1,0 +1,8 @@
+/build/
+/.history/
+/config/
+/dist/
+/_book/
+/*.js
+/node_modules/
+/test/unit/coverage/

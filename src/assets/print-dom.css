@@ -1,0 +1,18 @@
+@media screen {
+  .print-wrapper {
+    position: relative;
+    display: none;
+  }
+}
+@media print {
+  .print-wrapper {
+    position: relative;
+    z-index: 999999;
+    display: block;
+    color: #000000;
+    background-color: #ffffff;
+  }
+  .print-wrapper ~ div {
+    display: none !important;
+  }
+}

@@ -1,0 +1,456 @@
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fl {
+  float: left;
+}
+
+.fr {
+  float: right;
+}
+.ofa{
+  overflow: auto;
+}
+.ofh{
+  overflow: hidden!important;
+}
+.full {
+  width: 100%;
+  height: 100%;
+}
+
+.full-width {
+  width: 100%;
+}
+.half-full-width {
+  width: 50%;
+}
+.full-height {
+  height: 100%;
+}
+
+.none,
+.hidden {
+  display: none;
+}
+
+.show {
+  display: initial;
+}
+
+.block {
+  display: block;
+}
+
+.inline {
+  display: inline;
+}
+
+.inline-block {
+  display: inline-block;
+}
+.clear {
+  &:after {
+    content: '';
+    clear: both;
+    display: block;
+  }
+}
+
+.disabled,
+[disabled] {
+  cursor: not-allowed;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ellipsis-1,
+.ellipsis-2 {
+  display: -webkit-box;
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: normal;
+}
+.ellipsis-2 {
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.nowrap {
+  white-space: nowrap !important;
+}
+
+.wrap {
+  white-space: normal !important;
+}
+
+.breakword {
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.tac {
+  text-align: center;
+}
+
+.tal {
+  text-align: left;
+}
+
+.tar {
+  text-align: right;
+}
+
+.justify {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.vam {
+  vertical-align: middle;
+}
+
+.vat {
+  vertical-align: top;
+}
+
+.vab {
+  vertical-align: bottom;
+}
+
+.indent {
+  text-indent: 2em;
+}
+
+.unindent {
+  text-indent: 0;
+}
+
+.fs-s {
+  font-size: .75rem;
+}
+
+.fs-sm {
+  font-size: .875rem;
+}
+
+.fs-m {
+  font-size: 1rem;
+}
+.fs-ml {
+  font-size: 1.125rem;
+}
+
+.fs-l {
+  font-size: 1.28571429rem;
+}
+
+.fs-lg {
+  font-size: 1.414285714rem;
+}
+.fs-12 {
+  font-size: 12px;
+}
+.power-flex{display: flex;}
+.power-fs14{font-size: 14px;}
+.power-fs16{font-size: 16px;}
+.power-fs18{font-size: 18px;}
+.power-fs22{font-size: 18px;}
+.power-fs26{font-size: 26px;}
+.power-fs28{font-size: 28px;}
+.power-fs30{font-size: 30px;}
+.power-fs36{font-size: 36px;}
+.power-fs38{font-size: 38px;}
+.power-fs40{font-size: 40px;}
+.power-fs42{font-size: 42px;}
+.power-fs48{font-size: 48px;}
+.power-fs50{font-size: 50px;}
+.power-fs60{font-size: 60px;}
+.power-zi101{z-index: 101;}
+.power-va5{vertical-align: 5px;}
+.power-vam{vertical-align:middle;}
+.power-btrr5{border-top-right-radius: 5px;}
+.power-br5{border-radius: 5px;}
+.power-minw45{min-width: 45px;}
+.power-minw70{min-width: 70px;}
+.power-minw100{min-width: 100px;}
+.power-minw120{min-width: 120px;}
+.power-maxw150{max-width: 150px;}
+.power-w70px{width: 70px;}
+.power-w100px{width: 100px;}
+.power-w120px{width: 120px;}
+.power-w150px{width: 150px!important;}
+.power-w410px{width: 410px;}
+.power-w90per{width: 90%;}
+.power-w80per{width: 80%;}
+.power-w70per{width: 70%;}
+.power-w50per{width: 50%;}
+.power-w40per{width: 40%;}
+.power-w33per{width: 33%;}
+.power-w30per{width: 30%;}
+.power-w28per{width: 28%;}
+.power-w25per{width: 25%;}
+.power-w20per{width: 20%;}
+.power-w17per{width: 17%;}
+.power-w16per{width: 16%;}
+.power-w15per{width: 15%;}
+.power-w12per{width: 12%;}
+.power-w10per{width: 10%;}
+.power-w9per{width: 9%;}
+.power-w8per{width: 8%;}
+.power-w7per{width: 7%;}
+.power-w6per{width: 6%;}
+.power-w5per{width: 5%;}
+.power-w4per{width: 4%;}
+.power-w3per{width: 3%;}
+.power-w2per{width: 2%;}
+.power-w1per{width: 1%;}
+.power-fixed{position:fixed;}
+.power-t0{top:0;}
+.power-tf3{top:-3px;}
+.power-tf6{top:-6px;}
+.power-l0{left:0;}
+.power-r0{right:0;}
+.power-rf3{right:-3px;}
+.power-rf6{right:-6px;}
+.power-b0{bottom:0;}
+.power-clear{clear: both;}
+.power-noHeight{height:1px;line-height: 1px;overflow: hidden;padding: 0px!important;}
+.power-mt5{margin-top: 5px!important;}
+.power-h48{height: 48px!important;}
+.power-cursorPointer{cursor:pointer;}
+.power-tdNone{text-decoration:none!important;}
+.power-tdUl{text-decoration:underline;}
+.power-lineHeight20{line-height:20px;}
+.power-lineHeight25{line-height:25px;}
+.power-lineHeight30{line-height:30px;}
+.power-lineHeight40{line-height:40px;}
+.power-lineHeight18s{line-height:1.8;}
+.power-lineHeight15s{line-height:1.5;}
+.power-ti2{text-indent: 2em;}
+.power-fsn{font-style:normal!important;}
+.power-fwb{font-weight: bold;}
+.power-fwn{font-weight: normal;}
+.power-wb{word-break: break-word;}
+.power-borb{border-bottom:1px solid #ccc;}
+.power-borOrange{border: 1px solid #E6A23C;}
+.power-dialogsty1{position:fixed;top:0px;z-index:10;}
+.power-frame{width:100%;height:calc(100% - 1px);background:#fff;border:0;position:fixed;top:0px;left:0;right:0;z-index:9;}
+.power-frame1{width:100%;height:calc(100% - 45px);background:#fff;border:0;position:fixed;top:45px;left:0;right:0;z-index:10;}
+.power-mt0{margin-top:0px!important;}
+.power-pt0{padding-top:0px!important;}
+.power-ofy{overflow-y: auto;}
+.power-ofyh{overflow-y: hidden;}
+.power-bgblue-1{background:#ede3f6;}
+.power-bor-1{border:1px solid #e5d5f4;}
+.power-bor-2{border:1px solid #1d98e5;}
+.power-bor-gray{border:1px solid #ccc;}
+.power-bor-orange{border: 1px solid #E6A23C;}
+.power-bor-red{border: 1px solid #d33333;}
+.power-borb-gray{border:1px solid #ccc;}
+.power-bor-s-1{box-shadow: 0 0 3px 0 rgba(0,0,0,.3);}
+.power-bor-none{border: none}
+.power-orange{color: #E6A23C; }
+.power-imgStyle-1{position: absolute;top:-10px;right:-10px;width: 28px;height:28px;padding:2px;border-radius:100%;z-index: 1;background-color: #f7f7f7;box-shadow: 0 0 3px 0 rgba(0,0,0,.3);opacity: .75;}
+.power-wordStyle-1{position: absolute;top:12px;left:40px;cursor:pointer}
+.power-wordStyle-2{word-wrap:break-word;word-break:normal;}
+.power-fa{flex:auto;}
+.power-f1{flex: 1}
+.power-fh5{flex: 0.5}
+.power-fsh0{flex-shrink: 0}
+.power-watermark{background: url("./../images/lonchLogoBg.png");background-repeat: repeat;}
+.clearfix {
+  zoom: 1;
+  clear: both;
+  &:before,
+  &:after {
+    content: "";
+    display: table;
+  }
+  &:after {
+    clear: both;
+    visibility: hidden;
+    font-size: 0;
+    height: 0;
+  }
+}
+.pointer-events-none{
+  pointer-events:none;
+}
+.link {
+  color: #40a9ff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-position: under;
+}
+.b,.strong{
+  font-weight: bold;
+}
+.split-line{
+  border-top: 1px dashed #c5c8ce;
+  font-size: 0;
+  height: 0;
+}
+
+.logical-operator{
+  display: inline;
+  width: 1.5rem;
+  text-align: center;
+  &-and, &-or{
+    @extend .logical-operator;
+    color: orange;
+  }
+  &-and:before{
+    content: '&';
+    display: inline;
+  }
+  &-or:before{
+    content: '|';
+    display: inline;
+  }
+}
+// height
+$i: 0;
+@while $i < 1000 {
+  .power-h#{$i} {
+    height: #{$i}px!important;
+  }
+  $i: $i + $patch-step;
+}
+// max-height
+$i: 0;
+@while $i < 1000 {
+  .power-maxh#{$i} {
+    max-height: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// width
+$i: 0;
+@while $i < 5000 {
+  .power-w#{$i} {
+    width: #{$i}px!important;
+  }
+  $i: $i + $patch-step;
+}
+
+// max-width
+$i: 0;
+@while $i < 1000 {
+  .power-maxw#{$i} {
+    max-width: #{$i}px!important;
+  }
+  $i: $i + $patch-step;
+}
+
+// min-width
+$i: 0;
+@while $i < 1000 {
+  .power-minw#{$i} {
+    min-width: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+$i: 0;
+@while $i < $patch-size {
+  .p#{$i} {
+    padding: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-top
+$i: 0;
+@while $i < $patch-size {
+  .pt#{$i} {
+    padding-top: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-right
+$i: 0;
+@while $i < $patch-size {
+  .pr#{$i} {
+    padding-right: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-bottom
+$i: 0;
+@while $i < $patch-size {
+  .pb#{$i} {
+    padding-bottom: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-left
+$i: 0;
+@while $i < $patch-size {
+  .pl#{$i} {
+    padding-left: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// margin
+$i: 0;
+@while $i < $patch-size {
+  .m#{$i} {
+    margin: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-top
+$i: 0;
+@while $i < $patch-size {
+  .mt#{$i} {
+    margin-top: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-right
+$i: 0;
+@while $i < $patch-size {
+  .mr#{$i} {
+    margin-right: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-bottom
+$i: 0;
+@while $i < $patch-size {
+  .mb#{$i} {
+    margin-bottom: #{$i}px;
+  }
+  $i: $i + $patch-step;
+}
+
+// padding-left
+$i: 0;
+@while $i < $patch-size {
+  .ml#{$i} {
+    margin-left: #{$i}px;
+  }
+  .iml#{$i} {
+    margin-left: #{$i}px!important;
+  }
+  $i: $i + $patch-step;
+}
+

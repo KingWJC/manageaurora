@@ -1,0 +1,116 @@
+// Variables
+
+$font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Microsoft YaHei, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !default;
+// Color system
+$default-color: #333333;
+$white:    #fff !default;
+$gray-100: #F5F5F5 !default;
+$gray-200: #EEEEEE !default;
+$gray-300: #E5E5E5 !default;
+$gray-400: #D9D9D9 !default;
+$gray-500: #B5B5B5 !default;
+$gray-600: #999999 !default;
+$gray-700: #666666 !default;
+$gray-800: #333333 !default;
+$gray-900: #1A1A1A !default;
+
+$blue:    #51AFC9 !default;
+$pink:    #FFDFDF !default;
+$red:     #E06E6E !default;
+$orange:  #f28900 !default;
+$yellow:  #FFE5AC !default;
+$green:   #43CF7C !default;
+$gray: #D9D9D9 !default;
+$primary:       #4badea;
+$secondary:     $gray-600 !default;
+$success:       $green !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+$light:         $gray-100 !default;
+$dark:          $gray-800 !default;
+$darkgray:      darkgray !default;
+$black:      #000000 !default;
+// 背景色
+$background-color: #f7f7f7; // default
+$background-default-color: #fff; // default
+$background-hover-color: #f3f3f3;
+$border-color: #dcdee2; // 边框颜色
+$disabled-color: #c5c8ce; // 禁用
+$col-columns: 12; //
+// 间距设置
+$space-columns: 32; //生成的间距最大值
+$space-step: 2; // 生成间距的步数
+// 屏幕适配尺寸
+$screen-min-xs: 480px; // xs超小屏幕 如手机 （米5竖屏）
+$screen-min-sm: 768px; // sm小屏幕 如平板 （pad竖屏,手机横屏)
+$screen-min-md: 992px; // md 桌面中等屏幕 （PAD 横屏）
+$screen-min-lg: 1200px; // lg 桌面大屏幕
+
+
+$viewport-view-background-color: #ffffff;
+$viewport-header-background-color: #f2f2f2;
+$viewport-header-color: #ffffff;
+$viewport-sub-header-color: $default-color;
+$viewport-sub-header-background-color: $background-default-color;
+$viewport-header-height-xs: 2.2857142857142856rem;
+$viewport-header-height-s: 2.5714285714285716rem;
+$viewport-header-height: 3.142857142857143rem;
+$viewport-header-height-m: 3.5714285714285716rem;
+$viewport-header-height-l: 4.285714285714286rem;
+$viewport-header-height-xl: 5.714285714285714rem;
+$viewport-header-height-xxl: 7.142857142857143rem;
+$viewport-footer-background-color: $secondary;
+$viewport-footer-height-xs: 2.2857142857142856rem;
+$viewport-footer-height-s: 2.5714285714285716rem;
+$viewport-footer-height: 3.142857142857143rem;
+$viewport-footer-height-m: 3.5714285714285716rem;
+$viewport-footer-height-l: 4.285714285714286rem;
+$viewport-footer-height-xl: 5.714285714285714rem;
+$viewport-footer-height-xxl: 7.142857142857143rem;
+
+
+$patch-size: 1000;
+$patch-step: 5;
+// mask
+$mask-background-color: rgba(0, 0, 0, .5);
+$toast-background-color: rgba(0, 0, 0, .95);
+$toast-color: #ffffff;
+// card
+$card-header-line-height: 2rem;
+$card-header-padding: 8px 15px;
+
+//Button sizes
+@mixin button-size($padding-y, $padding-x, $font-size, $line-height, $border-radius) {
+  padding: $padding-y $padding-x;
+  font-size: $font-size;
+  line-height: $line-height;
+  border-radius: $border-radius;
+}
+
+//hover
+@mixin hover {
+  &:hover { @content; }
+}
+
+@mixin hover-focus {
+  &:hover,
+  &:focus {
+    @content;
+  }
+}
+
+@mixin plain-hover-focus {
+  &,
+  &:hover,
+  &:focus {
+    @content;
+  }
+}
+
+@mixin hover-focus-active {
+  &:hover,
+  &:focus,
+  &:active {
+    @content;
+  }
+}

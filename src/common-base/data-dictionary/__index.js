@@ -1,0 +1,17 @@
+export default {
+  degree: window.degree,
+  diploma: window.diploma,
+  educationalStage: window.educationalStage,
+  ethnicity: window.ethnicity,
+  gender: window.gender,
+  identificationType: window.identificationType,
+  maritalSituation: window.maritalSituation,
+  registeredResidenceType: window.registeredResidenceType,
+  caNationality: window.caNationality,
+  caPersonnelRelationship: window.caPersonnelRelationship,
+  caEducationNature: window.caEducationNature,
+  politicalOutlookCode: window.politicalOutlookCode,
+  caCollegeNature: window.caCollegeNature,
+  businessTypes: window.businessTypes,
+  systemCodes: window.systemCodes,
+}

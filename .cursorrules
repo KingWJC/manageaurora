@@ -1,0 +1,184 @@
+# Cursor Rules for lonch-angels-wings-app
+
+[meta]
+project_name = "lonch-angels-wings-app"
+primary_language = "JavaScript"
+package_manager = "yarn"
+node_version = "18.12.1"
+
+[stack]
+framework = "Vue"
+framework_version = "2.7.x"
+runtime = "browser"
+bundler = "webpack@5"
+cli = "@vue/cli-service@5"
+router = "vue-router@3"
+store = "vuex@3"
+ui_libs = ["element-ui@2", "vant@2"]
+style = ["scss", "postcss-autoprefixer"]
+
+[build]
+# Use vue-cli-service for tasks; modes map to env files.
+commands.dev = "vue-cli-service serve --mode development"
+commands.test = "vue-cli-service serve --mode test"
+commands.local = "npx --max-old-space-size=4096 vue-cli-service serve --mode local"
+commands.pro = "vue-cli-service serve --mode production"
+commands.build_prod = "vue-cli-service build --mode production --no-module"
+commands.build_test = "vue-cli-service build --mode test --no-module"
+commands.build_apptest = "vue-cli-service build --mode apptest --no-module"
+output_dir = "dist"
+public_path = "./"
+assets_dir = "assets"
+source_maps_in_prod = false
+
+[dev_server]
+host_env = "VUE_APP_HOST"
+port_env = "VUE_APP_PORT"
+default_port = 8099
+
+[externals]
+# These are provided via CDN injection (see vue.config.js html plugin)
+provided = ["vue", "vue-router", "axios", "html2canvas"]
+
+[conventions]
+- Prefer Vue 2 options API; avoid composition API.
+- Register global plugins/components in src/main.js as done currently (Viewer, Confirm, Toast, directives, filters).
+- Keep router overrides for push/go behavior as-is; ensure navigation errors are caught.
+- Do not import Vue from ESM; CommonJS require('vue') is used in main.js.
+- Use SCSS; global entry is src/assets/styles/index.scss. Keep variables in _variables.scss.
+- Images and static assets live under src/assets; reference via webpack alias @.
+- Respect submodule under src/common-base; do not modify its lint rules, and extend from src/common-base/.eslintrc.json.
+- Keep ResizeObserver polyfill for legacy iPad support.
+- VConsole is off by default; enable only for test/apptest or via 20-click gesture.
+- Element-UI styles come from element-ui/lib/theme-chalk/index.css; avoid re-importing per-component styles.
+- Use babel-plugin-import for Vant to enable on-demand loading with style=true.
+- Stick to Yarn; lockfile is yarn.lock. Do not add pnpm/npm lockfiles.
+
+[eslint]
+extends = ["plugin:vue/essential", "eslint:recommended", "./src/common-base/.eslintrc.json"]
+parser = "@babel/eslint-parser"
+rules_override = {
+  "no-debugger": "off",
+  "no-console": "off",
+  "no-useless-escape": "off",
+  "no-prototype-builtins": "off",
+  "vue/no-unused-components": "off",
+  "vue/multi-word-component-names": "off",
+  "vue/no-mutating-props": "off",
+  "vue/no-reserved-component-names": "off"
+}
+ignored_dirs = ["src/common-base"]
+
+[aliases]
+@ = "src"
+
+[coding_style]
+- Use semicolons consistently.
+- Use single quotes for strings where practical.
+- Prefer descriptive variable and function names; avoid 1-2 letter names.
+- Keep components under src/components and views under src/views following current structure.
+- Router in src/router/index.js; Store in src/store/index.js.
+- Avoid deep nesting; extract utilities into src/config/utils.js or src/common-base.
+
+[dependencies.core]
+vue = "^2.6.11"
+vue_router = "^3.4.9"
+vuex = "^3.6.0"
+@vue_cli_service = "^5.0.8"
+webpack = "^5.74.0"
+core_js = "^3"
+
+[dependencies.ui]
+element_ui = "^2.13.0"
+vant = "^2.12.6"
+viewerjs = "^1.11.0"
+v_viewer = "^1.5.1"
+el_table_infinite_scroll = "^2.0.0"
+swiper = "11.2.6"
+
+[dependencies.tools]
+eslint = "^8"
+eslint_plugin_vue = "^9"
+@babel_core = "^7"
+@babel_eslint_parser = "^7"
+sass = "^1.54.9"
+sass_loader = "^13.0.2"
+copy_webpack_plugin = "11.0.0"
+node_polyfill_webpack_plugin = "^2.0.1"
+
+[security]
+- Do not commit secrets to the repo. Use env files per mode or system env.
+- Validate any third-party script URLs injected via CDN config.
+
+[performance]
+- Production builds use hashed filenames and no source maps.
+- Large libs should be externals where feasible; import from CDN via cdn-config.
+- Use on-demand imports for UI libs; avoid bundling unused components.
+
+[testing]
+- Manual QA on http(s)://<host>:<port> per README host/port.
+- Ensure legacy Safari/iPad is tested due to polyfills.
+
+[migration_notes]
+- If migrating to Vue 3, this configuration is not compatible. Replace Element-UI with Element Plus and update router/store to next versions; drop externals list and adjust build chain.
+
+[cdn]
+# Base CDN assets injected into index.html via html plugin args
+css = [
+  "/element-ui-2.13.0.css",
+  "/vue-treeselect.min-v0.4.0.css"
+]
+js = [
+  "/vue@2.6.11.js",
+  "/vue-router@3.1.6.js",
+  "/axios@0.21.0.js"
+]
+# Merge with common-base config via VUE_APP_CDN key
+common_base_key_env = "VUE_APP_CDN"
+
+[env]
+# Modes supported by scripts; map to .env.<mode> if present
+modes = ["local", "development", "test", "apptest", "production", "app"]
+host_env = "VUE_APP_HOST"
+port_env = "VUE_APP_PORT"
+
+[directories]
+root = "."
+src = "src"
+assets = "src/assets"
+components = "src/components"
+views = "src/views"
+router = "src/router/index.js"
+store = "src/store/index.js"
+config = "src/config"
+common_base = "src/common-base" # git submodule; treat as vendor
+public = "public"
+output = "dist"
+
+[quality]
+sonar.projectKey = "lonch-angels-wings-app"
+sonar.projectName = "lonch-angels-wings-app"
+sonar.sourceEncoding = "UTF-8"
+# Set sonar.sources in CI to restrict analysis scope if needed
+
+[eslint.globals]
+# Known globals used across the project
+LonchJsApi = true
+process = true
+$ = true
+wx = true
+vue = true
+vm = true
+
+[runtime_notes]
+- Window ResizeObserver polyfilled for legacy iPad; keep install() in main.
+- Keep html2canvas external name as 'html2canvas' matching externals map key.
+- Router push/go behavior sets meta.mt flags; ensure features depending on mt remain stable.
+
+[ci_cd]
+- Use yarn for installs and scripts.
+- Node 18.12.1 per README; avoid newer Node without testing due to node-sass/sass and cli constraints.
+
+[data_printing]
+- Printing templates located under public/print and controlled via Config.settingsDcData.
+- Static print CSS under src/assets/print-dom.css.

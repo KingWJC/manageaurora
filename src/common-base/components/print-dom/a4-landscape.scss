@@ -1,0 +1,18 @@
+.a4-landscape {
+  font-family: "宋体", SimSun, SimSun-ExtB;
+  width: 1123px;
+  height: 793px;
+  padding: 30px;
+  position: relative;
+  font-size: 12px;
+  background-color: #FFFFFF;
+}
+@media print {
+  .a4-landscape {
+    width: 1123px;
+    height: 793px;
+    padding: 30px;
+    color: #000000;
+    font-family: "宋体", SimSun, SimSun-ExtB;
+  }
+}

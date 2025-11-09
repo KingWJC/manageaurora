@@ -1,0 +1,47 @@
+.container{
+  width: 100%;
+  &-padded{
+    padding: 15px;
+  }
+  &-horizontal-padded{
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  &-vertical-padded{
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+}
+.panel {
+  width: 100%;
+  //min-width: min-content;
+  &-content {
+    @extend .panel;
+    &-padded {
+      padding: 15px;
+    }
+    &-horizontal-padded{
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+    &-vertical-padded{
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+  }
+  &-table-content{
+    @extend .panel;
+    &-padded {
+      padding: 15px;
+    }
+    &-horizontal-padded{
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+    &-vertical-padded{
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+    max-height: 100%;
+  }
+}

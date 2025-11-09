@@ -1,0 +1,110 @@
+
+.viewport, .viewport-body, .viewport-fixed, .viewport-view, .viewport-view-body {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+.viewport-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+}
+.viewport-view .viewport-fixed{
+  position: absolute;
+}
+
+.viewport-fixed > .viewport-view,
+.viewport-fixed > .viewport-view > .viewport-view-body {
+  height: 100%;
+  overflow: auto;
+  //z-index: 1;
+}
+
+.viewport-header,
+.viewport-footer{
+  position: fixed;
+  width: 100%;
+  z-index:10;
+  box-sizing: border-box;
+  //overflow-x: auto;
+}
+.viewport-header ~ .viewport-view .viewport-header,
+.viewport-header ~ .viewport-view .viewport-footer{
+  z-index: 9;
+}
+.viewport-header{
+  position: fixed;
+  top: 0;
+  left: 0;
+  color: $viewport-header-color;
+  background-color: $viewport-header-background-color;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .3);
+  height: $viewport-header-height;
+  .link{
+    color: $viewport-header-color;
+  }
+}
+.viewport-view .viewport-header{
+  color: $viewport-sub-header-color;
+  background-color: $viewport-sub-header-background-color;
+  .link{
+    color: $viewport-sub-header-color;
+  }
+}
+.viewport-header-padded{
+  padding: 0 15px;
+}
+.viewport .viewport .viewport-header,
+.viewport-fixed .viewport-header,
+.viewport .viewport .viewport-footer,
+.viewport-fixed .viewport-footer{
+  position: absolute;
+}
+
+// .viewport-header {height: $viewport-header-height;}
+.viewport-header-xs {height: $viewport-header-height-xs;}
+.viewport-header-s {height: $viewport-header-height-s;}
+.viewport-header-m {height: $viewport-header-height-m;}
+.viewport-header-l {height: $viewport-header-height-l;}
+.viewport-header-xl {height: $viewport-header-height-xl;}
+.viewport-header-xxl {height: $viewport-header-height-xxl;}
+
+.viewport-header ~ .viewport-view {padding-top: $viewport-header-height;}
+.viewport-header-xs ~ .viewport-view {padding-top: $viewport-header-height-xs;}
+.viewport-header-s ~ .viewport-view {padding-top: $viewport-header-height-s;}
+.viewport-header-m ~ .viewport-view {padding-top: $viewport-header-height-m;}
+.viewport-header-l ~ .viewport-view {padding-top: $viewport-header-height-l;}
+.viewport-header-xl ~ .viewport-view {padding-top: $viewport-header-height-xl;}
+.viewport-header-xxl ~ .viewport-view {padding-top: $viewport-header-height-xxl;}
+
+.viewport-footer{
+  left: 0;bottom: 0;
+  height: $viewport-footer-height;
+  background-color: $viewport-footer-background-color;
+  box-shadow: 0 -1px 3px 0 rgba(0, 0, 0, .15);
+}
+.viewport-view .viewport-footer{
+  color: $default-color;
+  background-color: $background-default-color;
+}
+.viewport-footer-padded{
+  padding: 0 15px;
+  overflow-x: auto;
+}
+.viewport-footer-xs{height: $viewport-footer-height-xs;}
+.viewport-footer-s{height: $viewport-footer-height-s;}
+.viewport-footer-m{height: $viewport-footer-height-m;}
+.viewport-footer-l{height: $viewport-footer-height-l;}
+.viewport-footer-xl{height: $viewport-footer-height-xl;}
+.viewport-footer-xxl{height: $viewport-footer-height-xxl;}
+.viewport-footer ~ .viewport-view {padding-bottom: $viewport-footer-height;}
+.viewport-footer-xs ~ .viewport-view {padding-bottom: $viewport-footer-height-xs;}
+.viewport-footer-s ~ .viewport-view {padding-bottom: $viewport-footer-height-s;}
+.viewport-footer-m ~ .viewport-view {padding-bottom: $viewport-footer-height-m;}
+.viewport-footer-l ~ .viewport-view {padding-bottom: $viewport-footer-height-l;}
+.viewport-footer-xl ~ .viewport-view {padding-bottom: $viewport-footer-height-xl;}
+.viewport-footer-xxl ~ .viewport-view {padding-bottom: $viewport-footer-height-xxl;}

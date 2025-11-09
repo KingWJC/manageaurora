@@ -1,0 +1,126 @@
+/**
+ *	定义元素间距，用于栅格系统，elf-list 控制媒体列表间距
+ */
+.lc-space {
+  margin: 0px
+}
+
+.lc-space > * {
+  padding: 0px
+}
+
+.lc-space1 {
+  margin: -.5px
+}
+
+.lc-space1 > * {
+  padding: .5px
+}
+
+.lc-space2 {
+  margin: -1px
+}
+
+.lc-space2 > * {
+  padding: 1px
+}
+
+.lc-space4 {
+  margin: -2px
+}
+
+.lc-space4 > * {
+  padding: 2px
+}
+
+.lc-space6 {
+  margin: -3px
+}
+
+.lc-space6 > * {
+  padding: 3px
+}
+
+.lc-space8 {
+  margin: -4px
+}
+
+.lc-space8 > * {
+  padding: 4px
+}
+
+.lc-space10 {
+  margin: -5px
+}
+
+.lc-space10 > * {
+  padding: 5px
+}
+
+.lc-space12 {
+  margin: -6px
+}
+
+.lc-space12 > * {
+  padding: 6px
+}
+
+.lc-space14 {
+  margin: -7px
+}
+
+.lc-space15 > * {
+  padding: 7px
+}
+
+.lc-space16 {
+  margin: -8px
+}
+
+.lc-space16 > * {
+  padding: 8px
+}
+
+.lc-space18 {
+  margin: -9px
+}
+
+.lc-space18 > * {
+  padding: 9px
+}
+
+.lc-space20 {
+  margin: -10px
+}
+
+.lc-space20 > * {
+  padding: 10px
+}
+
+.lc-space22 {
+  margin: -11px
+}
+
+.lc-space22 > * {
+  padding: 11px
+}
+
+.lc-space24 {
+  margin: -12px;
+  &  > * {
+    padding: 12px
+  }
+}
+.lc-space30 {
+  margin: -15px;
+  & > * {
+    padding: 15px;
+  }
+}
+
+.lc-space32 {
+  margin: -16px;
+  & > * {
+    padding: 16px;
+  }
+}

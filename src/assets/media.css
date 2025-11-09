@@ -1,0 +1,211 @@
+.left-side {
+  position: relative;
+  overflow-y: auto;
+  background-color: gold;
+  height: 100%;
+  margin-right: 5px;
+  box-shadow: 1px 0 5px 0 rgba(0, 0, 0, 0.3);
+}
+
+.left-side-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background-color: black;
+}
+
+.left-side-mask + * {
+  z-index: 1;
+}
+
+.left-side > .viewport, .left-side > .viewport .viewport-body {
+  height: 100%;
+  background-color: #ffffff;
+}
+
+.main-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.el-menu-vertical-demo {
+  border-right-width: 0;
+}
+
+.el-menu-vertical-demo .el-menu-item.is-active {
+  color: #ffffff;
+  background-color: #4badea;
+}
+
+.pvtUi {
+  min-width: 100%;
+}
+
+.pvtUi > tbody > tr > td:first-child {
+  max-width: 200px;
+  padding: 5px;
+}
+
+.pvtUi select {
+  border-color: #d9d9d9;
+}
+
+.pvtUi .pvtHorizList li {
+  display: inline-block;
+}
+
+.pvtUi .pvtAggregator {
+  max-width: 75%;
+}
+
+.pvtUi .pvtUiCell {
+  background-color: #f2f3f4;
+  border: solid 1px #999999;
+}
+
+.pvtUi .pvtRenderer {
+  width: 100%;
+}
+
+.pvtUi .pvtAttrDropdown {
+  width: 100%;
+}
+
+.pvtUi table.pvtTable tbody tr td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.pvtUi button + button {
+  margin-left: 10px;
+}
+
+.xk-app .left-side .viewport-header {
+  background-color: #000000;
+}
+
+.xk-app .left-side > .viewport, .xk-app .left-side > .viewport .viewport-body {
+  height: 100%;
+  background-color: #3c3c3c;
+}
+
+.xk-app .left-side .el-menu {
+  background-color: #3c3c3c;
+  color: #ffffff;
+}
+
+.xk-app .left-side .el-submenu__title {
+  color: #ffffff;
+}
+
+.xk-app .left-side .el-menu-item {
+  color: #ffffff;
+}
+
+.xk-app .left-side .el-menu-item.is-active, .xk-app .left-side .el-menu-item.is-active:hover {
+  background-color: #e02222;
+}
+
+.xk-app .left-side .menuitem:hover, .xk-app .left-side .el-menu-item:hover, .xk-app .left-side .el-submenu__title:hover {
+  background-color: #222222;
+}
+
+.xk-app .el-button--primary, .xk-app .btn-primary {
+  background-color: #e02222;
+  border-color: #e02222;
+}
+
+.xk-app .el-button--primary.is-disabled, .xk-app .el-button--primary.is-disabled:active, .xk-app .el-button--primary.is-disabled:focus, .xk-app .el-button--primary.is-disabled:hover {
+  background-color: #B62020;
+  border-color: #B62020;
+}
+
+.xk-app .el-button.is-disabled, .xk-app .el-button.is-disabled:focus, .xk-app .el-button.is-disabled:hover {
+  background-color: #B62020;
+  border-color: #B62020;
+}
+
+.xk-app .el-pagination.is-background .el-pager li:not(.disabled).active {
+  background-color: #e02222;
+}
+
+.xk-app .main-content > .viewport-fixed > .viewport-header {
+  color: #ffffff;
+  background-color: #000000;
+}
+
+.xk-app .main-content > .viewport-fixed > .viewport-header .link {
+  color: #ffffff;
+}
+
+@media screen and (min-width: 1025px) {
+  .left-side {
+    position: relative;
+    height: 100%;
+    width: 280px;
+    left: 0;
+    z-index: 1;
+  }
+  .left-side-mask {
+    position: absolute;
+  }
+  .left-side-mask + * {
+    z-index: 1;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .left-side {
+    position: relative;
+    height: 100%;
+    width: 220px;
+    left: 0;
+    z-index: 1;
+  }
+  .left-side-mask {
+    position: absolute;
+  }
+  .left-side-mask + * {
+    z-index: 1;
+  }
+}
+
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .left-side {
+    position: relative;
+    height: 100%;
+    width: 180px;
+    left: 0;
+    z-index: 1;
+  }
+  .left-side-mask {
+    position: absolute;
+  }
+  .left-side-mask + * {
+    z-index: 1;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  html, body {
+    font-size: 12px;
+  }
+  .left-side {
+    position: absolute;
+    left: 0;
+    width: 61.8%;
+    z-index: 11;
+    overflow: visible;
+  }
+  .left-side-mask {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: fixed;
+  }
+  .pvtUi > tbody > tr > td:first-child {
+    max-width: 144px;
+  }
+}

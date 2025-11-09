@@ -1,0 +1,228 @@
+// 组织容器
+.org-container{width:100%;height:100%;
+  &-header{
+    width:100%;
+    height:42px;
+    background: #4378be;
+    font-size:16px;
+    color:#ffffff;
+    line-height:42px;
+    text-align: center;
+    position:fixed;
+    z-index: 1;
+    left: 0;
+    top:0
+  }
+  &-back{
+    position:absolute;
+    left:10px;
+    top:0;
+    height:42px;
+  }
+  &-footer{
+    width:100%;
+    height:50px;
+    line-height:50px;
+    font-size:14px;
+    background:#fafafa;
+    border-top:1px solid #e8e8e8;
+    color:#4378be;
+  }
+  &-footer li{
+    float:left;
+    width:33%;
+    list-style: none;
+    text-align: center;
+  }
+}
+// 搜索
+.search-box{
+  padding:10px 0;
+  &-input{
+    font-size: 12px;
+    width:94%;
+    margin: 1px 3%;
+    height:31px;
+    border:1px solid #dddddd;
+    border-radius: 5px;
+    padding:0 1.5%;
+    color:#919095;
+    background: url(../images/icon-search.png) no-repeat 3.25px center #ffffff;
+    background-size:4%;
+  }
+}
+// 组织列表
+.org-list{
+  width:100%;
+  padding:0 4%;
+  margin-bottom: 50px;
+  background:#ffffff;
+  &-item{
+    padding-top:10px;
+    display:flex;
+  }
+  &-icon{
+    width:42px;
+    height:42px;
+    background: url(../images/icon-file.png) no-repeat center center #ebf2fa;
+    background-size:60%;
+    border-radius: 5px;
+    vertical-align: middle;
+    float:left;
+  }
+  &-icon-bg{
+    width:42px;
+    height:42px;
+    background: #ebf2fa;
+    background-size:60%;
+    border-radius: 5px;
+    vertical-align: middle;
+    float:left;
+  }
+  &-con{
+    line-height:42px;
+    vertical-align: middle;
+    flex-grow:1;
+    margin-left:10px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size:15px;
+    & .iconfont{
+      float: right;
+      margin-right:5px;
+    }
+  }
+  &-iconType{
+    display: inline-block;
+    position: absolute;
+  }
+  &-delete{
+    background: url(../images/icon-del.png) no-repeat center center;
+    background-size:100%;
+    width:17px;
+    height:23px;
+    right:5px;
+    top:1px;
+  }
+  &-eidt{
+    background: url(../images/icon-edit.png) no-repeat center center;
+    background-size:100%;
+    width:17px;
+    height:23px;
+    right:38px;
+    top:9px;
+  }
+  &-choose-1{
+    background: url(../images/icon-choose-1.png) no-repeat center center;
+    background-size:100%;
+    width:20px;
+    height:20px;
+    right:5px;
+    top:11px;
+  }
+  &-choose-2{
+    background: url(../images/icon-choose-2.png) no-repeat center center;
+    background-size:100%;
+    width:20px;
+    height:20px;
+    right:5px;
+    top:11px;
+  }
+}
+// 弹框删除
+.org-dialog{
+  position: fixed;
+  bottom: 0;
+  left:0;
+  z-index: 99999999;
+  width:100%;
+  background:#ffffff;
+  border-radius: 10px 10px 0 0;
+  &-biaoZhu{
+    text-align: center;
+    font-size:12px;
+    color:#d5d5d5;
+    height:50px;
+    line-height:50px;
+    border-bottom: 1px solid #f2f2f2;
+  }
+  &-list{
+    text-align: center;
+  }
+  &-list li{
+    height:50px;
+    line-height:50px;
+    text-align: center;
+    font-size:14px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  &-footer{
+    text-align:center;
+    border-top: 3px solid #eaeaea;
+    height:50px;
+    line-height:50px;
+    font-size:14px;
+  }
+}
+// 遮罩层
+.org-mark{
+  background:#000000;
+  opacity: 3;
+  width:100%;
+  height:100%;
+  position: fixed;
+  top:0;
+  left: 0;
+  z-index: 9999999;
+}
+// 弹框 上下左右居中
+.org-dialogCenter{
+  position: fixed;
+  top: 160px;
+  left:36px;
+  z-index: 99999999;
+  width:3px;
+  background:#ffffff;
+  border-radius: 10px;
+  &-title{
+    padding-top:35px;
+    text-align: center;
+    font-size:15px;
+    font-weight: 500;
+  }
+  &-input{
+    border-radius: 7px;
+    font-size: 14px;
+    width:88%;
+    margin: 15px 5% 0 6%;
+    height:37px;
+    border:1px solid #dbdbdb;
+    padding:0 1.5%;
+    color:#919095;
+  }
+  &-center{
+    margin-bottom:17px;
+  }
+  &-footer{
+    height:50px;
+    line-height:50px;
+    border-top: 1px solid #dbdbdb;
+  }
+  &-footer span{
+    display: inline-block;
+    width:50%;
+    text-align: center;
+    font-size:15px;
+    font-weight: 500;
+    color:#4badea;
+  }
+  &-footer span:nth-of-type(2){
+    border-left: 1px solid #dbdbdb;
+  }
+}
+.userIcon{
+  background:url(../images/user.png) no-repeat center center #ebf2fa!important;
+  background-size:60%!important;}
+.body-box{
+  flex: 1;
+  overflow: hidden;
+}

@@ -1,0 +1,26 @@
+{
+  "root": false,
+  // "plugins": ["prettier"],
+  "extends": ["plugin:vue/essential", "eslint:recommended"],
+  "rules": {
+    // "prettier/prettier": "error",
+    "no-debugger": "error",
+    "no-console": "off",
+    "no-useless-escape": "off",
+    "no-prototype-builtins": "off",
+    "vue/no-unused-components": "off",
+    "vue/multi-word-component-names": "off",
+    "vue/no-mutating-props": "off",
+    "vue/no-reserved-component-names": "off",
+    "eqeqeq": "error",
+    "no-nested-ternary": "error",
+    "vue/no-static-inline-styles": "error",
+    "curly": "error",
+    "vue/no-use-v-if-with-v-for": "error",
+    // 允许使用异步函数作为 Promise 执行器
+    "no-async-promise-executor": 0
+  },
+  "env": {
+    "node": true
+  }
+}

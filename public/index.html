@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv=Pragma content=no-cache>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!--<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">-->
+  <link rel="icon" href="./favicon.ico">
+  <title>朗致</title>
+  <%
+  if(htmlWebpackPlugin && htmlWebpackPlugin.options && htmlWebpackPlugin.options.cdnConfig){
+  var cdnConfig = htmlWebpackPlugin.options.cdnConfig
+  for(var i = 0; i < cdnConfig.css.length ;i++){
+  var cssPath = cdnConfig.basePath+cdnConfig.css[i]
+  %>
+  <link type="text/css" rel="stylesheet" href="<%=cssPath%>">
+  <% }} %>
+  <link rel="stylesheet" type="text/css" href="https://g.alicdn.com/acca/workbench-sdk/1.0.8/main.min.css" />
+  <link rel="stylesheet" name="theme" type="text/css">
+  <style>
+    /* 处理ios移动设备 input 输入框文本不显示问题 */
+    input {
+      transform: translateZ(0);
+    }
+
+    #show {
+      text-align: center;
+      width: 250px;
+      height: 200px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-top: -100px;
+      margin-left: -125px;
+      font-size: 17px;
+    }
+
+    .el-message {
+      top: 40% !important;
+    }
+
+    :focus {
+      outline: none;
+    }
+
+    .el-textarea__inner {
+      padding: 5px !important;
+    }
+  </style>
+</head>
+<body>
+<noscript>
+  <strong>We're sorry but reports doesn't work properly without JavaScript enabled. Please enable it to
+    continue.</strong>
+</noscript>
+<div id="app"></div>
+<div style="text-align: center;" id="show" class="loading">页面加载中，请耐心等待...</div>
+<script>
+  window.onload = function () {
+    document.getElementById('show').style.display = 'none';
+  };
+
+  function closeWaitLoading () {
+    document.getElementById('show').style.display = 'none';
+  }
+</script>
+<%
+if(htmlWebpackPlugin && htmlWebpackPlugin.options && htmlWebpackPlugin.options.cdnConfig){
+var cdnConfig = htmlWebpackPlugin.options.cdnConfig
+for(var i = 0; i < cdnConfig.js.length ;i++){
+var jsPath = cdnConfig.basePath+cdnConfig.js[i]
+%>
+<script type="text/javascript" src="<%=jsPath%>" charset="UTF-8"></script>
+<% }} %>
+<script type="application/javascript">
+function getIP (json) {
+  window.ip = json.ip;
+}
+</script>
+<script async src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
+<script async type="application/javascript" src="https://api.ipify.org?format=jsonp&callback=getIP"></script>
+</body>
+</html>
+<script>
+  /**
+   * 在Safari和IE8上执行 new Date('2017-12-8 11:36:45'); 会得到Invalid Date
+   * 本函数重写默认的Date函数，以解决其在Safari，IE8上的bug
+   */
+  Date = function (Date) {
+    MyDate.prototype = Date.prototype;
+    return MyDate;
+    function MyDate() {
+      // 当只有一个参数并且参数类型是字符串时，把字符串中的-替换为/
+      if (arguments.length === 1) {
+        let arg = arguments[0];
+        if (Object.prototype.toString.call(arg) === '[object String]' && arg.indexOf('T') === -1) {
+          arguments[0] = arg.replace(/-/g, "/");
+          // console.log(arguments[0]);
+        }
+      }
+      let bind = Function.bind;
+      let unbind = bind.bind(bind);
+      return new (unbind(Date, null).apply(null, arguments));
+    }
+  }(Date);
+  Date.now || (Date.now = function() {
+    return (new Date).getTime()
+  });
+</script>
