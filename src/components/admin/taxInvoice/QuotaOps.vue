@@ -58,7 +58,7 @@
                   label="纳税人识别号"
                   width="220"
                 />
-                <el-table-column prop="nsrsbh" label="纳税人名称" width="220" />
+                <el-table-column prop="nsrmc" label="纳税人名称" width="220" />
                 <el-table-column
                   prop="ztsxbz"
                   label="暂停赋额标志"
@@ -70,7 +70,7 @@
                   min-width="120"
                 >
                   <template slot-scope="scope"
-                    >¥{{ (scope.row.bysxed || 0).toFixed(2) }}</template
+                    >¥{{ formatCurrency(scope.row.bysxed) }}</template
                   >
                 </el-table-column>
                 <el-table-column
@@ -79,7 +79,7 @@
                   min-width="120"
                 >
                   <template slot-scope="scope"
-                    >¥{{ (scope.row.kysyed || 0).toFixed(2) }}</template
+                    >¥{{ formatCurrency(scope.row.kysyed) }}</template
                   >
                 </el-table-column>
                 <el-table-column
@@ -88,7 +88,7 @@
                   min-width="120"
                 >
                   <template slot-scope="scope"
-                    >¥{{ (scope.row.yxzed || 0).toFixed(2) }}</template
+                    >¥{{ formatCurrency(scope.row.yxzed) }}</template
                   >
                 </el-table-column>
                 <el-table-column
@@ -97,7 +97,7 @@
                   min-width="140"
                 >
                   <template slot-scope="scope"
-                    >¥{{ (scope.row.yxzwsyed || 0).toFixed(2) }}</template
+                    >¥{{ formatCurrency(scope.row.yxzwsyed) }}</template
                   >
                 </el-table-column>
                 <el-table-column prop="sq" label="属期" width="140" />
@@ -214,17 +214,13 @@ export default {
       saving: false,
       form: {
         nsrsbh: '',
-        ptbh: '',
-        sxedsq: '',
-        operation_type: '',
-        operation_result: ''
+        nsrmc: ''
       },
       quotaInfo: null,
       rows: [],
       pager: { current: 1, size: 10, total: 0 },
       dialog: { drVisible: false, adjust: false, query: false },
-      q: { nsrsbh: '', sxedsq: '' },
-      op: { sqlx: '0', sqed: 0 },
+      op: { nsrsbh: '', sqlx: '0', sqed: 0 },
       adj: { xsfnsrsbh: '', sxedsq: '' }
     };
   },
@@ -232,6 +228,13 @@ export default {
     this.getRecords();
   },
   methods: {
+    formatCurrency(val) {
+      const num = Number(val);
+      if (Number.isFinite(num)) {
+        return num.toFixed(2);
+      }
+      return '0.00';
+    },
     onSearch() {
       this.pager.current = 1;
       this.getRecords();
@@ -239,10 +242,7 @@ export default {
     reset() {
       this.form = {
         nsrsbh: '',
-        ptbh: '',
-        sxedsq: '',
-        operation_type: '',
-        operation_result: ''
+        nsrmc: ''
       };
       this.pager.current = 1;
       this.quotaInfo = null;
@@ -258,21 +258,10 @@ export default {
         current: this.pager.current,
         size: this.pager.size,
         nsrsbh: this.form.nsrsbh,
-        sxedsq: this.form.sxedsq,
-        operation_type: this.form.operation_type,
-        operation_result: this.form.operation_result
+        nsrmc: this.form.nsrmc
       };
-      const svc =
-        this.CFG &&
-        this.CFG.services &&
-        this.CFG.services.kailing &&
-        this.CFG.services.kailing.pageQuotaRecords;
-      if (!svc) {
-        this.fillMockRecords();
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.pageQuotaRecords,
         demand,
         (res) => {
           this.loading = false;
@@ -282,23 +271,27 @@ export default {
           if (!success && message) {
             this.$message.warning(message);
           }
-          this.rows = records.map((item) => this.normalizeRow(item));
+          this.rows = records;
           this.pager.total = total || this.rows.length;
         },
         () => {
-          this.fillMockRecords();
+          this.loading = false;
         },
         this
       );
     },
+    openAdjust(row) {
+      this.adj.xsfnsrsbh = row.nsrsbh;
+      this.dialog.adjust = true;
+    },
     openDownload(row) {
       this.op.sqlx = '0';
-      this.op.sqed = 0;
+      this.op.nsrsbh = row.nsrsbh;
       this.dialog.drVisible = true;
     },
     openReturn(row) {
       this.op.sqlx = '1';
-      this.op.sqed = 0;
+      this.op.sxedsq = row.sxedsq;
       this.dialog.drVisible = true;
     },
     closeDownloadReturn() {
@@ -306,42 +299,18 @@ export default {
       this.op.sqed = 0;
     },
     submitDownloadReturn() {
-      if (!this.form.nsrsbh) {
-        this.$message.warning('请填写纳税人识别号');
-        return;
-      }
-      if (!this.form.ptbh) {
-        this.$message.warning('请填写平台编号');
-        return;
-      }
       if (!this.op.sqed || this.op.sqed <= 0) {
         this.$message.warning('请填写申请额度');
         return;
       }
       this.saving = true;
       const args = {
-        nsrsbh: this.form.nsrsbh,
-        ptbh: this.form.ptbh,
+        nsrsbh: this.op.nsrsbh,
         sqlx: this.op.sqlx,
-        sqed: this.op.sqed,
-        ywlsh: this.utils.UUID(32, 16)
+        sqed: this.op.sqed
       };
-      const svc =
-        this.CFG &&
-        this.CFG.services &&
-        this.CFG.services.kailing &&
-        this.CFG.services.kailing.operateQuota;
-      if (!svc) {
-        setTimeout(() => {
-          this.saving = false;
-          this.closeDownloadReturn();
-          this.$message.success('提交成功（Mock）');
-          this.getRecords();
-        }, 500);
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.operateQuota,
         args,
         (res) => {
           this.saving = false;
@@ -371,21 +340,8 @@ export default {
         return;
       }
       this.saving = true;
-      const svc =
-        this.CFG &&
-        this.CFG.services &&
-        this.CFG.services.kailing &&
-        this.CFG.services.kailing.adjustQuotaExpire;
-      if (!svc) {
-        setTimeout(() => {
-          this.saving = false;
-          this.dialog.adjust = false;
-          this.$message.success('调整成功（Mock）');
-        }, 300);
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.adjustQuotaExpire,
         { ...this.adj },
         (res) => {
           this.saving = false;
@@ -404,9 +360,6 @@ export default {
       );
     },
     parsePagedResult(payload = {}) {
-      if (payload && payload.serviceResult) {
-        payload = payload.serviceResult;
-      }
       const success = payload ? payload.success : undefined;
       const reason = payload ? payload.reason : '';
       const errorMsg = payload ? payload.errorMsg : '';
@@ -429,61 +382,6 @@ export default {
         total,
         data: payload && payload.data ? payload.data : payload
       };
-    },
-    formatDateTime(value) {
-      if (!value) {
-        return '-';
-      }
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-      const pad = (num) => num.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-        date.getDate()
-      )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-        date.getSeconds()
-      )}`;
-    },
-    normalizeRow(row = {}) {
-      return {
-        ...row,
-        syqjq: this.formatDateTime(row.syqjq),
-        syqjz: this.formatDateTime(row.syqjz),
-        create_time: this.formatDateTime(row.create_time),
-        update_time: this.formatDateTime(row.update_time)
-      };
-    },
-    fillMockRecords() {
-      this.loading = false;
-      const now = this.utils.formatDate(new Date().getTime());
-      this.rows = [
-        {
-          nsrsbh: '9133MOCK001',
-          sxedsq: '202510',
-          operation_type: 'DOWNLOAD',
-          operation_amount: 1000,
-          ywlsh: 'YW001',
-          syqjq: '2025-10-01',
-          syqjz: '2025-10-31',
-          operation_result: '00',
-          error_message: '',
-          create_time: now
-        },
-        {
-          nsrsbh: '9133MOCK001',
-          sxedsq: '202510',
-          operation_type: 'RETURN',
-          operation_amount: 200,
-          ywlsh: 'YW002',
-          syqjq: '2025-10-01',
-          syqjz: '2025-10-31',
-          operation_result: '01',
-          error_message: '额度不足',
-          create_time: now
-        }
-      ].map((item) => this.normalizeRow(item));
-      this.pager.total = this.rows.length;
     }
   }
 };

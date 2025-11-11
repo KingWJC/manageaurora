@@ -180,7 +180,7 @@ export default {
     },
     getRecords() {
       this.loading = true;
-      const demand = {
+      const args = {
         current: this.pager.current,
         size: this.pager.size,
         nsrsbh: this.form.nsrsbh,
@@ -188,7 +188,7 @@ export default {
       };
       this.API.send(
         this.CFG.services.kailing.queryPreprocess,
-        demand,
+        args,
         (res) => {
           this.loading = false;
           const { success, message, list } = this.parseServiceResult(res || {});
@@ -226,7 +226,7 @@ export default {
       }
       const payload = {
         nsrsbh: row.nsrsbh,
-        isInit: row.isInit
+        isInit: !row.isInit
       };
       this.API.send(
         this.CFG.services.kailing.executePreprocess,
