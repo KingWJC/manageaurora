@@ -144,29 +144,54 @@
         </div>
       </div>
     </div>
+    <!-- 商品/服务选择组件 -->
+    <div class="viewport-fixed bg-white power-zi101" v-if="ootListConfig.show">
+      <ootListChoice :ootListConfig="ootListConfig"></ootListChoice>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  components: { crumbsBar: () => import('@/common-base/components/crumbs-bar') },
+  components: { 
+    crumbsBar: () => import('@/common-base/components/crumbs-bar'),
+    ootListChoice: () => import('@/common-base/components/pubComponents/ootListChoice')
+  },
   props: { permissions: Object, params: Object },
   data() {
     return {
       saving: false,
+      ootListConfig: {
+        show: false,
+        selection: true, // 支持多选
+        categoryList: [1, 3], // 1=商品，3=服务
+        ptypes: ['101', '102', '103', '104', '105', '199'], // 商品类型：药品、器械、食品、消毒用品、化妆品、其他
+        ootCategory: '1', // 默认显示商品
+        ootType: '101', // 默认显示药品
+        noDetails: false, // 显示详情按钮
+        okFn: (selectedItems) => {
+          this.handleGoodsSelected(selectedItems);
+        }
+      },
       form: {
-        taxInvoiceNo: '', fphm: '', ptbh: '', fppz: '', kprq: '', qyDm: '', lzfpbz: '0',
+        id: '', taxInvoiceNo: '', fphm: '', ptbh: '', fppz: '', kprq: '', qyDm: '', lzfpbz: '0',
         xsfnsrsbh: '', xsfmc: '', xsfdz: '', xsfdh: '', xsfkhh: '', xsfzh: '', cezzslx: '',
         gmfnrsbh: '', gmfmc: '', gmfdz: '', gmfdh: '', gmfkhh: '', gmfzh: '',
-        gmfzrrbz:'',
+        gmfzrrbz: '',
         // 其它信息（与表单控件一致）
         sfzxsfyhzhbq: '', // 是否展示销方银行账号标签/购货单位类型
         sfzsgmfyhzhbq: '', // 是否展示购方银行账号标签
         tdys: '',
+        cezslxDm: '', sgfplxDm: '', ckywyszczDm: '',
         zzsjzjtDm: '',
         skyhmc: '', skyhzh: '', jsfs: '', ysxwfsd: '',
+        gmfjbr: '', jbrsfzjhm: '', gmfbrlxdh: '',
+        kprzjhm: '', kprzjlx: '',
+        dylzfphm: '', hzqrxxdbh: '', hzqrduuid: '',
         hjjc: 0, hjs: 0, jshj: 0,
-        fpmxList: [ { mxxh: 1, xmmc: '', spfwjc: '', ggxh: '', dw: '', sl: '', dj: '', je: 0, slv: 0, se: 0, hsje: 0, kce: 0, sphfwssflhbbm: '', fphxz: '', yhzcbs: '' } ],
+        fpmxList: [ { mxxh: 1, dylzfpmxxh: 0, xmmc: '', spfwjc: '', ggxh: '', dw: '', sl: '', dj: '', je: 0, slv: 0, se: 0, hsje: 0, kce: 0, sphfwssflhbbm: '', fphxz: '', yhzcbs: '' } ],
+        fjysList: [],
+        cekcList: [],
         kpr: '', skrxm: '', fhrxm: '', bz: ''
       }
     };
@@ -175,13 +200,141 @@ export default {
     // 先恢复保存的表单数据，再回填选择的数据（仅填充空值）
     this.restoreFormData();
     this.fillSelectedData();
-  },
-  activated() {
-    // keep-alive 激活时也检查恢复和回填
-    this.restoreFormData();
-    this.fillSelectedData();
+    if (this.$route && this.$route.query && this.$route.query.id) {
+      this.fetchInvoiceDetail(this.$route.query.id);
+    }
   },
   methods: {
+    fetchInvoiceDetail(invoiceId) {
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceQuery;
+      if (!svc || !invoiceId) {
+        return;
+      }
+      this.API.send(
+        svc,
+        { invoiceId },
+        (res) => {
+          const { success, message, data } = this.parseServiceResult(res || {});
+          if (success && data) {
+            this.applyInvoiceDetail(data);
+          } else if (message) {
+            this.$message.warning(message);
+          }
+        },
+        () => {},
+        this
+      );
+    },
+    applyInvoiceDetail(detail = {}) {
+      const assigns = [
+        ['id', detail.id],
+        ['taxInvoiceNo', detail.taxInvoiceNo || detail.invoiceNo],
+        ['fphm', detail.fphm],
+        ['fppz', detail.fppz],
+        ['kprq', detail.kprq],
+        ['kpr', detail.kpr],
+        ['xsfnsrsbh', detail.xsfnsrsbh],
+        ['xsfmc', detail.xsfmc],
+        ['xsfdz', detail.xsfdz],
+        ['xsfdh', detail.xsfdh],
+        ['xsfkhh', detail.xsfkhh],
+        ['xsfzh', detail.xsfzh],
+        ['gmfnrsbh', detail.gmfnrsbh],
+        ['gmfmc', detail.gmfmc],
+        ['gmfdz', detail.gmfdz],
+        ['gmfdh', detail.gmfdh],
+        ['gmfkhh', detail.gmfkhh],
+        ['gmfzh', detail.gmfzh],
+        ['gmfzrrbz', detail.gmfzrrbz],
+        ['tdys', detail.tdys],
+        ['cezslxDm', detail.cezslxDm],
+        ['sgfplxDm', detail.sgfplxDm],
+        ['ckywyszczDm', detail.ckywyszczDm],
+        ['zzsjzjtDm', detail.zzsjzjtDm],
+        ['gmfjbr', detail.gmfjbr],
+        ['jbrsfzjhm', detail.jbrsfzjhm],
+        ['gmfbrlxdh', detail.gmfbrlxdh],
+        ['kprzjhm', detail.kprzjhm],
+        ['kprzjlx', detail.kprzjlx],
+        ['dylzfphm', detail.dylzfphm],
+        ['hzqrxxdbh', detail.hzqrxxdbh],
+        ['hzqrduuid', detail.hzqrduuid],
+        ['skyhmc', detail.skyhmc],
+        ['skyhzh', detail.skyhzh],
+        ['jsfs', detail.jsfs],
+        ['ysxwfsd', detail.ysxwfsd],
+        ['sfzxsfyhzhbq', detail.sfzxsfyhzhbq],
+        ['sfzsgmfyhzhbq', detail.sfzsgmfyhzhbq],
+        ['skrxm', detail.skrxm],
+        ['fhrxm', detail.fhrxm],
+        ['bz', detail.bz || detail.remark],
+        ['hjjc', detail.hjje !== undefined ? Number(detail.hjje) : this.form.hjjc],
+        ['hjs', detail.hjse !== undefined ? Number(detail.hjse) : this.form.hjs],
+        ['jshj', detail.jshj !== undefined ? Number(detail.jshj) : this.form.jshj]
+      ];
+      assigns.forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          this.form[key] = value;
+        }
+      });
+      if (detail.lzfpbz !== undefined && detail.lzfpbz !== null) {
+        this.form.lzfpbz = detail.lzfpbz;
+      }
+      // 处理发票明细列表
+      const details = Array.isArray(detail.fpmxList)
+        ? detail.fpmxList
+        : Array.isArray(detail.invoiceDetailList)
+          ? detail.invoiceDetailList
+          : [];
+      if (details.length) {
+        this.form.fpmxList = details.map((item, index) => ({
+          mxxh: item.mxxh || index + 1,
+          dylzfpmxxh: item.dylzfpmxxh || 0,
+          xmmc: item.xmmc || item.itemName || '',
+          spfwjc: item.spfwjc || '',
+          ggxh: item.ggxh || item.spec || '',
+          dw: item.dw || item.unit || '',
+          sl: Number(item.sl || item.quantity || 0),
+          dj: Number(item.dj || item.price || 0),
+          je: Number(item.je || item.amount || 0),
+          slv: Number(item.slv || item.rate || 0),
+          se: Number(item.se || item.tax || 0),
+          hsje: Number(item.hsje || item.amountWithTax || 0),
+          kce: Number(item.kce || 0),
+          sphfwssflhbbm: item.sphfwssflhbbm || item.taxCode || '',
+          fphxz: item.fphxz || item.lineNature || '00',
+          yhzcbs: item.yhzcbs || ''
+        }));
+        this.recalcTotals();
+      }
+      // 处理附加要素列表
+      if (Array.isArray(detail.fjysList) && detail.fjysList.length) {
+        this.form.fjysList = detail.fjysList.map(item => ({
+          fjysmc: item.fjysmc || '',
+          fjyslx: item.fjyslx || '',
+          fjysz: item.fjysz || ''
+        }));
+      }
+      // 处理差额扣除列表
+      if (Array.isArray(detail.cekcList) && detail.cekcList.length) {
+        this.form.cekcList = detail.cekcList.map(item => ({
+          xh: item.xh || 0,
+          pzlx: item.pzlx || '',
+          fpdm: item.fpdm || '',
+          fphm: item.fphm || '',
+          cezphm: item.cezphm || '',
+          kjrq: item.kjrq || '',
+          pzhjje: Number(item.pzhjje || 0),
+          bckcje: Number(item.bckcje || 0),
+          bz: item.bz || ''
+        }));
+      }
+    },
+    activated() {
+      // keep-alive 激活时也检查恢复和回填
+      this.restoreFormData();
+      this.fillSelectedData();
+    },
     // 回填选择的数据（仅填充空值）
     fillSelectedData() {
       try {
@@ -221,12 +374,16 @@ export default {
     },
     appendGoodsRows(list) {
       (list || []).forEach((g) => {
+        // 适配 ootListChoice 组件返回的数据结构
+        // ootListChoice 返回的商品数据字段：productName, specification, packingSpecification, barcode 等
+        // 服务数据字段：productName, type, specification, vendor, barcode 等
         const newRow = {
           mxxh: (this.form.fpmxList.length || 0) + 1,
-          xmmc: g.name || g.xmmc || '', // 统一使用 name 字段作为项目名称
+          dylzfpmxxh: 0,
+          xmmc: g.productName || g.name || g.xmmc || '', // 商品/服务名称
           spfwjc: '',
-          ggxh: g.spec || g.ggxh || '', // 规格型号
-          dw: g.packSpec || g.dw || '', // 单位（包装规格）
+          ggxh: g.specification || g.specificationAndModel || g.spec || g.ggxh || '', // 规格型号
+          dw: g.packingSpecification || g.packSpec || g.dw || '', // 单位（包装规格）
           sl: Number(g.sl) || 1,
           dj: Number(g.dj) || 0,
           je: 0,
@@ -234,8 +391,8 @@ export default {
           se: 0,
           hsje: 0,
           kce: 0,
-          sphfwssflhbbm: g.sphfwssflhbbm || '',
-          fphxz: g.fphxz || '',
+          sphfwssflhbbm: g.sphfwssflhbbm || g.taxCode || '',
+          fphxz: g.fphxz || '00',
           yhzcbs: g.yhzcbs || ''
         };
         this.form.fpmxList.push(newRow);
@@ -288,7 +445,23 @@ export default {
     openSelectGoods() {
       // 跳转前保存表单数据
       this.saveFormData();
-      this.$router.push({ name: 'taxInvoiceSelectGoods', query: { from: 'taxInvoiceBlueDetail' } });
+      // 显示商品/服务选择组件
+      this.ootListConfig.show = true;
+    },
+    handleGoodsSelected(selectedItems) {
+      // 处理选择的商品/服务
+      if (!selectedItems) {
+        return;
+      }
+      // 如果是数组（多选），批量添加
+      if (Array.isArray(selectedItems)) {
+        if (selectedItems.length > 0) {
+          this.appendGoodsRows(selectedItems);
+        }
+      } else {
+        // 如果是单个对象（单选），单个添加
+        this.appendGoodsRows([selectedItems]);
+      }
     },
     saveFormData() {
       try {
@@ -321,75 +494,192 @@ export default {
         console.error('恢复表单数据失败:', e);
       }
     },
-    parseServiceResult(payload = {}) {
-      if (payload && payload.serviceResult) {
-        payload = payload.serviceResult;
-      }
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.errorMsg : '';
-      const data = payload && (payload.data || payload.result || payload.records || payload) || {};
-      return {
-        success: success !== false,
-        message: reason || errorMsg || '',
-        data
-      };
-    },
-    submit() {
-      const requiredPairs = [
-        ['taxInvoiceNo', '请填写发票请求流水号'],
-        ['fppz', '请选择发票票种'],
-        ['ptbh', '请填写平台编号'],
-        ['qyDm', '请填写区域代码'],
-        ['kprq', '请选择开票日期'],
+    validateForm() {
+      const required = [
         ['xsfnsrsbh', '请填写销售方税号'],
         ['xsfmc', '请填写销售方名称'],
         ['gmfmc', '请填写购买方名称'],
-        ['hjjc', '请填写合计金额'],
-        ['hjs', '请填写合计税额'],
-        ['jshj', '请填写价税合计'],
-        ['fphm', '请填写发票号码'],
+        ['fppz', '请选择发票票种'],
+        ['kprq', '请选择开票日期'],
         ['kpr', '请填写开票人']
       ];
-      for (const [key, msg] of requiredPairs) {
-        if (this.form[key] === '' || this.form[key] === null || this.form[key] === undefined) {
-          this.$toast ? this.$toast({ text: msg }) : this.$message.warning(msg);
-          return;
+      for (const [key, msg] of required) {
+        const value = this.form[key];
+        if (value === '' || value === null || value === undefined) {
+          return msg;
         }
       }
-      this.saving = true;
-      const payload = [{ ...this.form }];
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.uploadlqadapters;
-      if (!svc) {
-        setTimeout(() => {
-          this.saving = false;
-          this.$message.success('上传成功（Mock）');
-          this.$router.push({ name: 'taxInvoiceBlueList' });
-        }, 500);
+      if (!Array.isArray(this.form.fpmxList) || !this.form.fpmxList.length) {
+        return '请添加至少一条开票明细';
+      }
+      if (!Number.isFinite(Number(this.form.hjjc))) {
+        return '请填写合计金额';
+      }
+      if (!Number.isFinite(Number(this.form.hjs))) {
+        return '请填写合计税额';
+      }
+      if (!Number.isFinite(Number(this.form.jshj))) {
+        return '请填写价税合计';
+      }
+      return '';
+    },
+    buildAddPayload() {
+      // 根据 API 文档构建请求参数
+      const detailList = (this.form.fpmxList || []).map((item, index) => {
+        const quantity = Number(item.sl || 0);
+        const price = Number(item.dj || 0);
+        const amount = Number(item.je || 0);
+        const tax = Number(item.se || 0);
+        return {
+          mxxh: item.mxxh || index + 1,
+          dylzfpmxxh: item.dylzfpmxxh || 0,
+          xmmc: item.xmmc || '',
+          spfwjc: item.spfwjc || '',
+          ggxh: item.ggxh || '',
+          dw: item.dw || '',
+          sl: Number.isFinite(quantity) ? quantity.toString() : '0',
+          dj: Number.isFinite(price) ? price.toString() : '0',
+          je: Number.isFinite(amount) ? amount : 0,
+          slv: Number(item.slv || 0),
+          se: Number.isFinite(tax) ? tax : 0,
+          hsje: Number(item.hsje || amount + tax || 0),
+          kce: Number(item.kce || 0),
+          sphfwssflhbbm: item.sphfwssflhbbm || '',
+          fphxz: item.fphxz || '00',
+          yhzcbs: item.yhzcbs || ''
+        };
+      });
+      const payload = {
+        id: this.form.id || '',
+        taxInvoiceNo: this.form.taxInvoiceNo || '',
+        lzfpbz: '0', // 蓝字发票
+        fppz: this.form.fppz,
+        gmfzrrbz: this.form.gmfzrrbz || '',
+        tdys: this.form.tdys || '',
+        cezslxDm: this.form.cezslxDm || '',
+        sgfplxDm: this.form.sgfplxDm || '',
+        ckywyszczDm: this.form.ckywyszczDm || '',
+        zzsjzjtDm: this.form.zzsjzjtDm || '',
+        xsfnsrsbh: this.form.xsfnsrsbh,
+        xsfmc: this.form.xsfmc,
+        xsfdz: this.form.xsfdz || '',
+        xsfdh: this.form.xsfdh || '',
+        xsfkhh: this.form.xsfkhh || '',
+        xsfzh: this.form.xsfzh || '',
+        gmfnrsbh: this.form.gmfnrsbh || '',
+        gmfmc: this.form.gmfmc,
+        gmfdz: this.form.gmfdz || '',
+        gmfdh: this.form.gmfdh || '',
+        gmfkhh: this.form.gmfkhh || '',
+        gmfzh: this.form.gmfzh || '',
+        gmfbrlxdh: this.form.gmfbrlxdh || '',
+        gmfjbr: this.form.gmfjbr || '',
+        jbrsfzjhm: this.form.jbrsfzjhm || '',
+        hjje: Number(this.form.hjjc || 0),
+        hjse: Number(this.form.hjs || 0),
+        jshj: Number(this.form.jshj || 0),
+        skyhmc: this.form.skyhmc || '',
+        skyhzh: this.form.skyhzh || '',
+        jsfs: this.form.jsfs || '',
+        ysxwfsd: this.form.ysxwfsd || '',
+        kpr: this.form.kpr,
+        kprzjhm: this.form.kprzjhm || '',
+        kprzjlx: this.form.kprzjlx || '',
+        kprq: this.form.kprq ? new Date(this.form.kprq).toISOString() : new Date().toISOString(),
+        dylzfphm: this.form.dylzfphm || '',
+        hzqrxxdbh: this.form.hzqrxxdbh || '',
+        hzqrduuid: this.form.hzqrduuid || '',
+        bz: this.form.bz || '',
+        sfzxsfyhzhbq: this.form.sfzxsfyhzhbq || '',
+        sfzsgmfyhzhbq: this.form.sfzsgmfyhzhbq || '',
+        skrxm: this.form.skrxm || '',
+        fhrxm: this.form.fhrxm || '',
+        fpmxList: detailList
+      };
+      if (Array.isArray(this.form.fjysList) && this.form.fjysList.length) {
+        payload.fjysList = this.form.fjysList.map(item => ({
+          fjysmc: item.fjysmc || '',
+          fjyslx: item.fjyslx || '',
+          fjysz: item.fjysz || ''
+        }));
+      }
+      if (Array.isArray(this.form.cekcList) && this.form.cekcList.length) {
+        payload.cekcList = this.form.cekcList.map(item => ({
+          xh: item.xh || 0,
+          pzlx: item.pzlx || '',
+          fpdm: item.fpdm || '',
+          fphm: item.fphm || '',
+          cezphm: item.cezphm || '',
+          kjrq: item.kjrq ? new Date(item.kjrq).toISOString() : new Date().toISOString(),
+          pzhjje: Number(item.pzhjje || 0),
+          bckcje: Number(item.bckcje || 0),
+          bz: item.bz || ''
+        }));
+      }
+      return payload;
+    },
+    parseServiceResult(payload = {}) {
+      let body = payload;
+      if (body && body.serviceResult) {
+        body = body.serviceResult;
+      }
+      const successFlag = body && body.success !== undefined ? body.success : undefined;
+      const code = body && (body.code !== undefined ? body.code : payload.code);
+      const success = successFlag !== false && (code === undefined || code === null || code === '0');
+      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
+      const data = body && (body.data !== undefined ? body.data : body.result || body.record || body.entity) || {};
+      return { success, message, data };
+    },
+    submit() {
+      const validationMessage = this.validateForm();
+      if (validationMessage) {
+        this.$toast ? this.$toast({ text: validationMessage }) : this.$message.warning(validationMessage);
         return;
       }
+      this.recalcTotals();
+      if (!this.form.taxInvoiceNo) {
+        this.form.taxInvoiceNo = this.utils.UUID(32, 16);
+      }
+      if (!this.form.kprq) {
+        this.form.kprq = this.utils.formatDate(new Date().getTime());
+      }
+      this.saving = true;
+      const payload = this.buildAddPayload();
       this.API.send(
-        svc,
+        this.CFG.services.kailing.digitalInvoiceAdd,
         payload,
         (res) => {
           this.saving = false;
           const { success, message, data } = this.parseServiceResult(res || {});
           if (success) {
-            const sslsh = data && (data.sslsh || data.sllsh);
-            if (sslsh) {
-              this.$message.success('上传成功，受理流水号：' + sslsh);
+            // 根据 API 文档，返回 data 中包含 id, taxInvoiceNo, fphm, kprq, uploadStatus, message
+            const invoiceId = data && data.id;
+            const taxInvoiceNo = data && data.taxInvoiceNo;
+            const fphm = data && data.fphm;
+            const uploadStatus = data && data.uploadStatus;
+            const resultMessage = data && data.message;
+            if (invoiceId || taxInvoiceNo || fphm) {
+              const info = [invoiceId && `ID: ${invoiceId}`, taxInvoiceNo && `税票号: ${taxInvoiceNo}`, fphm && `发票号码: ${fphm}`].filter(Boolean).join(', ');
+              this.$message.success(`上传成功，${info}`);
+            } else if (resultMessage) {
+              this.$message.success(resultMessage);
             } else {
               this.$message.success('上传完成');
             }
-            try { sessionStorage.removeItem('taxInvoice.formData'); } catch (e) {
+            try {
+              sessionStorage.removeItem('taxInvoice.formData');
+            } catch (e) {
               console.error('清理表单数据失败:', e);
             }
+            // 返回列表页
             this.$router.push({ name: 'taxInvoiceBlueList' });
           } else {
             this.$message.warning(message || '上传结果未知');
           }
         },
-        () => { this.saving = false; },
+        () => {
+          this.saving = false;
+        },
         this
       );
     }

@@ -180,8 +180,80 @@ export default {
     this.restoreFormData();
     this.fillSelectedGoods();
     this.recalcTotals();
+    
+    // 如果有 id，查询发票详情
+    if (this.$route && this.$route.query && this.$route.query.id) {
+      this.fetchInvoiceDetail(this.$route.query.id);
+    }
   },
   methods: {
+    fetchInvoiceDetail(invoiceId) {
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceQuery;
+      if (!svc || !invoiceId) {
+        return;
+      }
+      this.API.send(
+        svc,
+        { invoiceId },
+        (res) => {
+          const { success, message, data } = this.parseServiceResult(res || {});
+          if (success && data) {
+            this.applyInvoiceDetail(data);
+          } else if (message) {
+            this.$message.warning(message);
+          }
+        },
+        () => {},
+        this
+      );
+    },
+    applyInvoiceDetail(detail = {}) {
+      // 应用发票详情到表单
+      if (detail.lzfphm || detail.dylzfphm) this.form.lzfphm = detail.lzfphm || detail.dylzfphm;
+      if (detail.gmfmc) this.form.gmfmc = detail.gmfmc;
+      if (detail.xsfmc) this.form.xsfmc = detail.xsfmc;
+      if (detail.fppz || detail.lzfppzDm) this.form.lzfppzDm = detail.fppz || detail.lzfppzDm;
+      if (detail.xsfnsrsbh) this.form.xsfnsrsbh = detail.xsfnsrsbh;
+      if (detail.xsfdz) this.form.xsfdz = detail.xsfdz;
+      if (detail.xsfdh) this.form.xsfdh = detail.xsfdh;
+      if (detail.xsfkhh) this.form.xsfkhh = detail.xsfkhh;
+      if (detail.xsfzh) this.form.xsfzh = detail.xsfzh;
+      if (detail.gmfnrsbh) this.form.gmfnrsbh = detail.gmfnrsbh;
+      if (detail.gmfdz) this.form.gmfdz = detail.gmfdz;
+      if (detail.gmfdh) this.form.gmfdh = detail.gmfdh;
+      if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
+      if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
+      if (detail.kprq) this.form.kprq = detail.kprq;
+      if (detail.kpr) this.form.kpr = detail.kpr;
+      if (detail.bz) this.form.bz = detail.bz;
+      if (detail.hjje !== undefined) this.form.hjjc = Number(detail.hjje);
+      if (detail.hjse !== undefined) this.form.hjs = Number(detail.hjse);
+      if (detail.jshj !== undefined) this.form.jshj = Number(detail.jshj);
+      
+      // 应用明细
+      const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
+      if (details.length) {
+        this.form.fpmxList = details.map((item, index) => ({
+          mxxh: item.mxxh || index + 1,
+          dylzfpmxxh: item.dylzfpmxxh || 0,
+          xmmc: item.xmmc || '',
+          spfwjc: item.spfwjc || '',
+          ggxh: item.ggxh || '',
+          dw: item.dw || '',
+          sl: Number(item.sl || 0),
+          dj: Number(item.dj || 0),
+          je: Number(item.je || 0),
+          slv: Number(item.slv || 0),
+          se: Number(item.se || 0),
+          hsje: Number(item.hsje || 0),
+          kce: Number(item.kce || 0),
+          sphfwssflhbbm: item.sphfwssflhbbm || '',
+          fphxz: item.fphxz || '00',
+          yhzcbs: item.yhzcbs || ''
+        }));
+        this.recalcTotals();
+      }
+    },
     // 选择商品/服务
     openSelectGoods() {
       this.saveFormData();
@@ -309,19 +381,131 @@ export default {
         console.error('恢复表单数据失败:', e);
       }
     },
-    submit() {
+    validateForm() {
       // 只验证可编辑的必填字段
       if (!this.form.chyyDm || this.form.chyyDm === '') {
-        this.$message.warning('请选择开具红字发票原因');
+        return '请选择开具红字发票原因';
+      }
+      if (!this.form.kprq) {
+        return '请选择开票日期';
+      }
+      if (!this.form.kpr) {
+        return '请填写开票人';
+      }
+      if (!Array.isArray(this.form.fpmxList) || !this.form.fpmxList.length) {
+        return '请添加至少一条开票明细';
+      }
+      return '';
+    },
+    buildAddPayload() {
+      // 根据 API 文档构建红票新增请求参数
+      const detailList = (this.form.fpmxList || []).map((item, index) => {
+        const quantity = Number(item.sl || 0);
+        const price = Number(item.dj || 0);
+        const amount = Number(item.je || 0);
+        const tax = Number(item.se || 0);
+        return {
+          mxxh: item.mxxh || index + 1,
+          dylzfpmxxh: item.dylzfpmxxh || 0,
+          xmmc: item.xmmc || '',
+          spfwjc: item.spfwjc || '',
+          ggxh: item.ggxh || '',
+          dw: item.dw || '',
+          sl: Number.isFinite(quantity) ? quantity.toString() : '0',
+          dj: Number.isFinite(price) ? price.toString() : '0',
+          je: Number.isFinite(amount) ? amount : 0,
+          slv: Number(item.slv || 0),
+          se: Number.isFinite(tax) ? tax : 0,
+          hsje: Number(item.hsje || amount + tax || 0),
+          kce: Number(item.kce || 0),
+          sphfwssflhbbm: item.sphfwssflhbbm || '',
+          fphxz: item.fphxz || '00',
+          yhzcbs: item.yhzcbs || ''
+        };
+      });
+      const payload = {
+        id: this.form.id || '',
+        taxInvoiceNo: this.form.taxInvoiceNo || '',
+        lzfpbz: '1', // 红字发票
+        fppz: this.form.lzfppzDm || this.form.fppz || '02',
+        gmfzrrbz: this.form.gmfzrrbz || '',
+        tdys: this.form.tdys || '',
+        cezslxDm: this.form.cezslxDm || '',
+        sgfplxDm: this.form.sgfplxDm || '',
+        ckywyszczDm: this.form.ckywyszczDm || '',
+        zzsjzjtDm: this.form.zzsjzjtDm || '',
+        xsfnsrsbh: this.form.xsfnsrsbh || '',
+        xsfmc: this.form.xsfmc || '',
+        xsfdz: this.form.xsfdz || '',
+        xsfdh: this.form.xsfdh || '',
+        xsfkhh: this.form.xsfkhh || '',
+        xsfzh: this.form.xsfzh || '',
+        gmfnrsbh: this.form.gmfnrsbh || '',
+        gmfmc: this.form.gmfmc || '',
+        gmfdz: this.form.gmfdz || '',
+        gmfdh: this.form.gmfdh || '',
+        gmfkhh: this.form.gmfkhh || '',
+        gmfzh: this.form.gmfzh || '',
+        gmfbrlxdh: this.form.gmfbrlxdh || '',
+        gmfjbr: this.form.gmfjbr || '',
+        jbrsfzjhm: this.form.jbrsfzjhm || '',
+        hjje: Number(this.form.hjjc || 0),
+        hjse: Number(this.form.hjs || 0),
+        jshj: Number(this.form.jshj || 0),
+        skyhmc: this.form.skyhmc || '',
+        skyhzh: this.form.skyhzh || '',
+        jsfs: this.form.jsfs || '',
+        ysxwfsd: this.form.ysxwfsd || '',
+        kpr: this.form.kpr || '',
+        kprzjhm: this.form.kprzjhm || '',
+        kprzjlx: this.form.kprzjlx || '',
+        kprq: this.form.kprq ? new Date(this.form.kprq).toISOString() : new Date().toISOString(),
+        dylzfphm: this.form.lzfphm || this.form.dylzfphm || '',
+        hzqrxxdbh: this.form.hzqrxxdbh || '',
+        hzqrduuid: this.form.hzqrduuid || '',
+        bz: this.form.bz || '',
+        sfzxsfyhzhbq: this.form.sfzxsfyhzhbq || '',
+        sfzsgmfyhzhbq: this.form.sfzsgmfyhzhbq || '',
+        skrxm: this.form.skrxm || '',
+        fhrxm: this.form.fhrxm || '',
+        fpmxList: detailList
+      };
+      if (Array.isArray(this.form.fjysList) && this.form.fjysList.length) {
+        payload.fjysList = this.form.fjysList.map(item => ({
+          fjysmc: item.fjysmc || '',
+          fjyslx: item.fjyslx || '',
+          fjysz: item.fjysz || ''
+        }));
+      }
+      if (Array.isArray(this.form.cekcList) && this.form.cekcList.length) {
+        payload.cekcList = this.form.cekcList.map(item => ({
+          xh: item.xh || 0,
+          pzlx: item.pzlx || '',
+          fpdm: item.fpdm || '',
+          fphm: item.fphm || '',
+          cezphm: item.cezphm || '',
+          kjrq: item.kjrq ? new Date(item.kjrq).toISOString() : new Date().toISOString(),
+          pzhjje: Number(item.pzhjje || 0),
+          bckcje: Number(item.bckcje || 0),
+          bz: item.bz || ''
+        }));
+      }
+      return payload;
+    },
+    submit() {
+      const validationMessage = this.validateForm();
+      if (validationMessage) {
+        this.$toast ? this.$toast({ text: validationMessage }) : this.$message.warning(validationMessage);
         return;
       }
+      this.recalcTotals();
       this.saving = true;
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.applyRedConfirm;
-      const payload = { ...this.form };
+      const payload = this.buildAddPayload();
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceAdd;
       if (!svc) {
         this.saving = false;
         this.$message.success('保存成功（Mock）');
-        this.$router.push({ name: 'taxInvoiceRedSellerList' });
+        this.$router.push({ name: 'taxInvoiceRedList' });
         return;
       }
       this.API.send(
@@ -329,10 +513,28 @@ export default {
         payload,
         (res) => {
           this.saving = false;
-          const { success, message } = this.parseServiceResult(res || {});
+          const { success, message, data } = this.parseServiceResult(res || {});
           if (success) {
-            this.$message.success('保存成功');
-            this.$router.push({ name: 'taxInvoiceRedSellerList' });
+            // 根据 API 文档，返回 data 中包含 id, taxInvoiceNo, fphm, kprq, uploadStatus, message
+            const invoiceId = data && data.id;
+            const taxInvoiceNo = data && data.taxInvoiceNo;
+            const fphm = data && data.fphm;
+            const uploadStatus = data && data.uploadStatus;
+            const resultMessage = data && data.message;
+            if (invoiceId || taxInvoiceNo || fphm) {
+              const info = [invoiceId && `ID: ${invoiceId}`, taxInvoiceNo && `税票号: ${taxInvoiceNo}`, fphm && `发票号码: ${fphm}`].filter(Boolean).join(', ');
+              this.$message.success(`保存成功，${info}`);
+            } else if (resultMessage) {
+              this.$message.success(resultMessage);
+            } else {
+              this.$message.success('保存成功');
+            }
+            try {
+              sessionStorage.removeItem('taxInvoice.redSellerCreate.form');
+            } catch (e) {
+              console.error('清理表单数据失败:', e);
+            }
+            this.$router.push({ name: 'taxInvoiceRedList' });
           } else {
             this.$message.warning(message || '保存结果未知');
           }
@@ -340,7 +542,7 @@ export default {
         () => {
           this.saving = false;
           this.$message.success('保存成功（Mock）');
-          this.$router.push({ name: 'taxInvoiceRedSellerList' });
+          this.$router.push({ name: 'taxInvoiceRedList' });
         },
         this
       );

@@ -19,12 +19,26 @@
                 <el-input v-model="search.fphm" size="small" placeholder="发票号码" :maxlength="30" />
               </div>
               <div class="search-bar-item">
+                <el-input v-model="search.gmfmc" size="small" placeholder="购方名称" :maxlength="50" />
+              </div>
+              <div class="search-bar-item">
                 <el-select v-model="search.status" size="small" placeholder="上传状态" clearable>
                   <el-option label="未提交" value="00" />
                   <el-option label="开票中" value="01" />
                   <el-option label="成功" value="02" />
                   <el-option label="失败" value="03" />
                 </el-select>
+              </div>
+              <div class="search-bar-item">
+                <el-date-picker
+                  v-model="search.kprqRange"
+                  type="daterange"
+                  unlink-panels
+                  size="small"
+                  start-placeholder="开票日期起"
+                  end-placeholder="开票日期止"
+                  value-format="yyyy-MM-dd"
+                />
               </div>
               <div class="search-bar-item-auto">
                 <el-button size="small" type="primary" @click="onSearch">查询</el-button>
@@ -35,14 +49,14 @@
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
               <el-table :data="rows" v-loading="loading" style="width:100%" border>
-                <el-table-column prop="sllsh" label="单据ID" min-width="130"></el-table-column>
+                <el-table-column prop="id" label="单据ID" min-width="130"></el-table-column>
                 <el-table-column prop="fphm" label="发票号码" min-width="130"></el-table-column>
                 <el-table-column prop="fppz" label="票种" min-width="80">
                   <template slot-scope="scope">
                     {{ scope.row.fppz === '01' ? '数电专' : scope.row.fppz === '02' ? '数电普' : scope.row.fppz }}
                   </template>
                 </el-table-column>
-                <el-table-column prop="fphm" label="对应蓝字发票号码" min-width="130"></el-table-column>
+                <el-table-column prop="dylzfphm" label="对应蓝字发票号码" min-width="130"></el-table-column>
                 <el-table-column prop="hzqrxxdbh" label="红字确认信息单编号" min-width="130"></el-table-column>
                 <el-table-column prop="xsfmc" label="销方名称" min-width="150"></el-table-column>
                 <el-table-column prop="gmfmc" label="购方名称" min-width="150"></el-table-column>
@@ -57,18 +71,18 @@
                 </el-table-column>
                 <el-table-column prop="kpr" label="开票人" min-width="140"></el-table-column>
                 <el-table-column prop="kprq" label="开票日期" min-width="140"></el-table-column>
-                <el-table-column prop="status" label="状态" min-width="100" align="center">
+                <el-table-column prop="taskStatus" label="状态" min-width="100" align="center">
                   <template slot-scope="scope">
-                    <span>{{ statusText(scope.row.status) }}</span>
+                    <span>{{ statusText(scope.row.taskStatus) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="zdr" label="制单人" min-width="140"></el-table-column>
                 <el-table-column prop="zdrq" label="申请日期" min-width="140"></el-table-column>
                 <el-table-column prop="shr" label="审核人" min-width="140"></el-table-column>
                 <el-table-column prop="shrq" label="审核时间" min-width="140"></el-table-column>
-                <el-table-column prop="shstatus" label="审核状态" min-width="100">
-                  <template>
-                    <el-tag type="success" size="small">审核通过</el-tag>
+                <el-table-column prop="reviewStatus" label="审核状态" min-width="100" align="center">
+                  <template slot-scope="scope">
+                    <span>{{ auditStatusText(scope.row.reviewStatus) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" min-width="140" fixed="right">
@@ -92,30 +106,67 @@
 export default {
   props: { permissions: Object, params: Object },
   data() {
-    return { loading: false, search: { fphm: '', status: '' }, rows: [], pager: { current: 1, size: 10, total: 0 } };
+    return { 
+      loading: false, 
+      search: { 
+        fphm: '', 
+        gmfmc: '', 
+        status: '',
+        kprqRange: []
+      }, 
+      rows: [], 
+      pager: { current: 1, size: 10, total: 0 } 
+    };
   },
   mounted() { this.getData(); },
   methods: {
     onSearch() { this.pager.current = 1; this.getData(); },
-    reset() { this.search = { fphm: '', status: '' }; this.pager.current = 1; this.getData(); },
+    reset() { 
+      this.search = { 
+        fphm: '', 
+        gmfmc: '', 
+        status: '',
+        kprqRange: []
+      }; 
+      this.pager.current = 1; 
+      this.getData(); 
+    },
     onPage(p) { this.pager.current = p; this.getData(); },
-    toCreate() { /* 红票一般由确认单开票生成，这里保留 */ this.$message.info('请在销方红字确认单列表中执行“开票”'); },
+    toCreate() { /* 红票一般由确认单开票生成，这里保留 */ this.$message.info('请在销方红字确认单列表中执行"开票"'); },
+    buildQueryPayload() {
+      const payload = {
+        current: this.pager.current - 1, // API 使用 0-based 索引
+        rowCount: this.pager.size
+      };
+      const { fphm, status, gmfmc, kprqRange } = this.search;
+      if (fphm) payload.fphm = fphm.trim();
+      if (gmfmc) payload.gmfmc = gmfmc.trim();
+      if (status) payload.taskStatus = status;
+      if (Array.isArray(kprqRange) && kprqRange.length === 2) {
+        // 转换为 ISO 8601 格式
+        payload.kprqStart = kprqRange[0] ? new Date(kprqRange[0] + 'T00:00:00.000Z').toISOString() : undefined;
+        payload.kprqEnd = kprqRange[1] ? new Date(kprqRange[1] + 'T23:59:59.999Z').toISOString() : undefined;
+      }
+      return payload;
+    },
     getData() {
       this.loading = true;
       if (process.env.VUE_APP_USE_MOCK !== 'false') { this.useMock(); return; }
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.pageRedlqadapters;
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceList;
       if (!svc) { this.useMock(); return; }
-      const demand = { ...this.search, pageNum: this.pager.current, pageSize: this.pager.size };
+      const payload = this.buildQueryPayload();
       this.API.send(
         svc,
-        demand,
+        payload,
         (res) => {
           this.loading = false;
           const { success, message, records, total } = this.parsePagedResult(res || {});
           if (!success && message) {
             this.$message.warning(message);
           }
-          this.rows = records.map(item => this.normalizeRow(item));
+          // 过滤红票（lzfpbz === '1'）
+          const redInvoices = (records || []).filter(item => item.lzfpbz === '1' || item.lzfpbz === 1);
+          this.rows = redInvoices.map(item => this.normalizeRow(item));
           this.pager.total = total || this.rows.length;
         },
         () => { this.useMock(); },
@@ -130,10 +181,44 @@ export default {
         console.error('保存红字发票详情失败:', e);
         if (this.$message) this.$message.error('保存数据失败，请重试');
       }
-      this.$router.push({ name: 'taxInvoiceRedDetail', query: { sllsh: row.sllsh } });
+      this.$router.push({ name: 'taxInvoiceRedDetail', query: { id: row.id || row.sllsh } });
     },
     editRow(row) { this.$message.info('红票一般不允许编辑，若需修改请按规则红冲/重开'); },
-    previewRow(row) { this.$alert(`预览红票：${row.fphm || '-'}`, '预览', { confirmButtonText: '关闭' }); },
+    previewRow(row) {
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceQuery;
+      if (!svc || !row || !row.id) {
+        this.$alert(`预览红票：${row.fphm || '-'}`, '预览', { confirmButtonText: '关闭' });
+        return;
+      }
+      this.API.send(
+        svc,
+        { invoiceId: row.id },
+        (res) => {
+          const { success, message, data } = this.parseServiceResult(res || {});
+          if (!success && message) {
+            this.$message.warning(message);
+          }
+          const invoiceData = success && data ? data : row || {};
+          this.$alert(`预览红票：${invoiceData.fphm || '-'}`, '预览', { confirmButtonText: '关闭' });
+        },
+        () => {
+          this.$alert(`预览红票：${row.fphm || '-'}`, '预览', { confirmButtonText: '关闭' });
+        },
+        this
+      );
+    },
+    parseServiceResult(payload = {}) {
+      let body = payload;
+      if (body && body.serviceResult) {
+        body = body.serviceResult;
+      }
+      const successFlag = body && body.success !== undefined ? body.success : undefined;
+      const code = body && (body.code !== undefined ? body.code : payload.code);
+      const success = successFlag !== false && (code === undefined || code === null || code === '0');
+      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
+      const data = body && (body.data !== undefined ? body.data : body.result || body.record || body.entity) || {};
+      return { success, message, data };
+    },
     statusText(v) {
       if (v === '00') return '未提交';
       if (v === '01') return '开票中';
@@ -141,28 +226,33 @@ export default {
       if (v === '03') return '失败';
       return v || '';
     },
+    auditStatusText(v) {
+      if (v === '00' || v === 'PENDING') return '待审核';
+      if (v === '01' || v === 'PROCESSING') return '审核中';
+      if (v === '02' || v === 'APPROVED') return '审核通过';
+      if (v === '03' || v === 'REJECTED') return '审核拒绝';
+      return v || '';
+    },
     parsePagedResult(payload = {}) {
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.errorMsg : '';
-      let records = [];
-      let total = 0;
-      if (Array.isArray(payload.data)) {
-        records = payload.data;
-        total = payload.total || payload.count || payload.data.length || 0;
-      } else if (Array.isArray(payload.records)) {
-        records = payload.records;
-        total = payload.total || payload.count || payload.records.length || 0;
-      } else if (Array.isArray(payload.list)) {
-        records = payload.list;
-        total = payload.total || payload.count || payload.list.length || 0;
+      let body = payload;
+      if (body && body.serviceResult) {
+        body = body.serviceResult;
       }
-      return {
-        success: success !== false,
-        message: reason || errorMsg || '',
-        records,
-        total
-      };
+      const successFlag = body && body.success !== undefined ? body.success : undefined;
+      const code = body && (body.code !== undefined ? body.code : payload.code);
+      const success = successFlag !== false && (code === undefined || code === null || code === '0');
+      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
+
+      // 根据 API 文档，数据在 serviceResult.data 中
+      let data = body && body.data !== undefined ? body.data : undefined;
+      if (data && data.data) {
+        data = data.data;
+      }
+      // API 返回的 rows 在 data.rows 中
+      const records = data && (data.rows || data.records || data.list || data.data) || [];
+      // API 返回的 total 在 data.total 中
+      const total = data && (data.total !== undefined ? data.total : (data.count !== undefined ? data.count : records.length || 0));
+      return { success, message, records, total };
     },
     formatDateTime(value) {
       if (!value) {
@@ -176,18 +266,51 @@ export default {
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     },
     normalizeRow(row = {}) {
+      // 根据 API 文档，taskStatus 表示任务状态，reviewStatus 表示审核状态
+      const status = row.taskStatus !== undefined && row.taskStatus !== null ? String(row.taskStatus).padStart(2, '0') : (row.status !== undefined && row.status !== null ? String(row.status).padStart(2, '0') : '');
+      const auditStatus = row.reviewStatus !== undefined && row.reviewStatus !== null ? String(row.reviewStatus) : (row.shstatus !== undefined && row.shstatus !== null ? String(row.shstatus).padStart(2, '0') : '');
+      const hjje = Number(row.hjje || row.totalAmount || 0);
+      const hjse = Number(row.hjse || row.totalTax || 0);
+      const jshj = Number(row.jshj || row.totalWithTax || hjje + hjse);
       return {
         ...row,
-        kprq: this.formatDateTime(row.kprq),
-        zdrq: this.formatDateTime(row.zdrq),
-        shrq: this.formatDateTime(row.shrq)
+        id: row.id || row.sllsh, // 兼容旧字段
+        status: status || row.taskStatus,
+        shstatus: auditStatus || row.reviewStatus,
+        hjje,
+        hjse,
+        jshj,
+        kprq: this.formatDateTime(row.kprq || row.invoiceDate),
+        zdrq: this.formatDateTime(row.createTime || row.zdrq),
+        shrq: this.formatDateTime(row.updateTime || row.shrq)
       };
     },
     useMock() {
       this.loading = false;
       const now = this.utils.formatDate(new Date().getTime());
       this.rows = [
-        { sllsh: 'RSL0001', fphm: 'RH000001', fppz: '02', kprq: now, xsfnsrsbh: '9133X1X1X1', xsfmc: '销方A', gmfnrsbh: '9133Y2Y2Y2', gmfmc: '购方A', hjje: -1000, hjse: -90, jshj: -1090, status: '02' }
+        { 
+          id: 'RSL0001', 
+          sllsh: 'RSL0001', 
+          fphm: 'RH000001', 
+          lzfpbz: '1',
+          fppz: '02', 
+          dylzfphm: 'BL000001',
+          hzqrxxdbh: 'HZQR001',
+          kprq: now, 
+          xsfnsrsbh: '9133X1X1X1', 
+          xsfmc: '销方A', 
+          gmfnrsbh: '9133Y2Y2Y2', 
+          gmfmc: '购方A', 
+          hjje: -1000, 
+          hjse: -90, 
+          jshj: -1090, 
+          taskStatus: '02',
+          reviewStatus: 'APPROVED',
+          kpr: '开票人A',
+          createTime: now,
+          updateTime: now
+        }
       ];
       this.rows = this.rows.map(item => this.normalizeRow(item));
       this.pager.total = this.rows.length;
