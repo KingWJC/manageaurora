@@ -12,7 +12,7 @@ const kailing = {
   digitalInvoiceList: { module: 'kailing', url: '/lqadapter/digitalInvoice/list', method: 'POST', comment: '分页查询数电发票信息' },
   digitalInvoiceAdd: { module: 'kailing', url: '/lqadapter/digitalInvoice/add', method: 'POST', comment: '新增数电发票并创建上传任务' },
   digitalInvoiceAudit: { module: 'kailing', url: '/lqadapter/digitalInvoice/review', method: 'POST', comment: '审核数电发票' },
-  digitalInvoiceQuery: { module: 'kailing', url: '/lqadapter/digitalInvoice/query', method: 'POST', comment: '查询数电发票明细' },
+  digitalInvoiceQuery: { module: 'kailing', url: '/lqadapter/digitalInvoice/detail', method: 'POST', comment: '查询数电发票明细' },
 
   // 4. 红字确认单（沿用旧路径，等待新规范）
   pageRedConfirmList: { module: 'kailing', url: '/lqadapter/pageRedConfirmList', method: 'POST', comment: '查询数电红字确认单列表信息' },

@@ -37,13 +37,6 @@ export default [
     beforeEnter: requireAuth,
     component: () => import('./selectPerson.vue')
   },
-  {
-    path: '/admin/taxInvoice/blue/selectGoods',
-    name: 'taxInvoiceSelectGoods',
-    meta: { name: '添加商品或服务列表', keepAlive: true },
-    beforeEnter: requireAuth,
-    component: () => import('./selectGoods.vue')
-  },
 
   // 销方红字确认单开具
   {
