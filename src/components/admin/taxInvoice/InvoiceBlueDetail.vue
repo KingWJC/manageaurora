@@ -152,6 +152,8 @@
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   components: { 
     crumbsBar: () => import('@/common-base/components/crumbs-bar'),
@@ -244,7 +246,7 @@ export default {
         ['invoice_id', detail.taxInvoiceNo],
         ['fphm', detail.fphm],
         ['fppz', detail.fppz],
-        ['kprq', detail.kprq],
+        ['kprq', taxInvoiceUtils.formatTimestampToDate(detail.kprq)],
         ['kpr', detail.kpr],
         ['xsfnsrsbh', detail.xsfnsrsbh],
         ['xsfmc', detail.xsfmc],
@@ -349,7 +351,7 @@ export default {
           fpdm: item.fpdm || '',
           fphm: item.fphm || '',
           cezphm: item.cezphm || '',
-          kjrq: item.kjrq || '',
+          kjrq: taxInvoiceUtils.formatTimestampToDate(item.kjrq) || '',
           pzhjje: Number(item.pzhjje || 0),
           bckcje: Number(item.bckcje || 0),
           bz: item.bz || ''
@@ -616,7 +618,7 @@ export default {
         kpr: this.form.kpr,
         kprzjhm: this.form.kprzjhm || '',
         kprzjlx: this.form.kprzjlx || '',
-        kprq: this.form.kprq ? new Date(this.form.kprq).toISOString() : new Date().toISOString(),
+        kprq: this.form.kprq ? taxInvoiceUtils.formatDateToTimestamp(this.form.kprq) : Math.floor(Date.now() / 1000),
         dylzfphm: this.form.dylzfphm || '',
         hzqrxxdbh: this.form.hzqrxxdbh || '',
         hzqrduuid: this.form.hzqrduuid || '',
@@ -641,7 +643,7 @@ export default {
           fpdm: item.fpdm || '',
           fphm: item.fphm || '',
           cezphm: item.cezphm || '',
-          kjrq: item.kjrq ? new Date(item.kjrq).toISOString() : new Date().toISOString(),
+          kjrq: item.kjrq ? taxInvoiceUtils.formatDateToTimestamp(item.kjrq) : Math.floor(Date.now() / 1000),
           pzhjje: Number(item.pzhjje || 0),
           bckcje: Number(item.bckcje || 0),
           bz: item.bz || ''
@@ -671,7 +673,8 @@ export default {
         this.form.taxInvoiceNo = this.utils.UUID(32, 16);
       }
       if (!this.form.kprq) {
-        this.form.kprq = this.utils.formatDate(new Date().getTime());
+        // 如果没有开票日期，设置为当前日期时间
+        this.form.kprq = taxInvoiceUtils.getCurrentDateTime();
       }
       this.saving = true;
       const payload = this.buildAddPayload();

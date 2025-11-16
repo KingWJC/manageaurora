@@ -124,6 +124,8 @@
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   components: { crumbsBar: () => import('@/common-base/components/crumbs-bar') },
   props: { permissions: Object, params: Object },
@@ -223,7 +225,7 @@ export default {
       if (detail.gmfdh) this.form.gmfdh = detail.gmfdh;
       if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
       if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
-      if (detail.kprq) this.form.kprq = detail.kprq;
+      if (detail.kprq) this.form.kprq = taxInvoiceUtils.formatTimestampToDate(detail.kprq);
       if (detail.kpr) this.form.kpr = detail.kpr;
       if (detail.bz) this.form.bz = detail.bz;
       if (detail.hjje !== undefined) this.form.hjjc = Number(detail.hjje);
@@ -459,7 +461,7 @@ export default {
         kpr: this.form.kpr || '',
         kprzjhm: this.form.kprzjhm || '',
         kprzjlx: this.form.kprzjlx || '',
-        kprq: this.form.kprq ? new Date(this.form.kprq).toISOString() : new Date().toISOString(),
+        kprq: this.form.kprq ? taxInvoiceUtils.formatDateToTimestamp(this.form.kprq) : Math.floor(Date.now() / 1000),
         dylzfphm: this.form.lzfphm || this.form.dylzfphm || '',
         hzqrxxdbh: this.form.hzqrxxdbh || '',
         hzqrduuid: this.form.hzqrduuid || '',
@@ -484,7 +486,7 @@ export default {
           fpdm: item.fpdm || '',
           fphm: item.fphm || '',
           cezphm: item.cezphm || '',
-          kjrq: item.kjrq ? new Date(item.kjrq).toISOString() : new Date().toISOString(),
+          kjrq: item.kjrq ? taxInvoiceUtils.formatDateToTimestamp(item.kjrq) : Math.floor(Date.now() / 1000),
           pzhjje: Number(item.pzhjje || 0),
           bckcje: Number(item.bckcje || 0),
           bz: item.bz || ''

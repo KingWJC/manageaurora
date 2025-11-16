@@ -373,6 +373,8 @@
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -422,13 +424,10 @@ export default {
       if (gmfmc) payload.gmfmc = gmfmc.trim();
       if (status) payload.taskStatus = status;
       if (Array.isArray(kprqRange) && kprqRange.length === 2) {
-        // 转换为 ISO 8601 格式
-        payload.kprqStart = kprqRange[0]
-          ? new Date(kprqRange[0] + 'T00:00:00.000Z').toISOString()
-          : undefined;
-        payload.kprqEnd = kprqRange[1]
-          ? new Date(kprqRange[1] + 'T23:59:59.999Z').toISOString()
-          : undefined;
+        // 转换为时间戳格式
+        const { kprqStart, kprqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
+        payload.kprqStart = kprqStart;
+        payload.kprqEnd = kprqEnd;
       }
       return payload;
     },
@@ -567,19 +566,7 @@ export default {
       };
     },
     formatDateTime(value) {
-      if (!value) {
-        return '-';
-      }
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-      const pad = (num) => num.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-        date.getDate()
-      )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-        date.getSeconds()
-      )}`;
+      return taxInvoiceUtils.formatDateTime(value);
     },
     numberToChinese(num) {
       const digits = [
