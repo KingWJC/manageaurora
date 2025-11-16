@@ -23,21 +23,6 @@ export default [
     beforeEnter: requireAuth,
     component: () => import('./blueDetail.vue')
   },
-  {
-    path: '/admin/taxInvoice/blue/selectOrg',
-    name: 'taxInvoiceSelectOrg',
-    meta: { name: '选择组织列表', keepAlive: true },
-    beforeEnter: requireAuth,
-    component: () => import('./selectOrg.vue')
-  },
-  {
-    path: '/admin/taxInvoice/blue/selectPerson',
-    name: 'taxInvoiceSelectPerson',
-    meta: { name: '选择自然人列表', keepAlive: true },
-    beforeEnter: requireAuth,
-    component: () => import('./selectPerson.vue')
-  },
-
   // 销方红字确认单开具
   {
     path: '/admin/taxInvoice/red/seller/list',

@@ -129,11 +129,11 @@
                   label="开票人"
                   min-width="140"
                 ></el-table-column>
-                <el-table-column
-                  prop="kprq"
-                  label="开票日期"
-                  min-width="140"
-                ></el-table-column>
+                <el-table-column prop="kprq" label="开票日期" min-width="140">
+                  <templage slot-scope="scope">{{
+                    formatDateTime(scope.row.kprq)
+                  }}</templage>
+                </el-table-column>
                 <el-table-column
                   prop="taskStatus"
                   label="状态"
@@ -149,21 +149,17 @@
                   label="制单人"
                   min-width="140"
                 ></el-table-column>
-                <el-table-column
-                  prop="zdrq"
-                  label="申请日期"
-                  min-width="140"
-                ></el-table-column>
+                <el-table-column prop="zdrq" label="申请日期" min-width="140">
+                  <templage slot-scope="scope">{{ formatDateTime(scope.row.zdrq) }}</templage>
+                </el-table-column>
                 <el-table-column
                   prop="fhr"
                   label="审核人"
                   min-width="140"
                 ></el-table-column>
-                <el-table-column
-                  prop="shrq"
-                  label="审核时间"
-                  min-width="140"
-                ></el-table-column>
+                <el-table-column prop="shrq" label="审核时间" min-width="140">
+                  <templage slot-scope="scope">{{ formatDateTime(scope.row.shrq) }}</templage>
+                </el-table-column>
                 <el-table-column
                   prop="reviewStatus"
                   label="审核状态"
@@ -425,7 +421,8 @@ export default {
       if (status) payload.taskStatus = status;
       if (Array.isArray(kprqRange) && kprqRange.length === 2) {
         // 转换为时间戳格式
-        const { kprqStart, kprqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
+        const { kprqStart, kprqEnd } =
+          taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
         payload.kprqStart = kprqStart;
         payload.kprqEnd = kprqEnd;
       }
@@ -487,6 +484,13 @@ export default {
       if (v === '02') return '审核通过';
       if (v === '03') return '审核拒绝';
       return v || '';
+    },
+    formatDateTime(v) {
+      return taxInvoiceUtils.formatDateTime(v);
+    },
+    previewRow(row) {
+      this.previewData = row;
+      this.dialog.preview = true;
     },
     viewRow(row) {
       this.$router.push({
@@ -565,9 +569,7 @@ export default {
         total
       };
     },
-    formatDateTime(value) {
-      return taxInvoiceUtils.formatDateTime(value);
-    },
+
     numberToChinese(num) {
       const digits = [
         '零',

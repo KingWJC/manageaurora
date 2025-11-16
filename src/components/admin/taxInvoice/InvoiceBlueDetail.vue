@@ -148,6 +148,10 @@
     <div class="viewport-fixed bg-white power-zi101" v-if="ootListConfig.show">
       <ootListChoice :ootListConfig="ootListConfig"></ootListChoice>
     </div>
+    <!-- 通用选择组件（用于选择自然人和机构） -->
+    <div class="viewport-fixed bg-white power-zi101" v-if="generalSelectionModel.show">
+      <generalSelection :mode="generalSelectionModel" @close="closeGeneralSelection"></generalSelection>
+    </div>
   </div>
 </template>
 
@@ -157,13 +161,23 @@ import taxInvoiceUtils from './taxInvoiceUtils';
 export default {
   components: { 
     crumbsBar: () => import('@/common-base/components/crumbs-bar'),
-    ootListChoice: () => import('@/common-base/components/pubComponents/ootListChoice')
+    ootListChoice: () => import('./ootListChoice'),
+    generalSelection: () => import('@/components/admin/institutionName/common/generalSelection')
   },
   props: { permissions: Object, params: Object },
   data() {
     return {
       saving: false,
       isViewMode: false, // 是否为查看模式
+      generalSelectionModel: {
+        show: false,
+        data: {},
+        setting: {
+          url: "",
+          formConfig: [],
+          cols: [],
+        },
+      },
       ootListConfig: {
         show: false,
         selection: true, // 支持多选
@@ -359,7 +373,6 @@ export default {
       }
     },
     activated() {
-      // keep-alive 激活时也检查恢复和回填
       // 更新查看模式状态
       this.isViewMode = this.$route && this.$route.query && this.$route.query.mode === 'view';
       this.restoreFormData();
@@ -408,8 +421,6 @@ export default {
     appendGoodsRows(list) {
       (list || []).forEach((g) => {
         // 适配 ootListChoice 组件返回的数据结构
-        // ootListChoice 返回的商品数据字段：productName, specification, packingSpecification, barcode 等
-        // 服务数据字段：productName, type, specification, vendor, barcode 等
         const newRow = {
           mxxh: (this.form.fpmxList.length || 0) + 1,
           dylzfpmxxh: 0,
@@ -466,14 +477,113 @@ export default {
       this.saveFormData();
       const type = this.form.gmfzrrbz;
       if (type === 'Y') {
-        this.$router.push({ name: 'taxInvoiceSelectPerson', query: { from: 'taxInvoiceBlueDetail' } });
+        // 选择自然人
+        this.openSelectPerson();
         return;
       }
       if (type === 'N') {
-        this.$router.push({ name: 'taxInvoiceSelectOrg', query: { from: 'taxInvoiceBlueDetail' } });
+        // 选择机构
+        this.openSelectOrg();
         return;
       }
       this.$message.info('请先选择购货单位类型');
+    },
+    // 打开选择自然人
+    openSelectPerson() {
+      this.generalSelectionModel.show = true;
+      const modelOptions = {
+        url: this.CFG.services.ca.humanSelectHumans,
+        noPaging: false,
+        formConfig: [
+          { paramMark: "姓名", param: "name", paramType: "text" },
+          { paramMark: "手机号", param: "cellphone", paramType: "text" },
+          { paramMark: "证件号码", param: "identificationNumber", paramType: "text" }
+        ],
+        cols: [
+          { label: "姓名", id: "name" },
+          { label: "手机号", id: "cellphone" },
+          { label: "证件类型", id: "identificationTypeCode" },
+          { label: "证件号码", id: "identificationNumber" },
+          {
+            label: "操作",
+            fixed: "right",
+            width: "120",
+            btns: [
+              {
+                name: "选择",
+                click: (row) => {
+                  this.generalSelectionModel.show = false;
+                  // 回写自然人数据到表单
+                  this.form.gmfmc = row.name || '';
+                  this.form.gmfdh = row.cellphone || '';
+                  this.form.gmfnrsbh = row.identificationNumber || '';
+                  this.form.jbrsfzjhm = row.identificationNumber || '';
+                  // 清空机构相关字段
+                  this.form.gmfdz = '';
+                  this.form.gmfkhh = '';
+                  this.form.gmfzh = '';
+                  this.form.gmfjbr = '';
+                  this.form.gmfbrlxdh = '';
+                }
+              }
+            ]
+          }
+        ]
+      };
+      this.generalSelectionModel.setting = modelOptions;
+    },
+    // 打开选择机构
+    openSelectOrg() {
+      this.generalSelectionModel.show = true;
+      const modelOptions = {
+        url: this.CFG.services.ca.organizeSearchOrgsByPage,
+        noPaging: false,
+        formConfig: [
+          { paramMark: "机构名称", param: "name", paramType: "text" }
+        ],
+        cols: [
+          { label: "机构名称", id: "name" },
+          { label: "省", id: "province" },
+          { label: "市", id: "city" },
+          { label: "县", id: "district" },
+          { label: "地址", id: "address" },
+          { label: "联系人", id: "linkmanName" },
+          { label: "联系人电话", id: "linkmanPhone" },
+          {
+            label: "操作",
+            fixed: "right",
+            width: "120",
+            btns: [
+              {
+                name: "选择",
+                click: (row) => {
+                  this.generalSelectionModel.show = false;
+                  // 回写机构数据到表单
+                  this.form.gmfmc = row.name || '';
+                  this.form.gmfnrsbh = row.nsrsbh || row.unifiedSocialCreditCode || '';
+                  this.form.gmfdz = row.address || '';
+                  if (row.province || row.city || row.district) {
+                    const addressParts = [row.province, row.city, row.district, row.address].filter(Boolean);
+                    this.form.gmfdz = addressParts.join('');
+                  }
+                  this.form.gmfdh = row.linkmanPhone || '';
+                  this.form.gmfkhh = row.bankAccount || '';
+                  this.form.gmfzh = row.bankName || '';
+                  this.form.gmfjbr = row.linkmanName || '';
+                  this.form.gmfbrlxdh = row.linkmanPhone || '';
+                  // 清空自然人相关字段
+                  this.form.jbrsfzjhm = '';
+                }
+              }
+            ]
+          }
+        ]
+      };
+      this.generalSelectionModel.setting = modelOptions;
+    },
+    // 关闭通用选择组件
+    closeGeneralSelection() {
+      this.generalSelectionModel.show = false;
     },
     openSelectGoods() {
       // 跳转前保存表单数据
@@ -512,7 +622,10 @@ export default {
           // 恢复表单数据，保留已有值
           Object.keys(savedData).forEach(key => {
             if (savedData[key] !== null && savedData[key] !== undefined && savedData[key] !== '') {
-              if (Array.isArray(savedData[key])) {
+              // 对于购货单位类型字段，使用 $set 确保响应式更新
+              if (key === 'gmfzrrbz') {
+                this.$set(this.form, key, savedData[key]);
+              } else if (Array.isArray(savedData[key])) {
                 this.form[key] = savedData[key];
               } else if (typeof savedData[key] === 'object') {
                 this.form[key] = { ...this.form[key], ...savedData[key] };
@@ -557,7 +670,6 @@ export default {
       return '';
     },
     buildAddPayload() {
-      // 根据 API 文档构建请求参数
       const detailList = (this.form.fpmxList || []).map((item, index) => {
         const quantity = Number(item.sl || 0);
         const price = Number(item.dj || 0);
@@ -685,7 +797,6 @@ export default {
           this.saving = false;
           const { success, message, data } = this.parseServiceResult(res || {});
           if (success) {
-            // 根据 API 文档，返回 data 中包含 id, taxInvoiceNo, fphm, kprq, uploadStatus, message
             const invoiceId = data && data.id;
             const taxInvoiceNo = data && data.taxInvoiceNo;
             const fphm = data && data.fphm;
