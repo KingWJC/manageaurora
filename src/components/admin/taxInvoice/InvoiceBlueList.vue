@@ -130,9 +130,9 @@
                   min-width="140"
                 ></el-table-column>
                 <el-table-column prop="kprq" label="开票日期" min-width="140">
-                  <templage slot-scope="scope">{{
+                  <template slot-scope="scope">{{
                     formatDateTime(scope.row.kprq)
-                  }}</templage>
+                  }}</template>
                 </el-table-column>
                 <el-table-column
                   prop="taskStatus"
@@ -150,7 +150,7 @@
                   min-width="140"
                 ></el-table-column>
                 <el-table-column prop="zdrq" label="申请日期" min-width="140">
-                  <templage slot-scope="scope">{{ formatDateTime(scope.row.zdrq) }}</templage>
+                  <template slot-scope="scope">{{ formatDateTime(scope.row.zdrq) }}</template>
                 </el-table-column>
                 <el-table-column
                   prop="fhr"
@@ -158,7 +158,7 @@
                   min-width="140"
                 ></el-table-column>
                 <el-table-column prop="shrq" label="审核时间" min-width="140">
-                  <templage slot-scope="scope">{{ formatDateTime(scope.row.shrq) }}</templage>
+                  <template slot-scope="scope">{{ formatDateTime(scope.row.shrq) }}</template>
                 </el-table-column>
                 <el-table-column
                   prop="reviewStatus"
@@ -249,7 +249,7 @@
                         >统一社会信用代码/纳税人识别号：</label
                       >
                       <span>{{
-                        (previewData && previewData.gmfnrsbh) || '-'
+                        (previewData && previewData.gmfnsrsbh) || '-'
                       }}</span>
                     </p>
                   </div>
@@ -392,7 +392,6 @@ export default {
     this.getData();
   },
   activated() {
-    // keep-alive 激活时刷新列表（从详情页返回时）
     this.getData();
   },
   methods: {
@@ -412,7 +411,7 @@ export default {
     },
     buildQueryPayload() {
       const payload = {
-        current: this.pager.current - 1, // API 使用 0-based 索引
+        current: this.pager.current - 1, 
         rowCount: this.pager.size
       };
       const { fphm, status, gmfmc, kprqRange } = this.search;
@@ -426,23 +425,19 @@ export default {
         payload.kprqStart = kprqStart;
         payload.kprqEnd = kprqEnd;
       }
+      // 只查询蓝字发票
+      payload.lzfpbz = '0';
       return payload;
     },
-    sendAuditRequest(svc, row, auditStatus, opinion) {
+    sendAuditRequest(svc, row, auditStatus, reviewRemark) {
       if (!row || !row.id) {
         this.$message.warning('缺少发票ID，无法审核');
         return;
       }
-      // 将审核状态映射为 API 需要的格式
-      const reviewStatus =
-        auditStatus === 'APPROVED'
-          ? 'APPROVED'
-          : auditStatus === 'REJECTED'
-          ? 'REJECTED'
-          : auditStatus;
       const payload = {
         invoiceId: row.id,
-        reviewStatus: reviewStatus
+        reviewStatus: auditStatus,
+        reviewRemark: reviewRemark || ''
       };
       this.loading = true;
       this.API.send(
@@ -474,15 +469,14 @@ export default {
     statusText(v) {
       if (v === '00') return '未提交';
       if (v === '01') return '开票中';
-      if (v === '02') return '成功';
-      if (v === '03') return '失败';
+      if (v === '02') return '开票成功';
+      if (v === '03') return '开票失败';
       return v || '';
     },
     auditStatusText(v) {
       if (v === '00') return '待审核';
-      if (v === '01') return '审核中';
-      if (v === '02') return '审核通过';
-      if (v === '03') return '审核拒绝';
+      if (v === '01') return '审核通过';
+      if (v === '02') return '审核拒绝';
       return v || '';
     },
     formatDateTime(v) {
@@ -505,26 +499,39 @@ export default {
       });
     },
     auditRow(row) {
+      let inputValue = ''; // 保存用户输入的审核意见
       this.$prompt('请输入审核意见（可选）', '审核发票', {
-        confirmButtonText: '通过',
-        cancelButtonText: '拒绝',
+        confirmButtonText: '审核通过',
+        cancelButtonText: '审核退回',
         showCancelButton: true,
         distinguishCancelAndClose: true,
         inputType: 'textarea',
-        inputPlaceholder: '审核意见',
-        closeOnClickModal: false
+        inputPlaceholder: '请输入审核意见',
+        closeOnClickModal: false,
+        inputValidator: (value) => {
+          // 在用户输入时保存值
+          inputValue = value || '';
+          return true; 
+        }
       })
         .then(({ value }) => {
+          // 审核通过：reviewStatus = '01'
           this.sendAuditRequest(
             this.CFG.services.kailing.digitalInvoiceAudit,
             row,
-            'APPROVED',
+            '01',
             value || ''
           );
         })
-        .catch((err) => {
-          if (err) {
-            this.$message.warning(err.message);
+        .catch((action) => {
+          if (action === 'cancel') {
+            // 审核退回：reviewStatus = '02'
+            this.sendAuditRequest(
+              this.CFG.services.kailing.digitalInvoiceAudit,
+              row,
+              '02',
+              inputValue || ''
+            );
           }
         });
     },
@@ -568,6 +575,18 @@ export default {
         records,
         total
       };
+    },
+    parseServiceResult(payload = {}) {
+      let body = payload;
+      if (body && body.serviceResult) {
+        body = body.serviceResult;
+      }
+      const successFlag = body && body.success !== undefined ? body.success : undefined;
+      const code = body && (body.code !== undefined ? body.code : payload.code);
+      const success = successFlag !== false && (code === undefined || code === null || code === '0');
+      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
+      const data = body && (body.data !== undefined ? body.data : body.result || body.record || body.entity) || {};
+      return { success, message, data };
     },
 
     numberToChinese(num) {

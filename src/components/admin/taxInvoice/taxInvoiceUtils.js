@@ -99,13 +99,13 @@ export function formatDateRangeToTimestamp(dateRange) {
   if (start) {
     // 将开始日期设置为当天的 00:00:00
     const startDate = new Date(start + 'T00:00:00');
-    kprqStart = Math.floor(startDate.getTime() / 1000);
+    kprqStart = Math.floor(startDate.getTime());
   }
   
   if (end) {
     // 将结束日期设置为当天的 23:59:59
     const endDate = new Date(end + 'T23:59:59');
-    kprqEnd = Math.floor(endDate.getTime() / 1000);
+    kprqEnd = Math.floor(endDate.getTime());
   }
   
   return { kprqStart, kprqEnd };
@@ -174,6 +174,7 @@ export default {
   formatDateTime,
   getCurrentDateTime
 };
+
 
 
 

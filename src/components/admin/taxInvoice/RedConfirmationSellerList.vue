@@ -16,22 +16,34 @@
           <div class="panel pl15 pr15 pt10">
             <div class="search-bar flex flex-content-start flex-items-center flex-wrap">
               <div class="search-bar-item">
-                <el-input v-model="search.fphm" size="small" placeholder="红字确认单编码" :maxlength="30" />
+                <el-input v-model="search.gmfmc" size="small" placeholder="购方名称" :maxlength="50" />
               </div>
               <div class="search-bar-item">
-                <el-input v-model="search.fphm" size="small" placeholder="蓝字发票号码" :maxlength="30" />
+                <el-input v-model="search.lzfphm" size="small" placeholder="蓝字发票号码" :maxlength="30" />
               </div>
               <div class="search-bar-item">
-                <el-select v-model="search.status" size="small" placeholder="状态" clearable>
-                  <el-option label="未提交" value="00" />
-                  <el-option label="开票中" value="01" />
+                <el-select v-model="search.hzqrxxztDm" size="small" placeholder="状态" clearable>
+                  <el-option label="无需确认" value="01" />
                   <el-option label="销方录入待购方确认" value="02" />
-                  <el-option label="失败" value="03" />
+                  <el-option label="购方录入待销方确认" value="03" />
+                  <el-option label="已确认" value="04" />
+                  <el-option label="已撤销" value="08" />
                 </el-select>
+              </div>
+              <div class="search-bar-item">
+                <el-date-picker
+                  v-model="search.lrrqRange"
+                  type="daterange"
+                  unlink-panels
+                  size="small"
+                  start-placeholder="录入日期起"
+                  end-placeholder="录入日期止"
+                  value-format="yyyy-MM-dd"
+                />
               </div>
               <div class="search-bar-item-auto">
                 <el-button size="small" type="primary" @click="onSearch">查询</el-button>
-                <el-button size="small" type="primary" @click="reset">重置</el-button>
+                <el-button size="small" @click="reset">重置</el-button>
                 <el-button size="small" type="primary" @click="toCreate">新增</el-button>
               </div>
             </div>
@@ -39,33 +51,67 @@
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
               <el-table :data="rows" v-loading="loading" style="width:100%" border>
-                <el-table-column prop="sllsh" label="单据ID" min-width="130"></el-table-column>
-                <el-table-column prop="hzqrxxdbh" label="红字确认单编号" min-width="130"></el-table-column>
-                <el-table-column prop="dylzfphm" label="蓝字发票号码" min-width="130"></el-table-column>
-                <el-table-column prop="hzqrxxdbh" label="红字发票号码" min-width="130"></el-table-column>
+                <el-table-column prop="id" label="单据ID" min-width="130"></el-table-column>
+                <el-table-column prop="hzfpxxqrdbh" label="红字确认单编号" min-width="150"></el-table-column>
+                <el-table-column prop="lzfphm" label="蓝字发票号码" min-width="130"></el-table-column>
                 <el-table-column prop="xsfmc" label="销方名称" min-width="150"></el-table-column>
                 <el-table-column prop="gmfmc" label="购方名称" min-width="150"></el-table-column>
-                <el-table-column prop="chyy" label="红字发票冲红原因" min-width="140"></el-table-column>
-                <el-table-column prop="lrfsf" label="录入方身份" min-width="140"></el-table-column>
-                <el-table-column prop="lrrq" label="录入日期" min-width="160"></el-table-column>
-                <el-table-column prop="lrrq" label="开票失败原因" min-width="160"></el-table-column>
-                <el-table-column prop="status" label="状态" min-width="130" align="center">
+                <el-table-column prop="hzcxje" label="红字冲销金额" min-width="120">
                   <template slot-scope="scope">
-                    <span v-if="scope.row.status === '1'">作废(发起方已撤销)</span>
+                    <span :class="{ 'text-red': Number(scope.row.hzcxje || 0) < 0 }">
+                      ¥{{ Number(scope.row.hzcxje || 0) < 0 ? Number(scope.row.hzcxje || 0).toFixed(2) : (-Number(scope.row.hzcxje || 0)).toFixed(2) }}
+                    </span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="hzcxse" label="红字冲销税额" min-width="120">
+                  <template slot-scope="scope">
+                    <span :class="{ 'text-red': Number(scope.row.hzcxse || 0) < 0 }">
+                      ¥{{ Number(scope.row.hzcxse || 0) < 0 ? Number(scope.row.hzcxse || 0).toFixed(2) : (-Number(scope.row.hzcxse || 0)).toFixed(2) }}
+                    </span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="chyyDm" label="冲红原因" min-width="120">
+                  <template slot-scope="scope">{{ chyyText(scope.row.chyyDm) }}</template>
+                </el-table-column>
+                <el-table-column prop="lrfsf" label="录入方身份" min-width="120">
+                  <template slot-scope="scope">{{ lrfsfText(scope.row.lrfsf) }}</template>
+                </el-table-column>
+                <el-table-column prop="lrrq" label="录入日期" min-width="160">
+                  <template slot-scope="scope">{{ formatDateTime(scope.row.lrrq) }}</template>
+                </el-table-column>
+                <el-table-column prop="hzqrxxztDm" label="状态" min-width="140" align="center">
+                  <template slot-scope="scope">
+                    <span>{{ statusText(scope.row.hzqrxxztDm) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" min-width="100" fixed="right">
                   <template slot-scope="scope">
                     <p>
                       <span class="link" @click="handleView(scope.row)">查看</span>
-                      <span class="link ml10" @click="confirmRow(scope.row, 'Y')">确认</span>
+                      <span 
+                        class="link ml10" 
+                        :class="{ 'link-disabled': !canEdit(scope.row) }"
+                        @click="canEdit(scope.row) && handleEdit(scope.row)"
+                      >编辑</span>
                     </p>
                     <p>
-                      <span class="link" @click="submitRow(scope.row)">提交</span>
-                      <span class="link ml10" @click="confirmRow(scope.row, 'C')">撤销</span>
+                      <span 
+                        class="link" 
+                        :class="{ 'link-disabled': !canSubmit(scope.row) }"
+                        @click="canSubmit(scope.row) && submitRow(scope.row)"
+                      >提交</span>
+                      <span 
+                        class="link ml10" 
+                        :class="{ 'link-disabled': !canCancel(scope.row) }"
+                        @click="canCancel(scope.row) && cancelRow(scope.row)"
+                      >撤销</span>
                     </p>
                     <p>
-                      <span class="link" @click="toRedInvoice(scope.row)">开票</span>
+                      <span 
+                        class="link" 
+                        :class="{ 'link-disabled': !canInvoice(scope.row) }"
+                        @click="canInvoice(scope.row) && toRedInvoice(scope.row)"
+                      >开票</span>
                     </p>
                   </template>
                 </el-table-column>
@@ -79,184 +125,286 @@
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   props: { permissions: Object, params: Object },
   data() {
-    return { loading: false, search: { fphm: '', status: '' }, rows: [], pager: { current: 1, size: 10, total: 0 } };
+    return { 
+      loading: false, 
+      search: { 
+        gmfmc: '', 
+        lzfphm: '', 
+        hzqrxxztDm: '',
+        lrrqRange: []
+      }, 
+      rows: [], 
+      pager: { current: 1, size: 10, total: 0 }
+    };
   },
-  mounted() { this.getData(); },
+  mounted() { 
+    this.getData(); 
+  },
+  activated() {
+        this.getData();
+  },
   methods: {
-    onSearch() { this.pager.current = 1; this.getData(); },
-    reset() { this.search = { fphm: '', status: '' }; this.pager.current = 1; this.getData(); },
-    onPage(p) { this.pager.current = p; this.getData(); },
-    toCreate() { this.$router.push({ name: 'taxInvoiceBlueInvoiceQuery', query: { next: 'taxInvoiceRedSellerCreate' } }); },
+    onSearch() { 
+      this.pager.current = 1; 
+      this.getData(); 
+    },
+    reset() { 
+      this.search = { 
+        gmfmc: '', 
+        lzfphm: '', 
+        hzqrxxztDm: '',
+        lrrqRange: []
+      }; 
+      this.pager.current = 1; 
+      this.getData(); 
+    },
+    onPage(p) { 
+      this.pager.current = p; 
+      this.getData(); 
+    },
+    buildQueryPayload() {
+      const payload = {
+        current: this.pager.current - 1, 
+        rowCount: this.pager.size
+      };
+      const { gmfmc, lzfphm, hzqrxxztDm, lrrqRange } = this.search;
+      if (gmfmc) payload.gmfmc = gmfmc.trim();
+      if (lzfphm) payload.lzfphm = lzfphm.trim();
+      if (hzqrxxztDm) payload.hzqrxxztDm = hzqrxxztDm;
+      if (Array.isArray(lrrqRange) && lrrqRange.length === 2) {
+        const { lrrqStart, lrrqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(lrrqRange);
+        if (lrrqStart !== undefined) payload.lrrqStart = String(lrrqStart);
+        if (lrrqEnd !== undefined) payload.lrrqEnd = String(lrrqEnd);
+      }
+      return payload;
+    },
+    toCreate() { 
+      this.$router.push({ 
+        name: 'taxInvoiceBlueInvoiceQuery', 
+        query: { next: 'taxInvoiceRedSellerCreate' } 
+      }); 
+    },
     handleView(row) {
-      this.$alert(`红字确认单编号：${row.hzqrxxdbh || '-'}\n蓝字发票：${row.dylzfphm || '-'}`, '查看', { confirmButtonText: '知道了' });
+      this.$router.push({
+        name: 'taxInvoiceRedSellerCreate',
+        query: { confirmId: row.id , mode: 'view' }
+      });
+    },
+    handleEdit(row) {
+      this.$router.push({
+        name: 'taxInvoiceRedSellerCreate',
+        query: { id: row.id , mode: 'edit' }
+      });
+    },
+    canEdit(row) {
+      // 只有状态为"00"未提交时才能编辑
+      return row.hzqrxxztDm === '00';
+    },
+    canSubmit(row) {
+      // 只有状态为为"00"未提交时才能提交
+      return row.hzqrxxztDm === '00';
+    },
+    canCancel(row) {
+      // 只有状态为"01无需确认"、"02销方录入待购方确认"或"04已确认"时才能撤销
+      // 且必须是销方发起的（lrfsf='0'）
+      return (row.hzqrxxztDm === '01' || row.hzqrxxztDm === '02' || row.hzqrxxztDm === '04') && row.lrfsf === '0';
+    },
+    canInvoice(row) {
+      // 只有状态为"01无需确认"、"04购销双方已确认"且未开具红字发票时才能开票
+      return (row.hzqrxxztDm === '01' || row.hzqrxxztDm === '04') && !row.redInvoiceId;
     },
     submitRow(row) {
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.applyRedConfirm;
-      if (!svc) { this.$message.success('提交成功（Mock）'); return; }
-      const demand = {
-        lrfsf: '0',
-        xsfnsrsbh: row.xsfnsrsbh,
-        xsfmc: row.xsfmc,
-        gmfnsrsbh: row.gmfnsrsbh,
-        gmfmc: row.gmfmc,
-        lzfphm: row.dylzfphm,
-        lzhjje: row.lzhjje,
-        lzhjse: row.lzhjse,
-        chyyDm: row.chyyDm || '01',
-        lzmxxh: 1,
-        xh: 1,
-        sphfwssflhbbm: row.sphfwssflhbbm || '3040501',
-        hwhyslwfwmc: row.hwhyslwfwmc || '技术服务',
-        spfwjc: row.spfwjc || '技术',
-        xmmc: row.xmmc || '服务',
-        je: row.je || 0,
-        sl1: row.sl1 || 0,
-        se: row.se || 0
-      };
-      this.API.send(
-        svc,
-        demand,
-        (res) => {
-          const { success, message } = this.parsePagedResult(res || {});
-          if (success) {
-            this.$message.success('提交成功');
-            this.getData();
-          } else {
-            this.$message.warning(message || '提交成功');
+      this.$confirm({
+        title: '提示',
+        text: '确定要提交此红字确认单吗？',
+        buttons: [
+          {
+            text: '取消',
+            type: 'follow',
+            callback: () => {
+              // 用户取消操作
+            }
+          },
+          {
+            text: '确定',
+            type: 'primary',
+            callback: () => {
+              const payload = {
+                id: row.id
+              };
+              this.loading = true;
+              this.API.send(
+                this.CFG.services.kailing.applyRedConfirm,
+                payload,
+                (res) => {
+                  this.loading = false;
+                  const { success, message } = this.parseServiceResult(res || {});
+                  if (success) {
+                    this.$message.success('提交成功');
+                    this.getData();
+                  } else {
+                    this.$message.warning(message || '提交失败');
+                  }
+                },
+                () => {
+                  this.loading = false;
+                  this.$message.error('提交失败，请重试');
+                },
+                this
+              );
+            }
           }
-        },
-        () => { this.$message.success('提交成功（Mock）'); },
-        this
-      );
+        ]
+      });
     },
-    confirmRow(row, qrlx) {
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.confirmRedConfirm;
-      if (!svc) { this.$message.success((qrlx === 'Y' ? '确认' : '撤销') + '成功（Mock）'); return; }
-      const demand = { xsfnsrsbh: row.xsfnsrsbh, uuid: row.uuid || row.sllsh, hzqrdbh: row.hzqrxxdbh, qrlx };
-      this.API.send(
-        svc,
-        demand,
-        (res) => {
-          const { success, message } = this.parsePagedResult(res || {});
-          if (success) {
-            this.$message.success((qrlx === 'Y' ? '确认' : '撤销') + '成功');
-            this.getData();
-          } else {
-            this.$message.warning(message || ((qrlx === 'Y' ? '确认' : '撤销') + '结果未知'));
+    cancelRow(row) {
+      const actionText = '撤销';
+      this.$confirm({
+        title: '提示',
+        text: `确定要${actionText}此红字确认单吗？`,
+        buttons: [
+          {
+            text: '取消',
+            type: 'follow',
+            callback: () => {
+              // 用户取消操作
+            }
+          },
+          {
+            text: '确定',
+            type: 'primary',
+            callback: () => {
+              const payload = {
+                confirmationId: row.id,
+                xsfnsrsbh: row.xsfnsrsbh,
+                qrlx: 'C' // C: 撤销
+              };
+              this.loading = true;
+              this.API.send(
+                this.CFG.services.kailing.confirmRedConfirm,
+                payload,
+                (res) => {
+                  this.loading = false;
+                  const { success, message } = this.parseServiceResult(res || {});
+                  if (success) {
+                    this.$message.success(`${actionText}成功`);
+                    this.getData();
+                  } else {
+                    this.$message.warning(message || `${actionText}失败`);
+                  }
+                },
+                () => {
+                  this.loading = false;
+                  this.$message.error(`${actionText}失败，请重试`);
+                },
+                this
+              );
+            }
           }
-        },
-        () => { this.$message.success((qrlx === 'Y' ? '确认' : '撤销') + '成功（Mock）'); },
-        this
-      );
+        ]
+      });
     },
     toRedInvoice(row) {
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.createRedlqadapter;
-      if (!svc) { this.$message.success('开票成功（Mock）'); return; }
-      const demand = {
-        dylzfphm: row.dylzfphm,
-        hzqrdbh: row.hzqrxxdbh,
-        uuid: row.uuid,
-        xsfnsrsbh: row.xsfnsrsbh,
-        gmfnsrsbh: row.gmfnsrsbh
+      // 跳转到红字发票开具页面，传递红字确认单信息
+      this.$router.push({
+        name: 'taxInvoiceRedDetail',
+        query: {
+          confirmId: row.id || row.uuid,
+          hzfpxxqrdbh: row.hzfpxxqrdbh,
+          lzfphm: row.lzfphm
+        }
+      });
+    },
+    statusText(v) {
+      const statusMap = {
+        '00': '未提交',
+        '01': '无需确认',
+        '02': '销方录入待购方确认',
+        '03': '购方录入待销方确认',
+        '04': '已确认',
+        '08': '已撤销',
+        '09': '作废(确认后撤销)',
+        '10': '作废(异常凭证)'
       };
-      this.API.send(
-        svc,
-        demand,
-        (res) => {
-          const { success, message } = this.parsePagedResult(res || {});
-          if (success) {
-            this.$message.success('开票成功');
-            this.$router.push({ name: 'taxInvoiceRedList', query: { lzfphm: row.dylzfphm, uuid: row.uuid } });
-          } else {
-            this.$message.warning(message || '开票结果未知');
-          }
-        },
-        () => { this.$message.success('开票成功（Mock）'); },
-        this
-      );
+      return statusMap[v] || v || '';
+    },
+    chyyText(v) {
+      const chyyMap = {
+        '01': '开票有误',
+        '02': '销货退回',
+        '03': '服务中止',
+        '04': '销售折让'
+      };
+      return chyyMap[v] || v || '';
+    },
+    lrfsfText(v) {
+      return v === '0' ? '销方' : v === '1' ? '购方' : v || '';
     },
     getData() {
       this.loading = true;
-      if (process.env.VUE_APP_USE_MOCK !== 'false') { this.useMock(); return; }
-      const demand = { 
-        yhjslx: '0', // 0销方
-        lzfphm: this.search.fphm || undefined,
-        hzqrxztDm: this.search.status || undefined,
-        pageNum: this.pager.current,
-        pageSize: this.pager.size
-      };
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.pageRedConfirmList;
-      if (!svc) { this.useMock(); return; }
+      const payload = this.buildQueryPayload();
       this.API.send(
-        svc,
-        demand,
+        this.CFG.services.kailing.pageRedConfirmList,
+        payload,
         (res) => {
           this.loading = false;
           const { success, message, records, total } = this.parsePagedResult(res || {});
           if (!success && message) {
             this.$message.warning(message);
           }
-          this.rows = records.map(item => this.normalizeRow(item));
-          this.pager.total = total || this.rows.length;
+          this.rows = (records || []).map(item => this.normalizeRow(item));
+          this.pager.total = total || 0;
         },
-        () => { this.useMock(); },
+        () => {
+          this.loading = false;
+          this.$message.error('查询失败，请重试');
+        },
         this
       );
     },
-    useMock() {
-      this.loading = false;
-      const now = this.utils.formatDate(new Date().getTime());
-      this.rows = [
-        { sllsh: 'SSL0001', hzqrxxdbh: 'HZQRD0001', dylzfphm: '00000001', xsfmc: '销方A', gmfmc: '购方A', lrrq: now, status: '02' },
-        { sllsh: 'SSL0002', hzqrxxdbh: 'HZQRD0002', dylzfphm: '00000002', xsfmc: '销方B', gmfmc: '购方B', lrrq: now, status: '02' }
-      ];
-      this.rows = this.rows.map(item => this.normalizeRow(item));
-      this.pager.total = this.rows.length;
-    },
     parsePagedResult(payload = {}) {
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.errorMsg : '';
-      const listWrapper = payload.hzqrxxList || payload;
+      const serviceResult = payload && payload.serviceResult;
+
+      const successFlag = serviceResult && serviceResult.success !== undefined ? serviceResult.success : undefined;
+      const reason = serviceResult && (serviceResult.reason || serviceResult.errorMsg || serviceResult.errorCode) || '';
       let records = [];
       let total = 0;
-      if (Array.isArray(listWrapper?.data)) {
-        records = listWrapper.data;
-        total = listWrapper.total || listWrapper.count || listWrapper.data.length || 0;
-      } else if (Array.isArray(listWrapper?.records)) {
-        records = listWrapper.records;
-        total = listWrapper.total || listWrapper.count || listWrapper.records.length || 0;
-      } else if (Array.isArray(listWrapper?.list)) {
-        records = listWrapper.list;
-        total = listWrapper.total || listWrapper.count || listWrapper.list.length || 0;
-      }
+      if (serviceResult) {
+        records = serviceResult.rows || [];
+        total = serviceResult.total !== undefined ? serviceResult.total : 0;
+      } 
       return {
-        success: success !== false,
-        message: reason || errorMsg || '',
+        success: successFlag !== false,
+        message: reason || '',
         records,
         total
       };
     },
+    parseServiceResult(payload = {}) {
+      const serviceResult = payload && payload.serviceResult;
+      const success = serviceResult ? serviceResult.success : undefined;
+      const reason = serviceResult ? serviceResult.reason : '';
+      const errorMsg = serviceResult ? serviceResult.errorCode : '';
+      return {
+        success: success !== false,
+        message: reason || errorMsg || ''
+      };
+    },
     formatDateTime(value) {
-      if (!value) {
-        return '-';
-      }
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
-      const pad = (num) => num.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+      return taxInvoiceUtils.formatDateTime(value);
     },
     normalizeRow(row = {}) {
       return {
         ...row,
-        lrrq: this.formatDateTime(row.lrrq),
-        createTime: this.formatDateTime(row.createTime),
-        updateTime: this.formatDateTime(row.updateTime)
+        lrrq: row.lrrq ? this.formatDateTime(row.lrrq) : '',
+        qrrq: row.qrrq ? this.formatDateTime(row.qrrq) : '',
+        createTime: row.createTime ? this.formatDateTime(row.createTime) : '',
+        updateTime: row.updateTime ? this.formatDateTime(row.updateTime) : ''
       };
     }
   }
@@ -264,6 +412,16 @@ export default {
 </script>
 
 <style scoped>
+.link-disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+.link-disabled:hover {
+  color: #c0c4cc;
+  text-decoration: none;
+}
+.text-red {
+  color: #f56c6c;
+}
 </style>
-
-

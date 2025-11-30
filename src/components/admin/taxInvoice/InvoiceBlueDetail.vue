@@ -73,7 +73,7 @@
                   <div class="card-content-padded">
                     <div class="lc-row lc-space16">
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap"><span class="red">*</span>购买方名称:</label><div class="flex-flex-auto"><el-input v-model="form.gmfmc" size="small" class="full-width" placeholder="请输入购买方名称" :disabled="isViewMode" /></div></div></div>
-                      <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购买方税号:</label><div class="flex-flex-auto"><el-input v-model="form.gmfnrsbh" size="small" class="full-width" placeholder="开具专票时必填" :disabled="isViewMode" /></div></div></div>
+                      <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购买方税号:</label><div class="flex-flex-auto"><el-input v-model="form.gmfnsrsbh" size="small" class="full-width" placeholder="开具专票时必填" :disabled="isViewMode" /></div></div></div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">地址:</label><div class="flex-flex-auto"><el-input v-model="form.gmfdz" size="small" class="full-width" placeholder="请输入购买方地址" :disabled="isViewMode" /></div></div></div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">手机号:</label><div class="flex-flex-auto"><el-input v-model="form.gmfdh" size="small" class="full-width" placeholder="请输入购买方电话" :disabled="isViewMode" /></div></div></div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购买方开户行:</label><div class="flex-flex-auto"><el-input v-model="form.gmfkhh" size="small" class="full-width" placeholder="请输入购买方开户行" :disabled="isViewMode" /></div></div></div>
@@ -114,6 +114,7 @@
                           <el-button size="small" type="primary" @click="openSelectGoods">添加明细</el-button>
                         </div>
                           <el-table :data="form.fpmxList" border style="width:100%">
+                            <el-table-column prop="xmmc" label="商品服务简称" min-width="140"><template slot-scope="{row}"><el-input v-model="row.spfwjc" class="full-width" :disabled="isViewMode" /></template></el-table-column>
                             <el-table-column prop="xmmc" label="项目名称" min-width="140"><template slot-scope="{row}"><span>{{ row.xmmc }}</span></template></el-table-column>
                             <el-table-column prop="ggxh" label="规格型号" width="120"><template slot-scope="{row}"><span>{{ row.ggxh }}</span></template></el-table-column>
                             <el-table-column prop="dw" label="单位" width="90"><template slot-scope="{row}"><span>{{ row.dw }}</span></template></el-table-column>
@@ -168,7 +169,7 @@ export default {
   data() {
     return {
       saving: false,
-      isViewMode: false, // 是否为查看模式
+      isViewMode: false,
       generalSelectionModel: {
         show: false,
         data: {},
@@ -193,10 +194,10 @@ export default {
       form: {
         id: '', taxInvoiceNo: '', fphm: '', ptbh: '', fppz: '', kprq: '', qyDm: '', lzfpbz: '0',
         xsfnsrsbh: '', xsfmc: '', xsfdz: '', xsfdh: '', xsfkhh: '', xsfzh: '', cezzslx: '',
-        gmfnrsbh: '', gmfmc: '', gmfdz: '', gmfdh: '', gmfkhh: '', gmfzh: '',
-        gmfzrrbz: '', // 购货单位类型：Y:购买方是自然人，N:购买方非自然人（前后端统一使用Y/N格式）
-        sfzxsfyhzhbq: '', // 是否展示销方银行账号标签
-        sfzsgmfyhzhbq: '', // 是否展示购方银行账号标签
+        gmfnsrsbh: '', gmfmc: '', gmfdz: '', gmfdh: '', gmfkhh: '', gmfzh: '',
+        gmfzrrbz: '', 
+        sfzxsfyhzhbq: '', 
+        sfzsgmfyhzhbq: '', 
         tdys: '',
         cezslxDm: '', sgfplxDm: '', ckywyszczDm: '',
         zzsjzjtDm: '',
@@ -205,7 +206,7 @@ export default {
         kprzjhm: '', kprzjlx: '',
         dylzfphm: '', hzqrxxdbh: '', hzqrduuid: '',
         hjjc: 0, hjs: 0, jshj: 0,
-        fpmxList: [ { mxxh: 1, dylzfpmxxh: 0, xmmc: '', spfwjc: '', ggxh: '', dw: '', sl: '', dj: '', je: 0, slv: 0, se: 0, hsje: 0, kce: 0, sphfwssflhbbm: '', fphxz: '', yhzcbs: '' } ],
+        fpmxList: [],
         fjysList: [],
         cekcList: [],
         kpr: '', skrxm: '', fhrxm: '', bz: ''
@@ -213,7 +214,6 @@ export default {
     };
   },
   computed: {
-    // 页面标题：根据路由参数判断是新建、编辑还是查看
     pageTitle() {
       const query = this.$route && this.$route.query;
       if (!query) {
@@ -268,7 +268,7 @@ export default {
         ['xsfdh', detail.xsfdh],
         ['xsfkhh', detail.xsfkhh],
         ['xsfzh', detail.xsfzh],
-        ['gmfnrsbh', detail.gmfnrsbh],
+        ['gmfnsrsbh', detail.gmfnsrsbh],
         ['gmfmc', detail.gmfmc],
         ['gmfdz', detail.gmfdz],
         ['gmfdh', detail.gmfdh],
@@ -310,10 +310,8 @@ export default {
           }
         }
       });
-      // 确保 gmfzrrbz 字段在 DOM 更新后也能正确显示
       if (detail.gmfzrrbz !== undefined && detail.gmfzrrbz !== null && detail.gmfzrrbz !== '') {
         this.$nextTick(() => {
-          // 再次确保值被正确设置，解决可能的时序问题
           if (this.form.gmfzrrbz !== detail.gmfzrrbz) {
             this.$set(this.form, 'gmfzrrbz', detail.gmfzrrbz);
           }
@@ -331,7 +329,6 @@ export default {
       if (details.length) {
         this.form.fpmxList = details.map((item, index) => ({
           mxxh: item.mxxh || index + 1,
-          dylzfpmxxh: item.dylzfpmxxh || 0,
           xmmc: item.xmmc || item.itemName || '',
           spfwjc: item.spfwjc || '',
           ggxh: item.ggxh || item.spec || '',
@@ -381,14 +378,14 @@ export default {
         this.fetchInvoiceDetail(this.$route.query.id);
       }
     },
-    // 回填选择的数据（仅填充空值）
+    // 回填选择的数据
     fillSelectedData() {
       try {
         const orgJson = sessionStorage.getItem('taxInvoice.selectedOrg');
         if (orgJson) {
           const org = JSON.parse(orgJson) || {};
           if (!this.form.gmfmc && org.mc) this.form.gmfmc = org.mc;
-          if (!this.form.gmfnrsbh && org.nsrsbh) this.form.gmfnrsbh = org.nsrsbh;
+          if (!this.form.gmfnsrsbh && org.nsrsbh) this.form.gmfnsrsbh = org.nsrsbh;
           if (!this.form.gmfdz) {
             if (org.address) {
               this.form.gmfdz = org.address;
@@ -403,7 +400,7 @@ export default {
           const per = JSON.parse(perJson) || {};
           if (!this.form.gmfmc && per.name) this.form.gmfmc = per.name;
           if (!this.form.gmfdh && per.cellphone) this.form.gmfdh = per.cellphone;
-          if (!this.form.gmfnrsbh && per.idno) this.form.gmfnrsbh = per.idno;
+          if (!this.form.gmfnsrsbh && per.idno) this.form.gmfnsrsbh = per.idno;
           sessionStorage.removeItem('taxInvoice.selectedPerson');
         }
         // 处理批量商品选择
@@ -420,14 +417,20 @@ export default {
     },
     appendGoodsRows(list) {
       (list || []).forEach((g) => {
-        // 适配 ootListChoice 组件返回的数据结构
+        let spfwjc = '';
+        if (g.productTypeValue) {
+          spfwjc = g.productTypeValue;
+        } else if (this.ootListConfig.ootType && this.productType[this.ootListConfig.ootType]) {
+          spfwjc = this.productType[this.ootListConfig.ootType];
+        }
+        
         const newRow = {
           mxxh: (this.form.fpmxList.length || 0) + 1,
           dylzfpmxxh: 0,
-          xmmc: g.productName || g.name || g.xmmc || '', // 商品/服务名称
-          spfwjc: '',
-          ggxh: g.specification || g.specificationAndModel || g.spec || g.ggxh || '', // 规格型号
-          dw: g.packingSpecification || g.packSpec || g.dw || '', // 单位（包装规格）
+          xmmc: g.productName || g.name || g.xmmc || '', 
+          spfwjc: spfwjc,
+          ggxh: g.specification || g.specificationAndModel || g.spec || g.ggxh || '', 
+          dw: g.packingSpecification || g.packSpec || g.dw || '', 
           sl: Number(g.sl) || 1,
           dj: Number(g.dj) || 0,
           je: 0,
@@ -516,7 +519,7 @@ export default {
                   // 回写自然人数据到表单
                   this.form.gmfmc = row.name || '';
                   this.form.gmfdh = row.cellphone || '';
-                  this.form.gmfnrsbh = row.identificationNumber || '';
+                  this.form.gmfnsrsbh = row.identificationNumber || '';
                   this.form.jbrsfzjhm = row.identificationNumber || '';
                   // 清空机构相关字段
                   this.form.gmfdz = '';
@@ -560,7 +563,7 @@ export default {
                   this.generalSelectionModel.show = false;
                   // 回写机构数据到表单
                   this.form.gmfmc = row.name || '';
-                  this.form.gmfnrsbh = row.nsrsbh || row.unifiedSocialCreditCode || '';
+                  this.form.gmfnsrsbh = row.nsrsbh || row.unifiedSocialCreditCode || '';
                   this.form.gmfdz = row.address || '';
                   if (row.province || row.city || row.district) {
                     const addressParts = [row.province, row.city, row.district, row.address].filter(Boolean);
@@ -596,13 +599,11 @@ export default {
       if (!selectedItems) {
         return;
       }
-      // 如果是数组（多选），批量添加
       if (Array.isArray(selectedItems)) {
         if (selectedItems.length > 0) {
           this.appendGoodsRows(selectedItems);
         }
       } else {
-        // 如果是单个对象（单选），单个添加
         this.appendGoodsRows([selectedItems]);
       }
     },
@@ -619,13 +620,9 @@ export default {
         const saved = sessionStorage.getItem('taxInvoice.formData');
         if (saved) {
           const savedData = JSON.parse(saved) || {};
-          // 恢复表单数据，保留已有值
           Object.keys(savedData).forEach(key => {
             if (savedData[key] !== null && savedData[key] !== undefined && savedData[key] !== '') {
-              // 对于购货单位类型字段，使用 $set 确保响应式更新
-              if (key === 'gmfzrrbz') {
-                this.$set(this.form, key, savedData[key]);
-              } else if (Array.isArray(savedData[key])) {
+              if (Array.isArray(savedData[key])) {
                 this.form[key] = savedData[key];
               } else if (typeof savedData[key] === 'object') {
                 this.form[key] = { ...this.form[key], ...savedData[key] };
@@ -711,7 +708,7 @@ export default {
         xsfdh: this.form.xsfdh || '',
         xsfkhh: this.form.xsfkhh || '',
         xsfzh: this.form.xsfzh || '',
-        gmfnrsbh: this.form.gmfnrsbh || '',
+        gmfnsrsbh: this.form.gmfnsrsbh || '',
         gmfmc: this.form.gmfmc,
         gmfdz: this.form.gmfdz || '',
         gmfdh: this.form.gmfdh || '',
@@ -798,12 +795,10 @@ export default {
           const { success, message, data } = this.parseServiceResult(res || {});
           if (success) {
             const invoiceId = data && data.id;
-            const taxInvoiceNo = data && data.taxInvoiceNo;
             const fphm = data && data.fphm;
-            const uploadStatus = data && data.uploadStatus;
             const resultMessage = data && data.message;
-            if (invoiceId || taxInvoiceNo || fphm) {
-              const info = [invoiceId && `ID: ${invoiceId}`, taxInvoiceNo && `税票号: ${taxInvoiceNo}`, fphm && `发票号码: ${fphm}`].filter(Boolean).join(', ');
+            if (invoiceId || fphm) {
+              const info = [invoiceId && `ID: ${invoiceId}`, fphm && `发票号码: ${fphm}`].filter(Boolean).join(', ');
               this.$message.success(`上传成功，${info}`);
             } else if (resultMessage) {
               this.$message.success(resultMessage);
@@ -818,7 +813,7 @@ export default {
             // 返回列表页
             this.$router.push({ name: 'taxInvoiceBlueList' });
           } else {
-            this.$message.warning(message || '上传结果未知');
+            this.$message.warning(message);
           }
         },
         () => {

@@ -9,7 +9,7 @@
     <div class="viewport-view">
       <div class="viewport-view-body flex flex-column">
         <div class="panel-content-padded ">
-          <h2>{{ readonly ? '红字确认单 - 查看' : '销方红字确认单 - 新增' }}</h2>
+          <h2>{{ readonly ? '红字确认单 - 查看' : (isEditMode ? '销方红字确认单 - 编辑' : '销方红字确认单 - 新增') }}</h2>
           <!-- 基本信息 -->
           <div class="card card-shadow">
             <div class="card-body">
@@ -53,7 +53,7 @@
               <div class="card-content-padded">
                 <div class="lc-row lc-space16">
                   <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap"><span class="red">*</span>购买方名称:</label><div class="flex-flex-auto"><el-input v-model="form.gmfmc" size="small" class="full-width" placeholder="请输入购买方名称" :disabled="readonly || true" /></div></div></div>
-                  <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购买方税号:</label><div class="flex-flex-auto"><el-input v-model="form.gmfnrsbh" size="small" class="full-width" placeholder="开具专票时必填" :disabled="readonly || true" /></div></div></div>
+                  <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购买方税号:</label><div class="flex-flex-auto"><el-input v-model="form.gmfnsrsbh" size="small" class="full-width" placeholder="开具专票时必填" :disabled="readonly || true" /></div></div></div>
                   <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">地址:</label><div class="flex-flex-auto"><el-input v-model="form.gmfdz" size="small" class="full-width" placeholder="请输入购买方地址" :disabled="readonly || true" /></div></div></div>
                   <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">手机号:</label><div class="flex-flex-auto"><el-input v-model="form.gmfdh" size="small" class="full-width" placeholder="请输入购买方电话" :disabled="readonly || true" /></div></div></div>
                   <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购买方开户行:</label><div class="flex-flex-auto"><el-input v-model="form.gmfkhh" size="small" class="full-width" placeholder="请输入购买方开户行" :disabled="readonly || true" /></div></div></div>
@@ -89,8 +89,8 @@
                         <el-table-column label="操作" width="80" fixed="right" v-if="!readonly"><template slot-scope="scope"><p><span class="link" @click="deleteDetailRow(scope.$index)">删除</span></p></template></el-table-column>
                       </el-table>
                       <div class="mt10 darkgray">
-                        <p class="mt5">合计金额： {{ formatMoney(form.hjjc) }}（元）</p>
-                        <p class="mt5">合计税额： {{ formatMoney(form.hjs) }}（元）</p>
+                        <p class="mt5">合计金额： {{ formatMoney(form.hzcxje) }}（元）</p>
+                        <p class="mt5">合计税额： {{ formatMoney(form.hzcxse) }}（元）</p>
                         <p class="mt5">价税合计： {{ formatMoney(form.jshj) }}（元）</p>
                       </div>
                   </div>
@@ -122,7 +122,6 @@ export default {
   props: { 
     permissions: Object, 
     params: Object,
-    readonly: { type: Boolean, default: false },
     formData: { type: Object, default: null }
   },
   data() {
@@ -130,49 +129,47 @@ export default {
       saving: false,
       form: {
         // 基础信息
+        id: '', uuid: '', taxpayerId: '', blueInvoiceId: '', hzfpxxqrdbh: '',
         xsfmc: '', lzfphm: '', gmfzrrbz: '1', gmfmc: '', lzfppzDm: '02', chyyDm: '01', tdys: '',
         // 销售方信息
         xsfnsrsbh: '', xsfdz: '', xsfdh: '', xsfkhh: '', xsfzh: '', cezzslx: '',
         // 购买方信息
-        gmfnrsbh: '', gmfdz: '', gmfdh: '', gmfkhh: '', gmfzh: '',
+        gmfnsrsbh: '', gmfdz: '', gmfdh: '', gmfkhh: '', gmfzh: '',
         // 明细与合计
         fpmxList: [],
-        hjjc: 0, // 合计金额
-        hjs: 0,  // 合计税额
+        hzcxje: 0, // 合计金额（红字冲销金额）
+        hzcxse: 0,  // 合计税额（红字冲销税额）
         jshj: 0, // 价税合计
         // 其他信息
         bz: ''
       }
     };
   },
-  mounted() {
-    // 如果传入 formData，直接使用
-    if (this.formData) {
-      this.form = { ...this.formData };
-      this.recalcTotals();
-      return;
+  computed: {
+    isEditMode() {
+      const query = this.$route && this.$route.query;
+      return !!(query && query.id && query.mode !== 'view');
+    },
+    confirmId() {
+      const query = this.$route && this.$route.query;
+      return query && (query.id || query.confirmId);
+    },
+    isViewMode() {
+      const query = this.$route && this.$route.query;
+      return query && query.mode === 'view';
+    },
+    readonly() {
+      // 如果是查看模式，或者通过 props 传入的 readonly 为 true，则不可编辑
+      return this.isViewMode || (this.$props.readonly === true);
     }
-    
-    // 如果为只读模式，尝试从 sessionStorage 读取购方红字确认单详情
-    if (this.readonly) {
-      try {
-        const json = sessionStorage.getItem('taxInvoice.redBuyerConfirmDetail');
-        if (json) {
-          const savedData = JSON.parse(json) || {};
-          this.form = { ...this.form };
-          Object.keys(savedData).forEach(key => {
-            if (savedData[key] !== null && savedData[key] !== undefined && savedData[key] !== '') {
-              this.form[key] = savedData[key];
-            }
-          });
-          sessionStorage.removeItem('taxInvoice.redBuyerConfirmDetail');
-          this.recalcTotals();
-          return;
-        }
-      } catch (e) {
-        console.error('读取购方红字确认单详情失败:', e);
-        if (this.$message) this.$message.error('加载数据失败，请重试');
-      }
+  },
+  mounted() {
+
+    console.log("从接口加载详情数据"+ this.confirmId);
+    // 从接口加载详情数据
+    if (this.confirmId) {
+      this.fetchDetail();
+      return;
     }
     
     // 从蓝字发票查询带入数据
@@ -180,31 +177,19 @@ export default {
       const json = sessionStorage.getItem('taxInvoice.selectedBlueInvoice');
       if (json) {
         const inv = JSON.parse(json) || {};
-        // 基础信息
-        if (inv.fphm && !this.form.lzfphm) this.form.lzfphm = inv.fphm;
-        if (inv.gmfmc && !this.form.gmfmc) this.form.gmfmc = inv.gmfmc;
-        if (inv.xsfmc && !this.form.xsfmc) this.form.xsfmc = inv.xsfmc;
-        if (inv.fplxDm && !this.form.lzfppzDm) this.form.lzfppzDm = inv.fplxDm;
-        // 销售方信息
-        if (inv.xsfnsrsbh && !this.form.xsfnsrsbh) this.form.xsfnsrsbh = inv.xsfnsrsbh;
-        if (inv.xsfdz && !this.form.xsfdz) this.form.xsfdz = inv.xsfdz;
-        if (inv.xsfdh && !this.form.xsfdh) this.form.xsfdh = inv.xsfdh;
-        if (inv.xsfkhh && !this.form.xsfkhh) this.form.xsfkhh = inv.xsfkhh;
-        if (inv.xsfzh && !this.form.xsfzh) this.form.xsfzh = inv.xsfzh;
-        // 购买方信息
-        if (inv.gmfnrsbh && !this.form.gmfnrsbh) this.form.gmfnrsbh = inv.gmfnrsbh;
-        if (inv.gmfdz && !this.form.gmfdz) this.form.gmfdz = inv.gmfdz;
-        if (inv.gmfdh && !this.form.gmfdh) this.form.gmfdh = inv.gmfdh;
-        if (inv.gmfkhh && !this.form.gmfkhh) this.form.gmfkhh = inv.gmfkhh;
-        if (inv.gmfzh && !this.form.gmfzh) this.form.gmfzh = inv.gmfzh;
-        sessionStorage.removeItem('taxInvoice.selectedBlueInvoice');
+        // 保存蓝字发票ID
+        if (inv.id) {
+          this.form.blueInvoiceId = inv.id;
+          // 调用接口获取蓝字发票完整详情
+          this.fetchBlueInvoiceDetail(inv.id);
+        } 
       }
     } catch (e) {
       console.error('读取蓝字发票数据失败:', e);
     }
 
     // 恢复表单与回填所选商品
-    if (!this.readonly) {
+    if (!this.readonly && !this.isEditMode) {
       this.restoreFormData();
       this.fillSelectedGoods();
     }
@@ -222,11 +207,92 @@ export default {
     }
   },
   methods: {
-    // 选择商品/服务
-    openSelectGoods() {
-      if (this.readonly) return;
-      this.saveFormData();
-      this.$router.push({ name: 'taxInvoiceSelectGoods', query: { from: 'taxInvoiceRedSellerCreate' } });
+    // 获取蓝字发票完整详情
+    fetchBlueInvoiceDetail(invoiceId) {
+      if (!invoiceId) return;
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceQuery;
+      if (!svc) {
+        this.$message.warning('查询接口未配置');
+        return;
+      }
+      this.API.send(
+        svc,
+        { invoiceId },
+        (res) => {
+          const { success, message, data } = this.parseServiceResult(res || {});
+          if (success && data) {
+            this.fillFormFromBlueInvoiceDetail(data);
+          } else {
+            this.$message.warning(message || '获取蓝字发票详情失败');
+          }
+        },
+        () => {
+          this.$message.error('获取蓝字发票详情失败，请重试');
+        },
+        this
+      );
+    },
+    // 从蓝字发票详情回填表单
+    fillFormFromBlueInvoiceDetail(detail = {}) {
+      console.log('蓝字发票详情:', detail);
+      if (detail.fphm) {
+        this.$set(this.form, 'lzfphm', detail.fphm);
+      }
+      if (detail.gmfmc) this.$set(this.form, 'gmfmc', detail.gmfmc);
+      if (detail.xsfmc) this.$set(this.form, 'xsfmc', detail.xsfmc);
+      if (detail.fppz || detail.fplxDm) {
+        const fppz = detail.fppz || detail.fplxDm;
+        if (fppz) this.form.lzfppzDm = fppz;
+      }
+      // 购货单位类型（根据购买方税号判断，如果有税号则为组织，否则为自然人）
+      if (detail.gmfnsrsbh) {
+        this.form.gmfzrrbz = '1'; // 组织
+      }
+      
+      // 销售方信息
+      if (detail.xsfnsrsbh) this.form.xsfnsrsbh = detail.xsfnsrsbh;
+      if (detail.xsfdz) this.form.xsfdz = detail.xsfdz;
+      if (detail.xsfdh) this.form.xsfdh = detail.xsfdh;
+      if (detail.xsfkhh) this.form.xsfkhh = detail.xsfkhh;
+      if (detail.xsfzh) this.form.xsfzh = detail.xsfzh;
+      if (detail.cezzslx) this.form.cezzslx = detail.cezzslx;
+      
+      // 购买方信息
+      if (detail.gmfnsrsbh) this.form.gmfnsrsbh = detail.gmfnsrsbh;
+      if (detail.gmfdz) this.form.gmfdz = detail.gmfdz;
+      if (detail.gmfdh) this.form.gmfdh = detail.gmfdh;
+      if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
+      if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
+      
+      // 开票详细信息（明细列表）
+      const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
+      if (details.length > 0) {
+        this.form.fpmxList = details.map((item, index) => {
+          const je = Number(item.je || item.amount || 0);
+          const se = Number(item.se || item.tax || 0);
+          const hsje = Number(item.hsje || item.amountWithTax || (je + se));
+          return {
+            lzmxxh: item.mxxh || (index + 1),
+            xmmc: item.xmmc || '',
+            ggxh: item.ggxh || '',
+            dw: item.dw || item.unit || '',
+            sl: Number(item.sl || item.quantity || 0),
+            dj: Number(item.dj || item.price || 0),
+            je: je > 0 ? -je : je,
+            slv: Number(item.slv || item.rate || 0),
+            se: se > 0 ? -se : se,
+            hsje: hsje > 0 ? -hsje : hsje,
+            kce: Number(item.kce || 0),
+            sphfwssflhbbm: item.sphfwssflhbbm || item.taxCode || '',
+            hwhyslwfwmc: item.hwhyslwfwmc || '',
+            spfwjc: item.spfwjc || item.itemShortName || '',
+            yhzcbs: item.yhzcbs || '',
+            fphxz: item.fphxz || item.lineNature || '00'
+          };
+        });
+        // 重新计算合计
+        this.recalcTotals();
+      }
     },
     // 删除明细行
     deleteDetailRow(index) {
@@ -243,6 +309,7 @@ export default {
       this.recalcTotals();
     },
     // 单行计算：金额(含税)=数量*单价；税额=金额*税率；含税金额=金额+税额
+    // 红字发票的金额和税额必须是负数
     recalcRow(row) {
       const qty = this.toFixedNumber(row.sl, 6);
       const price = this.toFixedNumber(row.dj, 6);
@@ -250,9 +317,10 @@ export default {
       const amount = this.toFixedNumber(qty * price, 2);
       const tax = this.toFixedNumber(amount * rate, 2);
       const amountWithTax = this.toFixedNumber(amount + tax, 2);
-      row.je = amount;
-      row.se = tax;
-      row.hsje = amountWithTax;
+      // 红字发票金额和税额必须是负数
+      row.je = amount > 0 ? -amount : amount;
+      row.se = tax > 0 ? -tax : tax;
+      row.hsje = amountWithTax > 0 ? -amountWithTax : amountWithTax;
     },
     // 合计计算
     recalcTotals() {
@@ -264,12 +332,14 @@ export default {
         totalAmount += amt;
         totalTax += tax;
       });
-      this.form.hjjc = this.toFixedNumber(totalAmount, 2);
-      this.form.hjs = this.toFixedNumber(totalTax, 2);
-      this.form.jshj = this.toFixedNumber(this.form.hjjc + this.form.hjs, 2);
+      // 红字冲销金额和税额必须是负数
+      this.form.hzcxje = this.toFixedNumber( -Math.abs(totalAmount), 2);
+      this.form.hzcxse = this.toFixedNumber( -Math.abs(totalTax), 2);
+      this.form.jshj = this.toFixedNumber(this.form.hzcxje + this.form.hzcxse, 2);
     },
     // 从会话回填所选商品（支持单个与多个）
     fillSelectedGoods() {
+      console.log("从会话回填所选商品");
       if (this.readonly) return;
       try {
         const listJson = sessionStorage.getItem('taxInvoice.selectedGoodsList');
@@ -294,6 +364,7 @@ export default {
       }
     },
     addGoodsRowFromItem(item) {
+      console.log(item);
       const row = {
         xmmc: item.name || '',
         ggxh: item.spec || item.model || '',
@@ -355,39 +426,188 @@ export default {
         console.error('恢复表单数据失败:', e);
       }
     },
-    submit() {
-      if (this.readonly) return;
-      // 只验证可编辑的必填字段
-      if (!this.form.chyyDm || this.form.chyyDm === '') {
-        this.$message.warning('请选择开具红字发票原因');
-        return;
-      }
+    fetchDetail() {
+      if (!this.confirmId) return;
       this.saving = true;
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.applyRedConfirm;
-      const payload = { ...this.form };
+      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.queryRedConfirmDetail;
       if (!svc) {
         this.saving = false;
-        this.$message.success('保存成功（Mock）');
-        this.$router.push({ name: 'taxInvoiceRedSellerList' });
+        this.$message.error('查询接口未配置');
         return;
       }
+      const payload = {
+        confirmId: this.confirmId
+      };
       this.API.send(
         svc,
         payload,
         (res) => {
           this.saving = false;
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
-            this.$message.success('保存成功');
-            this.$router.push({ name: 'taxInvoiceRedSellerList' });
+          const { success, message, data } = this.parseServiceResult(res || {});
+          if (success && data) {
+            const detail = Array.isArray(data.rows) && data.rows.length > 0 ? data.rows[0] : data;
+            this.applyDetailToForm(detail);
           } else {
-            this.$message.warning(message || '保存结果未知');
+            this.$message.warning(message || '加载详情失败');
+            this.$router.push({ name: 'taxInvoiceRedSellerList' });
           }
         },
         () => {
           this.saving = false;
-          this.$message.success('保存成功（Mock）');
+          this.$message.error('加载详情失败，请重试');
           this.$router.push({ name: 'taxInvoiceRedSellerList' });
+        },
+        this
+      );
+    },
+    applyDetailToForm(detail = {}) {
+      console.log(detail);
+      const detailList = (detail.detailList || []).map((item, index) => ({
+        id: item.id || '', // 明细ID，编辑时需要
+        lzmxxh: item.lzmxxh || index + 1,
+        xh: item.xh || index + 1,
+        xmmc: item.xmmc || '',
+        ggxh: item.ggxh || '',
+        dw: item.dw || '',
+        sl: Number(item.fpspsl || item.sl || 0),
+        dj: Number(item.fpspdj || item.dj || 0),
+        je: Number(item.je || 0),
+        slv: Number(item.sl1 || 0),
+        se: Number(item.se || 0),
+        kce: Number(item.kce || 0),
+        sphfwssflhbbm: item.sphfwssflhbbm || '',
+        hwhyslwfwmc: item.hwhyslwfwmc || '',
+        spfwjc: item.spfwjc || '',
+        yhzcbs: item.yhzcbs || ''
+      }));
+      
+      this.form.id = detail.id;
+      this.form.uuid = detail.uuid;
+      this.form.taxpayerId = detail.taxpayerId || '';
+      this.form.blueInvoiceId = detail.blueInvoiceId || '';
+      this.form.hzfpxxqrdbh = detail.hzfpxxqrdbh;
+      this.form.xsfmc = detail.xsfmc || '';
+      this.form.lzfphm = detail.lzfphm || '';
+      this.form.gmfzrrbz = detail.gmfzrrbz || '1';
+      this.form.gmfmc = detail.gmfmc || '';
+      this.form.lzfppzDm = detail.lzfppzDm || '02';
+      this.form.chyyDm = detail.chyyDm || '01';
+      this.form.tdys = detail.tdys || detail.lzfpTdyslxDm || '';
+      this.form.xsfnsrsbh = detail.xsfnsrsbh || '';
+      this.form.xsfdz = detail.xsfdz || '';
+      this.form.xsfdh = detail.xsfdh || '';
+      this.form.xsfkhh = detail.xsfkhh || '';
+      this.form.xsfzh = detail.xsfzh || '';
+      this.form.cezzslx = detail.cezzslx || '';
+      this.form.gmfnsrsbh = detail.gmfnsrsbh || '';
+      this.form.gmfdz = detail.gmfdz || '';
+      this.form.gmfdh = detail.gmfdh || '';
+      this.form.gmfkhh = detail.gmfkhh || '';
+      this.form.gmfzh = detail.gmfzh || '';
+      this.form.fpmxList = detailList;
+      this.form.hzcxje = Number(detail.hzcxje || 0);
+      this.form.hzcxse = Number(detail.hzcxse || 0);
+      this.form.jshj = Number(this.form.hzcxje + this.form.hzcxse);
+      this.form.bz = detail.remark || detail.bz || '';
+      this.recalcTotals();
+    },
+    validateForm() {
+      if (!this.form.chyyDm || this.form.chyyDm === '') {
+        return '请选择开具红字发票原因';
+      }
+      if (!this.form.blueInvoiceId && !this.form.lzfphm) {
+        return '请选择蓝字发票';
+      }
+      if (!Array.isArray(this.form.fpmxList) || this.form.fpmxList.length === 0) {
+        return '请添加至少一条明细';
+      }
+      if (this.form.hzcxje >= 0) {
+        return '合计金额必须为负数';
+      }
+      return '';
+    },
+    buildSubmitPayload() {
+      const detailList = (this.form.fpmxList || []).map((item, index) => {
+        const detailItem = {
+          id: item.id || '', // 编辑时传入明细ID
+          lzmxxh: item.lzmxxh || index + 1,
+          xh: item.xh || index + 1,
+          sphfwssflhbbm: item.sphfwssflhbbm || '',
+          hwhyslwfwmc: item.hwhyslwfwmc || '',
+          spfwjc: item.spfwjc || '',
+          xmmc: item.xmmc || '',
+          ggxh: item.ggxh || '',
+          dw: item.dw || '',
+          fpspdj: String(item.dj || 0),
+          fpspsl: String(-item.sl || 0),
+          je: Number(item.je || 0),
+          sl1: Number(item.slv || 0),
+          se: Number(item.se || 0)
+        };
+        if (!detailItem.id) {
+          delete detailItem.id;
+        }
+        return detailItem;
+      });
+      
+      const payload = {
+        id: this.form.id || '', // 编辑时传入确认单ID
+        taxpayerId: this.form.taxpayerId || '', // 纳税人ID
+        blueInvoiceId: this.form.blueInvoiceId || '',
+        lrfsf: '0', // 0: 销方
+        xsfnsrsbh: this.form.xsfnsrsbh,
+        xsfmc: this.form.xsfmc,
+        gmfnsrsbh: this.form.gmfnsrsbh || '', 
+        gmfmc: this.form.gmfmc,
+        hzcxje: Number(this.form.hzcxje || 0),
+        hzcxse: Number(this.form.hzcxse || 0),
+        chyyDm: this.form.chyyDm,
+        detailList: detailList
+      };
+      
+      // 新增时移除id字段
+      if (!payload.id) {
+        delete payload.id;
+      }
+      // 如果没有taxpayerId，也移除
+      if (!payload.taxpayerId) {
+        delete payload.taxpayerId;
+      }
+      
+      return payload;
+    },
+    submit() {
+      if (this.readonly) return;
+      
+      const validationMsg = this.validateForm();
+      if (validationMsg) {
+        this.$message.warning(validationMsg);
+        return;
+      }
+      
+      this.saving = true;
+      const payload = this.buildSubmitPayload();
+      this.API.send(
+        this.CFG.services.kailing.addRedConfirm,
+        payload,
+        (res) => {
+          this.saving = false;
+          const { success, message } = this.parseServiceResult(res || {});
+          if (success) {
+            this.$message.success(this.isEditMode ? '更新成功' : '保存成功');
+            try {
+              sessionStorage.removeItem('taxInvoice.redSellerCreate.form');
+            } catch (e) {
+              console.error('清理表单数据失败:', e);
+            }
+            this.$router.push({ name: 'taxInvoiceRedSellerList' });
+          } else {
+            this.$message.warning(message || '保存失败');
+          }
+        },
+        () => {
+          this.saving = false;
+          this.$message.error('保存失败，请重试');
         },
         this
       );

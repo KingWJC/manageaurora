@@ -14,11 +14,16 @@ const kailing = {
   digitalInvoiceAudit: { module: 'kailing', url: '/lqadapter/digitalInvoice/review', method: 'POST', comment: '审核数电发票' },
   digitalInvoiceQuery: { module: 'kailing', url: '/lqadapter/digitalInvoice/detail', method: 'POST', comment: '查询数电发票明细' },
 
-  // 4. 红字确认单（沿用旧路径，等待新规范）
-  pageRedConfirmList: { module: 'kailing', url: '/lqadapter/pageRedConfirmList', method: 'POST', comment: '查询数电红字确认单列表信息' },
-  queryRedConfirmDetail: { module: 'kailing', url: '/lqadapter/queryRedConfirmDetail', method: 'POST', comment: '查询数电红字确认单明细信息' },
-  applyRedConfirm: { module: 'kailing', url: '/lqadapter/applyRedConfirm', method: 'POST', comment: '数电红字确认单申请' },
-  confirmRedConfirm: { module: 'kailing', url: '/lqadapter/confirmRedConfirm', method: 'POST', comment: '数电红字确认单确认' }
+  // 4. 红字确认单
+  pageRedConfirmList: { module: 'kailing', url: '/lqadapter/redConfirmation/list', method: 'POST', comment: '查询数电红字确认单列表信息' },
+  queryRedConfirmDetail: { module: 'kailing', url: '/lqadapter/redConfirmation/detail', method: 'POST', comment: '查询数电红字确认单明细信息' },
+  addRedConfirm: { module: 'kailing', url: '/lqadapter/redConfirmation/save', method: 'POST', comment: '新增数电红字确认单' },
+  applyRedConfirm: { module: 'kailing', url: '/lqadapter/redConfirmation/submit', method: 'POST', comment: '数电红字确认单申请' },
+  confirmRedConfirm: { module: 'kailing', url: '/lqadapter/redConfirmation/confirm', method: 'POST', comment: '数电红字确认单确认' },
+
+  // 5. 发票批量下载
+  digitalInvoiceDownloadApply: { module: 'kailing', url: '/lqadapter/invoiceDownload/apply', method: 'POST', comment: '申请发票批量下载' },
+  pageInvoiceDownloadList: { module: 'kailing', url: '/lqadapter/invoiceDownload/list', method: 'POST', comment: '分页查询批量下载信息' }
 };
 
 export default kailing;

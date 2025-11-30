@@ -14,8 +14,8 @@
     </div>
     <div class="viewport-view">
       <div class="viewport-view-body flex flex-column">
-        <div class="panel-content-padded ">
-          <h2>销方红字确认单-新增</h2>
+        <div class="panel-content-padded">
+          <h2>蓝字发票查询</h2>
 
           <div class="flex-flex-auto panel p15">
             <div class="card card-shadow">
@@ -28,31 +28,40 @@
                         <el-input v-model="search.fphm" size="small" placeholder="蓝字发票号码" :maxlength="30"/>
                       </div>
                       <div class="search-bar-item">
-                        <el-input v-model="search.gfdw" size="small" placeholder="购方单位" :maxlength="30"/>
+                        <el-input v-model="search.gmfmc" size="small" placeholder="购方名称" :maxlength="50"/>
                       </div>
-                      <div class="search-bar-item">
-                        <el-date-picker v-model="search.kprq" type="date" size="small" placeholder="开票日期" />
+                      <div class="search-bar-item-auto">
+                        <el-date-picker
+                          v-model="search.kprqRange"
+                          type="daterange"
+                          unlink-panels
+                          style="width:210px;"
+                          size="small"
+                          start-placeholder="开票日期起"
+                          end-placeholder="开票日期止"
+                          value-format="yyyy-MM-dd"
+                        />
                       </div>
                       <div class="search-bar-item-auto">
                         <el-button size="small" type="primary" @click="onSearch">查询</el-button>
-                        <el-button size="small" type="primary" @click="reset">重置</el-button>
+                        <el-button size="small" @click="reset">重置</el-button>
                       </div>
                     </div>
                   </div>
                   <div class="lc-row lc-space5">
-                    <div v-for="(item, index) in getPaged(resultList)" :key="index" class="card card-shadow mt15 lc-col-12 lc-col-xs12">
+                    <div v-for="(item, index) in resultList" :key="index" class="card card-shadow mt15 lc-col-12 lc-col-xs12">
                       <div class="card-body">
                         <div class="card-content-padded">
                           <div class="lc-row lc-space16">
                             <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">销方名称:</label><div class="flex-flex-auto"><span>{{ item.xsfmc || '-' }}</span></div></div></div>
-                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">发票类型:</label><div class="flex-flex-auto"><span>{{ item.fplxDm || '-' }}</span></div></div></div>
+                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">发票类型:</label><div class="flex-flex-auto"><span>{{ fppzText(item.fppz) }}</span></div></div></div>
                             <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">蓝字发票号码:</label><div class="flex-flex-auto"><span>{{ item.fphm || '-' }}</span></div></div></div>
                             <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购方单位:</label><div class="flex-flex-auto"><span>{{ item.gmfmc || '-' }}</span></div></div></div>
                             <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">购方单位企业税号:</label><div class="flex-flex-auto"><span>{{ item.gmfnsrsbh || '-' }}</span></div></div></div>
-                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">开票日期:</label><div class="flex-flex-auto"><span>{{ item.kprq || '-' }}</span></div></div></div>
-                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">合计金额（含税）:</label><div class="flex-flex-auto"><span>{{ item.hjjc || '-' }}</span></div></div></div>
-                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">合计税额:</label><div class="flex-flex-auto"><span>{{ item.hjs || '-' }}</span></div></div></div>
-                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">价税合计:</label><div class="flex-flex-auto"><span>{{ item.jshj || '-' }}</span></div></div></div>
+                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">开票日期:</label><div class="flex-flex-auto"><span>{{ formatDateTime(item.kprq) }}</span></div></div></div>
+                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">合计金额（含税）:</label><div class="flex-flex-auto"><span>¥{{ Number(item.hjje || 0).toFixed(2) }}</span></div></div></div>
+                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">合计税额:</label><div class="flex-flex-auto"><span>¥{{ Number(item.hjse || 0).toFixed(2) }}</span></div></div></div>
+                            <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">价税合计:</label><div class="flex-flex-auto"><span>¥{{ Number(item.jshj || 0).toFixed(2) }}</span></div></div></div>
                           </div>
                         </div>
                         <div class="card-footer">
@@ -67,77 +76,150 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   components: { crumbsBar: () => import('@/common-base/components/crumbs-bar') },
-  data() { return { search: { fphm: '', gfdw: '' }, resultList: [], pager: { current: 1, size: 10, total: 0 } }; },
+  data() { 
+    return { 
+      loading: false,
+      search: { 
+        fphm: '', 
+        gmfmc: '',
+        kprqRange: []
+      }, 
+      resultList: [], 
+      pager: { current: 1, size: 10, total: 0 } 
+    }; 
+  },
   methods: {
-    onSearch() {
-      // Mock 数据：返回多条记录
-      this.resultList = [
-        {
-          fphm: this.search.fphm || '00000001',
-          gmfmc: this.search.gfdw || '购方A',
-          xsfmc: '销方A',
-          fplxDm: '01',
-          kprq: '2024-01-01',
-          gmfnsrsbh: '123456789012345',
-          hjjc: '1000.00',
-          hjs: '130.00',
-          jshj: '1130.00'
-        },
-        {
-          fphm: this.search.fphm || '00000002',
-          gmfmc: this.search.gfdw || '购方B',
-          xsfmc: '销方B',
-          fplxDm: '02',
-          kprq: '2024-01-15',
-          gmfnsrsbh: '123456789012346',
-          hjjc: '2000.00',
-          hjs: '260.00',
-          jshj: '2260.00'
-        },
-        {
-          fphm: this.search.fphm || '00000003',
-          gmfmc: this.search.gfdw || '购方C',
-          xsfmc: '销方C',
-          fplxDm: '01',
-          kprq: '2024-02-01',
-          gmfnsrsbh: '123456789012347',
-          hjjc: '3000.00',
-          hjs: '390.00',
-          jshj: '3390.00'
-        }
-      ];
-      this.pager.total = this.resultList.length;
+    buildQueryPayload() {
+      const payload = {
+        current: this.pager.current - 1,
+        rowCount: this.pager.size
+      };
+      const { fphm, gmfmc, kprqRange } = this.search;
+      if (fphm) payload.fphm = fphm.trim();
+      if (gmfmc) payload.gmfmc = gmfmc.trim();
+      if (Array.isArray(kprqRange) && kprqRange.length === 2) {
+        const { kprqStart, kprqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
+        payload.kprqStart = kprqStart;
+        payload.kprqEnd = kprqEnd;
+      }
+      // 只查询蓝字发票
+      payload.lzfpbz = '0';
+      return payload;
     },
-    reset() { this.search = { fphm: '', gfdw: '' }; this.resultList = []; this.pager.total = 0; },
-    getPaged(list) {
-      const start = ((this.pager.current || 1) - 1) * (this.pager.size || 10);
-      return (list || []).slice(start, start + (this.pager.size || 10));
+    onSearch() {
+      // 验证至少有一个查询条件
+      const { fphm, gmfmc, kprqRange } = this.search;
+      const hasFphm = fphm && fphm.trim();
+      const hasGmfmc = gmfmc && gmfmc.trim();
+      const hasDateRange = Array.isArray(kprqRange) && kprqRange.length === 2;
+      
+      if (!hasFphm && !hasGmfmc && !hasDateRange) {
+        this.$message.warning('请至少输入一个查询条件');
+        return;
+      }
+      
+      this.pager.current = 1;
+      this.getData();
+    },
+    reset() { 
+      this.search = { 
+        fphm: '', 
+        gmfmc: '',
+        kprqRange: []
+      }; 
+      this.pager.current = 1;
+      this.resultList = [];
+      this.pager.total = 0;
     },
     onPage(p) {
       this.pager.current = p;
+      this.getData();
+    },
+    getData() {
+      this.loading = true;
+      const payload = this.buildQueryPayload();
+      this.API.send(
+        this.CFG.services.kailing.digitalInvoiceList,
+        payload,
+        (res) => {
+          this.loading = false;
+          const { success, message, records, total } = this.parsePagedResult(res || {});
+          if (!success && message) {
+            this.$message.warning(message);
+          }
+          this.resultList = records || [];
+          this.pager.total = total || 0;
+        },
+        () => {
+          this.loading = false;
+          this.$message.error('查询失败，请重试');
+        },
+        this
+      );
+    },
+    parsePagedResult(payload = {}) {
+      const serviceResult = payload && payload.serviceResult;
+      const success = serviceResult ? serviceResult.success : undefined;
+      const reason = serviceResult ? serviceResult.reason : '';
+      const errorMsg = serviceResult ? serviceResult.errorCode : '';
+      let records = [];
+      let total = 0;
+      if (serviceResult) {
+        records = serviceResult.rows || [];
+        total = serviceResult.total || 0;
+      }
+      return {
+        success: success !== false,
+        message: reason || errorMsg || '',
+        records,
+        total
+      };
+    },
+    formatDateTime(value) {
+      return taxInvoiceUtils.formatDateTime(value);
+    },
+    fppzText(v) {
+      return v === '01' ? '数电专票' : v === '02' ? '数电普票' : v || '-';
     },
     chooseAndNext(item) {
       try {
-        sessionStorage.setItem('taxInvoice.selectedBlueInvoice', JSON.stringify(item || {}));
+        // 保存选中的蓝字发票信息
+        const blueInvoiceData = {
+          id: item.id,
+          fphm: item.fphm,
+          gmfmc: item.gmfmc,
+          xsfmc: item.xsfmc,
+          fplxDm: item.fppz,
+          kprq: item.kprq,
+          gmfnsrsbh: item.gmfnsrsbh,
+          hjjc: item.hjje,
+          hjs: item.hjse,
+          jshj: item.jshj
+        };
+        sessionStorage.setItem('taxInvoice.selectedBlueInvoice', JSON.stringify(blueInvoiceData));
       } catch (e) {
         console.error('保存选中蓝字发票失败:', e);
         if (this.$message) this.$message.error('保存数据失败，请重试');
+        return;
       }
       const next = this.$route.query && this.$route.query.next;
-      if (next) this.$router.push({ name: next });
+      if (next) {
+        this.$router.push({ name: next });
+      }
     }
   }
 };
 </script>
 
-
-
+<style scoped>
+</style>

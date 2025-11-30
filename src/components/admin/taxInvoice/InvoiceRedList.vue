@@ -70,16 +70,28 @@
                   <template slot-scope="scope">¥{{ (scope.row.jshj || 0).toFixed(2) }}</template>
                 </el-table-column>
                 <el-table-column prop="kpr" label="开票人" min-width="140"></el-table-column>
-                <el-table-column prop="kprq" label="开票日期" min-width="140"></el-table-column>
+                <el-table-column prop="kprq" label="开票日期" min-width="140">
+                  <template slot-scope="scope">
+                    <span>{{ formatDateTime(scope.row.kprq) }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="taskStatus" label="状态" min-width="100" align="center">
                   <template slot-scope="scope">
                     <span>{{ statusText(scope.row.taskStatus) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="zdr" label="制单人" min-width="140"></el-table-column>
-                <el-table-column prop="zdrq" label="申请日期" min-width="140"></el-table-column>
+                <el-table-column prop="zdrq" label="申请日期" min-width="140">
+                  <template slot-scope="scope">
+                    <span>{{ formatDateTime(scope.row.zdrq) }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="shr" label="审核人" min-width="140"></el-table-column>
-                <el-table-column prop="shrq" label="审核时间" min-width="140"></el-table-column>
+                <el-table-column prop="shrq" label="审核时间" min-width="140">
+                  <template slot-scope="scope">
+                    <span>{{ formatDateTime(scope.row.shrq) }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="reviewStatus" label="审核状态" min-width="100" align="center">
                   <template slot-scope="scope">
                     <span>{{ auditStatusText(scope.row.reviewStatus) }}</span>
@@ -90,6 +102,9 @@
                     <p>
                       <span class="link" @click="viewRow(scope.row)">查看</span>
                       <span class="link ml10" @click="previewRow(scope.row)">预览</span>
+                    </p>
+                    <p>
+                      <span class="link" @click="auditRow(scope.row)">审核</span>
                     </p>
                   </template>
                 </el-table-column>
@@ -103,6 +118,8 @@
   </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -119,6 +136,9 @@ export default {
     };
   },
   mounted() { this.getData(); },
+  activated() {
+    this.getData();
+  },
   methods: {
     onSearch() { this.pager.current = 1; this.getData(); },
     reset() { 
@@ -132,10 +152,9 @@ export default {
       this.getData(); 
     },
     onPage(p) { this.pager.current = p; this.getData(); },
-    toCreate() { /* 红票一般由确认单开票生成，这里保留 */ this.$message.info('请在销方红字确认单列表中执行"开票"'); },
     buildQueryPayload() {
       const payload = {
-        current: this.pager.current - 1, // API 使用 0-based 索引
+        current: this.pager.current - 1,
         rowCount: this.pager.size
       };
       const { fphm, status, gmfmc, kprqRange } = this.search;
@@ -143,46 +162,42 @@ export default {
       if (gmfmc) payload.gmfmc = gmfmc.trim();
       if (status) payload.taskStatus = status;
       if (Array.isArray(kprqRange) && kprqRange.length === 2) {
-        // 转换为时间戳格式
         const { kprqStart, kprqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
         payload.kprqStart = kprqStart;
         payload.kprqEnd = kprqEnd;
       }
+      // 只查询蓝字发票
+      payload.lzfpbz = '1';
       return payload;
     },
     getData() {
       this.loading = true;
-      if (process.env.VUE_APP_USE_MOCK !== 'false') { this.useMock(); return; }
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceList;
-      if (!svc) { this.useMock(); return; }
       const payload = this.buildQueryPayload();
       this.API.send(
-        svc,
+        this.CFG.services.kailing.digitalInvoiceList,
         payload,
         (res) => {
           this.loading = false;
-          const { success, message, records, total } = this.parsePagedResult(res || {});
+          const { success, message, records, total } = this.parsePagedResult(
+            res || {}
+          );
           if (!success && message) {
             this.$message.warning(message);
           }
-          // 过滤红票（lzfpbz === '1'）
-          const redInvoices = (records || []).filter(item => item.lzfpbz === '1' || item.lzfpbz === 1);
-          this.rows = redInvoices.map(item => this.normalizeRow(item));
+          this.rows = records || [];
           this.pager.total = total || this.rows.length;
         },
-        () => { this.useMock(); },
+        () => {
+          this.loading = false;
+        },
         this
       );
     },
     viewRow(row) {
-      // 保存行数据到 sessionStorage，供详情页使用
-      try {
-        sessionStorage.setItem('taxInvoice.redInvoiceDetail', JSON.stringify(row));
-      } catch (e) {
-        console.error('保存红字发票详情失败:', e);
-        if (this.$message) this.$message.error('保存数据失败，请重试');
-      }
-      this.$router.push({ name: 'taxInvoiceRedDetail', query: { id: row.id || row.sllsh } });
+      this.$router.push({
+        name: 'taxInvoiceRedDetail',
+        query: { id: row.id || row.sllsh, mode: 'view' }
+      });
     },
     editRow(row) { this.$message.info('红票一般不允许编辑，若需修改请按规则红冲/重开'); },
     previewRow(row) {
@@ -228,85 +243,96 @@ export default {
       return v || '';
     },
     auditStatusText(v) {
-      if (v === '00' || v === 'PENDING') return '待审核';
-      if (v === '01' || v === 'PROCESSING') return '审核中';
-      if (v === '02' || v === 'APPROVED') return '审核通过';
-      if (v === '03' || v === 'REJECTED') return '审核拒绝';
+      if (v === '00') return '待审核';
+      if (v === '01') return '审核通过';
+      if (v === '02') return '审核退回';
       return v || '';
     },
+    sendAuditRequest(svc, row, auditStatus, reviewRemark) {
+      if (!row || !row.id) {
+        this.$message.warning('缺少发票ID，无法审核');
+        return;
+      }
+      const payload = {
+        invoiceId: row.id,
+        reviewStatus: auditStatus,
+        reviewRemark: reviewRemark || ''
+      };
+      this.loading = true;
+      this.API.send(
+        svc,
+        payload,
+        (res) => {
+          this.loading = false;
+          const { success, message } = this.parseServiceResult(res || {});
+          if (success) {
+            this.$message.success('审核成功');
+            this.getData();
+          } else {
+            this.$message.warning(message);
+          }
+        },
+        () => {
+          this.loading = false;
+        },
+        this
+      );
+    },
+    auditRow(row) {
+      let inputValue = '';
+      this.$prompt('请输入审核意见（可选）', '审核发票', {
+        confirmButtonText: '审核通过',
+        cancelButtonText: '审核退回',
+        showCancelButton: true,
+        distinguishCancelAndClose: true,
+        inputType: 'textarea',
+        inputPlaceholder: '请输入审核意见',
+        closeOnClickModal: false,
+        inputValidator: (value) => {
+          inputValue = value || '';
+          return true;
+        }
+      })
+        .then(({ value }) => {
+          // 审核通过：reviewStatus = '01'
+          this.sendAuditRequest(
+            this.CFG.services.kailing.digitalInvoiceAudit,
+            row,
+            '01',
+            value || ''
+          );
+        })
+        .catch((action) => {
+          if (action === 'cancel') {
+            // 审核退回：reviewStatus = '02'
+            this.sendAuditRequest(
+              this.CFG.services.kailing.digitalInvoiceAudit,
+              row,
+              '02',
+              inputValue || ''
+            );
+          }
+        });
+    },
     parsePagedResult(payload = {}) {
-      let body = payload;
-      if (body && body.serviceResult) {
-        body = body.serviceResult;
+      const success = payload ? payload.success : undefined;
+      const reason = payload ? payload.reason : '';
+      const errorMsg = payload ? payload.error : '';
+      let records = [];
+      let total = 0;
+      if (payload && payload.serviceResult) {
+        records = payload.serviceResult.rows || [];
+        total = payload.serviceResult.total || 0;
       }
-      const successFlag = body && body.success !== undefined ? body.success : undefined;
-      const code = body && (body.code !== undefined ? body.code : payload.code);
-      const success = successFlag !== false && (code === undefined || code === null || code === '0');
-      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
-
-      // 根据 API 文档，数据在 serviceResult.data 中
-      let data = body && body.data !== undefined ? body.data : undefined;
-      if (data && data.data) {
-        data = data.data;
-      }
-      // API 返回的 rows 在 data.rows 中
-      const records = data && (data.rows || data.records || data.list || data.data) || [];
-      // API 返回的 total 在 data.total 中
-      const total = data && (data.total !== undefined ? data.total : (data.count !== undefined ? data.count : records.length || 0));
-      return { success, message, records, total };
+      return {
+        success: success !== false,
+        message: reason || errorMsg || '',
+        records,
+        total
+      };
     },
     formatDateTime(value) {
       return taxInvoiceUtils.formatDateTime(value);
-    },
-    normalizeRow(row = {}) {
-      // 根据 API 文档，taskStatus 表示任务状态，reviewStatus 表示审核状态
-      const status = row.taskStatus !== undefined && row.taskStatus !== null ? String(row.taskStatus).padStart(2, '0') : (row.status !== undefined && row.status !== null ? String(row.status).padStart(2, '0') : '');
-      const auditStatus = row.reviewStatus !== undefined && row.reviewStatus !== null ? String(row.reviewStatus) : (row.shstatus !== undefined && row.shstatus !== null ? String(row.shstatus).padStart(2, '0') : '');
-      const hjje = Number(row.hjje || row.totalAmount || 0);
-      const hjse = Number(row.hjse || row.totalTax || 0);
-      const jshj = Number(row.jshj || row.totalWithTax || hjje + hjse);
-      return {
-        ...row,
-        id: row.id || row.sllsh, // 兼容旧字段
-        status: status || row.taskStatus,
-        shstatus: auditStatus || row.reviewStatus,
-        hjje,
-        hjse,
-        jshj,
-        kprq: this.formatDateTime(row.kprq || row.invoiceDate),
-        zdrq: this.formatDateTime(row.createTime || row.zdrq),
-        shrq: this.formatDateTime(row.updateTime || row.shrq)
-      };
-    },
-    useMock() {
-      this.loading = false;
-      const now = this.utils.formatDate(new Date().getTime());
-      this.rows = [
-        { 
-          id: 'RSL0001', 
-          sllsh: 'RSL0001', 
-          fphm: 'RH000001', 
-          lzfpbz: '1',
-          fppz: '02', 
-          dylzfphm: 'BL000001',
-          hzqrxxdbh: 'HZQR001',
-          kprq: now, 
-          xsfnsrsbh: '9133X1X1X1', 
-          xsfmc: '销方A', 
-          gmfnrsbh: '9133Y2Y2Y2', 
-          gmfmc: '购方A', 
-          hjje: -1000, 
-          hjse: -90, 
-          jshj: -1090, 
-          taskStatus: '02',
-          reviewStatus: 'APPROVED',
-          kpr: '开票人A',
-          createTime: now,
-          updateTime: now
-        }
-      ];
-      this.rows = this.rows.map(item => this.normalizeRow(item));
-      this.pager.total = this.rows.length;
     }
   }
 };

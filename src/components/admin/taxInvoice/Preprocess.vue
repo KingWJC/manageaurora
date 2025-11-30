@@ -77,12 +77,16 @@
                   prop="initTime"
                   label="初始化时间"
                   min-width="140"
-                />
+                >
+               <templage slot-scope="scope">{{ formatDateTime(scope.row.initTime) }}</templage>
+              </el-table-column>
                 <el-table-column
                   prop="updateTime"
                   label="更新时间"
                   min-width="140"
-                />
+                >
+                 <templage slot-scope="scope">{{ formatDateTime(scope.row.updateTime) }}</templage>
+              </el-table-column>
                 <el-table-column label="操作" min-width="120" fixed="right">
                   <template slot-scope="scope">
                     <p>
@@ -128,6 +132,8 @@
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -206,6 +212,9 @@ export default {
         this,
         true
       );
+    },
+    formatDateTime(v) {
+      return taxInvoiceUtils.formatDateTime(v);
     },
     executePreprocess(row, actionLabel) {
       if (!row || !row.nsrsbh) {
