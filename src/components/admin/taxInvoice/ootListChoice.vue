@@ -1,3 +1,6 @@
+<!--
+ * 拷贝文件C:\Users\lonch\Documents\github\manageaurora\src\components\admin\financeManage\ootListChoice.vue
+-->
 <template>
   <div class="viewport-fixed">
     <div class="viewport-header viewport-header-padded flex flex-column flex-content-center">

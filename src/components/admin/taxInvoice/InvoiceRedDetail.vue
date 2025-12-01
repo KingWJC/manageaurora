@@ -624,7 +624,6 @@ export default {
     // 查询红字确认单详情并回填到表单
     fetchRedConfirmDetail(confirmId) {
       if (!confirmId) return;
-      // 标记为从红字确认单跳转过来
       this.isFromRedConfirm = true;
       this.API.send(
         this.CFG.services.kailing.queryRedConfirmDetail,
@@ -640,7 +639,7 @@ export default {
 
             const blueInvoiceId = detail.blueInvoiceId;
             if (blueInvoiceId) {
-              this.fetchBlueInvoiceForRedConfirm(blueInvoiceId, true);
+              this.fetchBlueInvoiceForRedConfirm(blueInvoiceId);
             }
           } else {
             this.$message.warning(message || '加载红字确认单详情失败');
@@ -652,8 +651,8 @@ export default {
         this
       );
     },
-    // 查询蓝字发票详情（用于从红字确认单跳转时回填销货单位和购货单位信息）
-    fetchBlueInvoiceForRedConfirm(blueInvoiceId, isInvoiceId = true) {
+    // 查询蓝字发票详情
+    fetchBlueInvoiceForRedConfirm(blueInvoiceId) {
       const queryParam = { invoiceId: blueInvoiceId };
       this.API.send(
         this.CFG.services.kailing.digitalInvoiceQuery,
@@ -676,12 +675,9 @@ export default {
         this
       );
     },
-    // 将蓝字发票的销货单位和购货单位信息应用到表单
     applyBlueInvoiceInfoToForm(invoiceDetail = {}) {
-      console.log('蓝字发票详情:', invoiceDetail);
-
       if (invoiceDetail.gmfzrrbz) this.form.gmfzrrbz = invoiceDetail.gmfzrrbz;
-      // 销售方信息（销货单位）
+      // 销售方信息
       if (invoiceDetail.xsfnsrsbh)
         this.form.xsfnsrsbh = invoiceDetail.xsfnsrsbh;
       if (invoiceDetail.xsfmc) this.form.xsfmc = invoiceDetail.xsfmc;
@@ -691,7 +687,7 @@ export default {
       if (invoiceDetail.xsfzh) this.form.xsfzh = invoiceDetail.xsfzh;
       if (invoiceDetail.cezzslx) this.form.cezzslx = invoiceDetail.cezzslx;
 
-      // 购买方信息（购货单位）
+      // 购买方信息
       if (invoiceDetail.gmfnsrsbh)
         this.form.gmfnsrsbh = invoiceDetail.gmfnsrsbh;
       if (invoiceDetail.gmfmc) this.form.gmfmc = invoiceDetail.gmfmc;
@@ -707,7 +703,6 @@ export default {
       if (invoiceDetail.kpr) this.form.kpr = invoiceDetail.kpr;
       if (invoiceDetail.bz) this.form.bz = invoiceDetail.bz;
     },
-    // 将红字确认单详情应用到红字发票表单（只回填基本信息和开票详情信息，不包括销货单位和购货单位）
     applyRedConfirmDetailToForm(detail = {}) {
       // 基础信息
       if (detail.lzfphm) this.form.lzfphm = detail.lzfphm;
@@ -716,7 +711,7 @@ export default {
       if (detail.tdys || detail.lzfpTdyslxDm)
         this.form.tdys = detail.tdys || detail.lzfpTdyslxDm || '';
 
-      // 红字确认单相关信息（用于提交时）
+      // 红字确认单相关信息
       if (detail.hzfpxxqrdbh) this.form.hzqrxxdbh = detail.hzfpxxqrdbh;
       if (detail.uuid) this.form.hzqrduuid = detail.uuid;
 
@@ -724,12 +719,11 @@ export default {
       const detailList = detail.detailList || [];
       if (detailList && detailList.length > 0) {
         this.form.fpmxList = detailList.map((item, index) => {
-          // 红字发票的金额和税额必须是负数
           const je = Number(item.je || 0);
           const se = Number(item.se || 0);
-          const sl = Number(item.fpspsl || item.sl || 0);
-          const dj = Number(item.fpspdj || item.dj || 0);
-          const slv = Number(item.sl1 || item.slv || 0);
+          const sl = Number(item.fpspsl || 0);
+          const dj = Number(item.fpspdj || 0);
+          const slv = Number(item.sl1 || 0);
           const hsje = je + se;
           return {
             mxxh: item.mxxh || index + 1,
@@ -776,7 +770,6 @@ export default {
       );
     },
     applyInvoiceDetail(detail = {}) {
-      // 应用发票详情到表单
       if (detail.lzfphm) this.form.lzfphm = detail.lzfphm;
       if (detail.gmfmc) this.form.gmfmc = detail.gmfmc;
       if (detail.xsfmc) this.form.xsfmc = detail.xsfmc;
@@ -824,52 +817,6 @@ export default {
         this.recalcTotals();
       }
     },
-    // 选择商品/服务
-    openSelectGoods() {
-      this.saveFormData();
-      this.$router.push({
-        name: 'taxInvoiceSelectGoods',
-        query: { from: 'taxInvoiceRedSellerCreate' }
-      });
-    },
-    // 删除明细行
-    deleteDetailRow(index) {
-      if (index >= 0 && index < this.form.fpmxList.length) {
-        this.form.fpmxList.splice(index, 1);
-        this.recalcTotals();
-      }
-    },
-    // 行变更，重算单行与合计
-    onRowChange(row) {
-      this.recalcRow(row);
-      this.recalcTotals();
-    },
-    // 单行计算：金额(含税)=数量*单价；税额=金额*税率；含税金额=金额+税额
-    recalcRow(row) {
-      const qty = this.toFixedNumber(row.sl, 6);
-      const price = this.toFixedNumber(row.dj, 6);
-      const rate = this.toFixedNumber(row.slv, 6);
-      const amount = this.toFixedNumber(qty * price, 2);
-      const tax = this.toFixedNumber(amount * rate, 2);
-      const amountWithTax = this.toFixedNumber(amount + tax, 2);
-      row.je = amount;
-      row.se = tax;
-      row.hsje = amountWithTax;
-    },
-    // 合计计算
-    recalcTotals() {
-      let totalAmount = 0;
-      let totalTax = 0;
-      (this.form.fpmxList || []).forEach((item) => {
-        const amt = this.toFixedNumber(item.je, 2);
-        const tax = this.toFixedNumber(item.se, 2);
-        totalAmount += amt;
-        totalTax += tax;
-      });
-      this.form.hjjc = this.toFixedNumber(totalAmount, 2);
-      this.form.hjs = this.toFixedNumber(totalTax, 2);
-      this.form.jshj = this.toFixedNumber(this.form.hjjc + this.form.hjs, 2);
-    },
     toFixedNumber(val, digits = 2) {
       const n = Number(val);
       if (isNaN(n)) return 0;
@@ -883,7 +830,6 @@ export default {
       });
     },
     validateForm() {
-      // 只验证可编辑的必填字段
       if (!this.form.chyyDm || this.form.chyyDm === '') {
         return '请选择开具红字发票原因';
       }
@@ -916,7 +862,7 @@ export default {
           je: Number.isFinite(amount) ? amount : 0,
           slv: Number(item.slv || 0),
           se: Number.isFinite(tax) ? tax : 0,
-          hsje: Number(item.hsje || amount + tax || 0),
+          hsje: Number(item.hsje || 0),
           kce: Number(item.kce || 0),
           sphfwssflhbbm: item.sphfwssflhbbm || '',
           fphxz: item.fphxz || '00',
@@ -1021,12 +967,7 @@ export default {
             const fphm = data && data.fphm;
             const resultMessage = data && data.message;
             if (invoiceId || fphm) {
-              const info = [
-                invoiceId && `ID: ${invoiceId}`,
-                fphm && `发票号码: ${fphm}`
-              ]
-                .filter(Boolean)
-                .join(', ');
+              const info =fphm && `发票号码: ${fphm}`;
               this.$message.success(`保存成功，${info}`);
             } else if (resultMessage) {
               this.$message.success(resultMessage);
@@ -1062,10 +1003,6 @@ export default {
       };
     },
     sendAuditRequest(svc, row, auditStatus, reviewRemark) {
-      if (!row || !row.id) {
-        this.$message.warning('缺少发票ID，无法审核');
-        return;
-      }
       const payload = {
         invoiceId: row.id,
         reviewStatus: auditStatus,

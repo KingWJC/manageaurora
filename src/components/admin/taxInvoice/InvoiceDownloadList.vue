@@ -537,18 +537,8 @@ export default {
         sjlx: req.sjlx
       };
       this.saving = true;
-      const svc =
-        this.CFG &&
-        this.CFG.services &&
-        this.CFG.services.kailing &&
-        this.CFG.services.kailing.digitalInvoiceDownloadApply;
-      if (!svc) {
-        this.$message.error('接口配置不存在');
-        this.saving = false;
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.digitalInvoiceDownloadApply,
         payload,
         (res) => {
           this.saving = false;
@@ -575,18 +565,8 @@ export default {
     getData() {
       this.loading = true;
       const payload = this.buildQueryPayload();
-      const svc =
-        this.CFG &&
-        this.CFG.services &&
-        this.CFG.services.kailing &&
-        this.CFG.services.kailing.pageInvoiceDownloadList;
-      if (!svc) {
-        this.$message.error('接口配置不存在');
-        this.loading = false;
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.pageInvoiceDownloadList,
         payload,
         (res) => {
           this.loading = false;

@@ -199,15 +199,9 @@ export default {
         query: { id: row.id || row.sllsh, mode: 'view' }
       });
     },
-    editRow(row) { this.$message.info('红票一般不允许编辑，若需修改请按规则红冲/重开'); },
     previewRow(row) {
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.digitalInvoiceQuery;
-      if (!svc || !row || !row.id) {
-        this.$alert(`预览红票：${row.fphm || '-'}`, '预览', { confirmButtonText: '关闭' });
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.digitalInvoiceQuery,
         { invoiceId: row.id },
         (res) => {
           const { success, message, data } = this.parseServiceResult(res || {});

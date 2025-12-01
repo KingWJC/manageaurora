@@ -299,49 +299,33 @@ export default {
         ['bz', detail.bz || detail.remark],
         ['hjjc', detail.hjje !== undefined ? Number(detail.hjje) : this.form.hjjc],
         ['hjs', detail.hjse !== undefined ? Number(detail.hjse) : this.form.hjs],
-        ['jshj', detail.jshj !== undefined ? Number(detail.jshj) : this.form.jshj]
+        ['jshj', detail.jshj !== undefined ? Number(detail.jshj) : this.form.jshj],
+        ['lzfpbz', detail.lzfpbz]
       ];
       assigns.forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          if (key === 'gmfzrrbz') {
-            this.$set(this.form, key, value);
-          } else {
             this.form[key] = value;
-          }
         }
       });
-      if (detail.gmfzrrbz !== undefined && detail.gmfzrrbz !== null && detail.gmfzrrbz !== '') {
-        this.$nextTick(() => {
-          if (this.form.gmfzrrbz !== detail.gmfzrrbz) {
-            this.$set(this.form, 'gmfzrrbz', detail.gmfzrrbz);
-          }
-        });
-      }
-      if (detail.lzfpbz !== undefined && detail.lzfpbz !== null) {
-        this.form.lzfpbz = detail.lzfpbz;
-      }
+
       // 处理发票明细列表
-      const details = Array.isArray(detail.fpmxList)
-        ? detail.fpmxList
-        : Array.isArray(detail.invoiceDetailList)
-          ? detail.invoiceDetailList
-          : [];
+      const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
       if (details.length) {
         this.form.fpmxList = details.map((item, index) => ({
           mxxh: item.mxxh || index + 1,
-          xmmc: item.xmmc || item.itemName || '',
+          xmmc: item.xmmc || '',
           spfwjc: item.spfwjc || '',
-          ggxh: item.ggxh || item.spec || '',
-          dw: item.dw || item.unit || '',
-          sl: Number(item.sl || item.quantity || 0),
-          dj: Number(item.dj || item.price || 0),
-          je: Number(item.je || item.amount || 0),
-          slv: Number(item.slv || item.rate || 0),
-          se: Number(item.se || item.tax || 0),
-          hsje: Number(item.hsje || item.amountWithTax || 0),
+          ggxh: item.ggxh || '',
+          dw: item.dw || '',
+          sl: Number(item.sl || 0),
+          dj: Number(item.dj || 0),
+          je: Number(item.je || 0),
+          slv: Number(item.slv || 0),
+          se: Number(item.se || 0),
+          hsje: Number(item.hsje || 0),
           kce: Number(item.kce || 0),
-          sphfwssflhbbm: item.sphfwssflhbbm || item.taxCode || '',
-          fphxz: item.fphxz || item.lineNature || '00',
+          sphfwssflhbbm: item.sphfwssflhbbm || '',
+          fphxz: item.fphxz || '00',
           yhzcbs: item.yhzcbs || ''
         }));
         this.recalcTotals();
@@ -370,7 +354,6 @@ export default {
       }
     },
     activated() {
-      // 更新查看模式状态
       this.isViewMode = this.$route && this.$route.query && this.$route.query.mode === 'view';
       this.restoreFormData();
       this.fillSelectedData();
@@ -446,7 +429,6 @@ export default {
         this.onRowChange(newRow);
       });
     },
-    // 明细
     deleteDetailRow(i) { this.form.fpmxList.splice(i, 1); this.recalcTotals(); },
     onRowChange(row) {
       const sl = Number(row.sl) || 0;
@@ -476,7 +458,6 @@ export default {
       return n;
     },
     addBuyer() {
-      // 跳转前保存表单数据
       this.saveFormData();
       const type = this.form.gmfzrrbz;
       if (type === 'Y') {
@@ -521,7 +502,6 @@ export default {
                   this.form.gmfdh = row.cellphone || '';
                   this.form.gmfnsrsbh = row.identificationNumber || '';
                   this.form.jbrsfzjhm = row.identificationNumber || '';
-                  // 清空机构相关字段
                   this.form.gmfdz = '';
                   this.form.gmfkhh = '';
                   this.form.gmfzh = '';
@@ -574,7 +554,6 @@ export default {
                   this.form.gmfzh = row.bankName || '';
                   this.form.gmfjbr = row.linkmanName || '';
                   this.form.gmfbrlxdh = row.linkmanPhone || '';
-                  // 清空自然人相关字段
                   this.form.jbrsfzjhm = '';
                 }
               }
@@ -589,13 +568,11 @@ export default {
       this.generalSelectionModel.show = false;
     },
     openSelectGoods() {
-      // 跳转前保存表单数据
       this.saveFormData();
       // 显示商品/服务选择组件
       this.ootListConfig.show = true;
     },
     handleGoodsSelected(selectedItems) {
-      // 处理选择的商品/服务
       if (!selectedItems) {
         return;
       }
@@ -655,15 +632,6 @@ export default {
       if (!Array.isArray(this.form.fpmxList) || !this.form.fpmxList.length) {
         return '请添加至少一条开票明细';
       }
-      if (!Number.isFinite(Number(this.form.hjjc))) {
-        return '请填写合计金额';
-      }
-      if (!Number.isFinite(Number(this.form.hjs))) {
-        return '请填写合计税额';
-      }
-      if (!Number.isFinite(Number(this.form.jshj))) {
-        return '请填写价税合计';
-      }
       return '';
     },
     buildAddPayload() {
@@ -684,7 +652,7 @@ export default {
           je: Number.isFinite(amount) ? amount : 0,
           slv: Number(item.slv || 0),
           se: Number.isFinite(tax) ? tax : 0,
-          hsje: Number(item.hsje || amount + tax || 0),
+          hsje: Number(item.hsje || 0),
           kce: Number(item.kce || 0),
           sphfwssflhbbm: item.sphfwssflhbbm || '',
           fphxz: item.fphxz || '00',
@@ -781,10 +749,6 @@ export default {
       if (!this.form.taxInvoiceNo) {
         this.form.taxInvoiceNo = this.utils.UUID(32, 16);
       }
-      if (!this.form.kprq) {
-        // 如果没有开票日期，设置为当前日期时间
-        this.form.kprq = taxInvoiceUtils.getCurrentDateTime();
-      }
       this.saving = true;
       const payload = this.buildAddPayload();
       this.API.send(
@@ -798,7 +762,7 @@ export default {
             const fphm = data && data.fphm;
             const resultMessage = data && data.message;
             if (invoiceId || fphm) {
-              const info = [invoiceId && `ID: ${invoiceId}`, fphm && `发票号码: ${fphm}`].filter(Boolean).join(', ');
+              const info = fphm && `发票号码: ${fphm}`;
               this.$message.success(`上传成功，${info}`);
             } else if (resultMessage) {
               this.$message.success(resultMessage);

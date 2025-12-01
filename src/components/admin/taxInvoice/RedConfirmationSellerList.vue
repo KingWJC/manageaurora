@@ -146,7 +146,7 @@ export default {
     this.getData(); 
   },
   activated() {
-        this.getData();
+    this.getData();
   },
   methods: {
     onSearch() { 
@@ -192,7 +192,7 @@ export default {
     handleView(row) {
       this.$router.push({
         name: 'taxInvoiceRedSellerCreate',
-        query: { confirmId: row.id , mode: 'view' }
+        query: { id: row.id , mode: 'view' }
       });
     },
     handleEdit(row) {
@@ -227,7 +227,6 @@ export default {
             text: '取消',
             type: 'follow',
             callback: () => {
-              // 用户取消操作
             }
           },
           {
@@ -272,7 +271,6 @@ export default {
             text: '取消',
             type: 'follow',
             callback: () => {
-              // 用户取消操作
             }
           },
           {
@@ -357,7 +355,7 @@ export default {
           if (!success && message) {
             this.$message.warning(message);
           }
-          this.rows = (records || []).map(item => this.normalizeRow(item));
+          this.rows = records;
           this.pager.total = total || 0;
         },
         () => {
@@ -397,15 +395,6 @@ export default {
     },
     formatDateTime(value) {
       return taxInvoiceUtils.formatDateTime(value);
-    },
-    normalizeRow(row = {}) {
-      return {
-        ...row,
-        lrrq: row.lrrq ? this.formatDateTime(row.lrrq) : '',
-        qrrq: row.qrrq ? this.formatDateTime(row.qrrq) : '',
-        createTime: row.createTime ? this.formatDateTime(row.createTime) : '',
-        updateTime: row.updateTime ? this.formatDateTime(row.updateTime) : ''
-      };
     }
   }
 };

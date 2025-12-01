@@ -135,7 +135,6 @@ export default {
     this.getData(); 
   },
   activated() {
-    // keep-alive 激活时刷新列表（从详情页返回时）
     this.getData();
   },
   methods: {
@@ -159,7 +158,7 @@ export default {
     },
     buildQueryPayload() {
       const payload = {
-        current: this.pager.current - 1, // API 使用 0-based 索引
+        current: this.pager.current - 1, 
         rowCount: this.pager.size
       };
       const { gmfmc, lzfphm, hzqrxxztDm, lrrqRange } = this.search;
@@ -168,7 +167,6 @@ export default {
       if (hzqrxxztDm) payload.hzqrxxztDm = hzqrxxztDm;
       if (Array.isArray(lrrqRange) && lrrqRange.length === 2) {
         const { lrrqStart, lrrqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(lrrqRange);
-        // 接口要求字符串类型的时间戳
         if (lrrqStart !== undefined) payload.lrrqStart = String(lrrqStart);
         if (lrrqEnd !== undefined) payload.lrrqEnd = String(lrrqEnd);
       }
@@ -177,7 +175,7 @@ export default {
     handleView(row) {
       this.$router.push({
         name: 'taxInvoiceRedBuyerDetail',
-        query: { confirmId: row.id || row.uuid }
+        query: { confirmId: row.id }
       });
     },
     canConfirm(row) {
@@ -188,6 +186,7 @@ export default {
       // 只有状态为"02销方录入待购方确认"时才能拒绝
       return row.hzqrxxztDm === '02';
     },
+
     confirmRow(row, qrlx) {
       const actionText = qrlx === 'Y' ? '确认' : '拒绝';
       this.$confirm(`确定要${actionText}此红字确认单吗？`, '提示', {
@@ -195,19 +194,14 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.confirmRedConfirm;
-        if (!svc) {
-          this.$message.success(`${actionText}成功（Mock）`);
-          return;
-        }
         const payload = {
-          confirmationId: row.id || row.uuid,
+          confirmationId: row.id,
           xsfnsrsbh: row.xsfnsrsbh,
           qrlx: qrlx
         };
         this.loading = true;
         this.API.send(
-          svc,
+          this.CFG.services.kailing.confirmRedConfirm,
           payload,
           (res) => {
             this.loading = false;

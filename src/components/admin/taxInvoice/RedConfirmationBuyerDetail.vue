@@ -22,7 +22,6 @@
 
 <script>
 import RedConfirmationCreate from './RedConfirmationCreate.vue';
-import taxInvoiceUtils from './taxInvoiceUtils';
 
 export default {
   components: { 
@@ -173,7 +172,6 @@ export default {
           this
         );
       }).catch(() => {
-        // 用户取消操作
       });
     },
     parseServiceResult(payload = {}) {

@@ -12,25 +12,23 @@ export function formatTimestampToDate(timestamp, format = 'yyyy-MM-dd HH:mm:ss')
   if (!timestamp) {
     return '';
   }
-  // 如果是字符串，尝试转换为数字
+
   if (typeof timestamp === 'string') {
     timestamp = Number(timestamp);
   }
-  // 如果是 NaN，返回空字符串
+
   if (isNaN(timestamp)) {
     return '';
   }
-  // 判断是秒级还是毫秒级时间戳（
+
   let date;
   if (timestamp < 2524579200) {
     // 秒级时间戳，转换为毫秒
     date = new Date(timestamp * 1000);
   } else {
-    // 毫秒级时间戳
     date = new Date(timestamp);
   }
   
-  // 如果日期无效，返回空字符串
   if (isNaN(date.getTime())) {
     return '';
   }
@@ -50,7 +48,6 @@ export function formatTimestampToDate(timestamp, format = 'yyyy-MM-dd HH:mm:ss')
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   } else {
-    // 其他格式，使用通用格式化方法
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -80,14 +77,14 @@ export function formatDateToTimestamp(dateStr) {
   if (isNaN(date.getTime())) {
     return Math.floor(Date.now());
   }
-  // 返回秒级时间戳
+
   return Math.floor(date.getTime());
 }
 
 /**
  * 将日期范围数组转换为时间戳范围
  * @param {Array<string>} dateRange - 日期范围数组，如 ['2024-01-01', '2024-01-31']
- * @returns {Object} 包含 kprqStart 和 kprqEnd 的对象，值为秒级时间戳
+ * @returns {Object} 值为秒级时间戳
  */
 export function formatDateRangeToTimestamp(dateRange) {
   if (!Array.isArray(dateRange) || dateRange.length !== 2) {
@@ -97,13 +94,11 @@ export function formatDateRangeToTimestamp(dateRange) {
   let kprqStart, kprqEnd;
   
   if (start) {
-    // 将开始日期设置为当天的 00:00:00
     const startDate = new Date(start + 'T00:00:00');
     kprqStart = Math.floor(startDate.getTime());
   }
   
   if (end) {
-    // 将结束日期设置为当天的 23:59:59
     const endDate = new Date(end + 'T23:59:59');
     kprqEnd = Math.floor(endDate.getTime());
   }
@@ -121,16 +116,13 @@ export function formatDateTime(value) {
     return '-';
   }
   
-  // 如果是字符串格式的日期，先尝试转换为时间戳
   let timestamp = value;
   if (typeof value === 'string') {
-    // 检查是否是日期字符串格式
     if (value.includes('-') || value.includes('/')) {
       const date = new Date(value);
       if (!isNaN(date.getTime())) {
         timestamp = Math.floor(date.getTime() / 1000);
       } else {
-        // 尝试直接转换为数字
         timestamp = Number(value);
       }
     } else {
@@ -138,7 +130,6 @@ export function formatDateTime(value) {
     }
   }
   
-  // 使用 formatTimestampToDate 格式化
   const formatted = formatTimestampToDate(timestamp);
   return formatted || '-';
 }

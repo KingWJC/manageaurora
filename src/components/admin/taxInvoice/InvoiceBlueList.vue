@@ -499,7 +499,7 @@ export default {
       });
     },
     auditRow(row) {
-      let inputValue = ''; // 保存用户输入的审核意见
+      let inputValue = ''; 
       this.$prompt('请输入审核意见（可选）', '审核发票', {
         confirmButtonText: '审核通过',
         cancelButtonText: '审核退回',
@@ -509,7 +509,6 @@ export default {
         inputPlaceholder: '请输入审核意见',
         closeOnClickModal: false,
         inputValidator: (value) => {
-          // 在用户输入时保存值
           inputValue = value || '';
           return true; 
         }
@@ -652,7 +651,7 @@ export default {
         result += '整';
       }
 
-      // 添加圈码标记（简化处理，使用②）
+      // 添加圈码标记
       if (result.length > 2) {
         return '② ' + result;
       }

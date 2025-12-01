@@ -119,28 +119,18 @@
 <script>
 export default {
   components: { crumbsBar: () => import('@/common-base/components/crumbs-bar') },
-  props: { 
-    permissions: Object, 
-    params: Object,
-    formData: { type: Object, default: null }
-  },
   data() {
     return {
       saving: false,
       form: {
-        // 基础信息
         id: '', uuid: '', taxpayerId: '', blueInvoiceId: '', hzfpxxqrdbh: '',
         xsfmc: '', lzfphm: '', gmfzrrbz: '1', gmfmc: '', lzfppzDm: '02', chyyDm: '01', tdys: '',
-        // 销售方信息
         xsfnsrsbh: '', xsfdz: '', xsfdh: '', xsfkhh: '', xsfzh: '', cezzslx: '',
-        // 购买方信息
         gmfnsrsbh: '', gmfdz: '', gmfdh: '', gmfkhh: '', gmfzh: '',
-        // 明细与合计
         fpmxList: [],
-        hzcxje: 0, // 合计金额（红字冲销金额）
-        hzcxse: 0,  // 合计税额（红字冲销税额）
-        jshj: 0, // 价税合计
-        // 其他信息
+        hzcxje: 0,
+        hzcxse: 0,  
+        jshj: 0,
         bz: ''
       }
     };
@@ -159,14 +149,10 @@ export default {
       return query && query.mode === 'view';
     },
     readonly() {
-      // 如果是查看模式，或者通过 props 传入的 readonly 为 true，则不可编辑
-      return this.isViewMode || (this.$props.readonly === true);
+      return this.isViewMode;
     }
   },
   mounted() {
-
-    console.log("从接口加载详情数据"+ this.confirmId);
-    // 从接口加载详情数据
     if (this.confirmId) {
       this.fetchDetail();
       return;
@@ -177,10 +163,8 @@ export default {
       const json = sessionStorage.getItem('taxInvoice.selectedBlueInvoice');
       if (json) {
         const inv = JSON.parse(json) || {};
-        // 保存蓝字发票ID
         if (inv.id) {
           this.form.blueInvoiceId = inv.id;
-          // 调用接口获取蓝字发票完整详情
           this.fetchBlueInvoiceDetail(inv.id);
         } 
       }
@@ -188,23 +172,11 @@ export default {
       console.error('读取蓝字发票数据失败:', e);
     }
 
-    // 恢复表单与回填所选商品
     if (!this.readonly && !this.isEditMode) {
       this.restoreFormData();
       this.fillSelectedGoods();
     }
     this.recalcTotals();
-  },
-  watch: {
-    formData: {
-      handler(newVal) {
-        if (newVal) {
-          this.form = { ...newVal };
-          this.recalcTotals();
-        }
-      },
-      immediate: true
-    }
   },
   methods: {
     // 获取蓝字发票完整详情
@@ -244,9 +216,8 @@ export default {
         const fppz = detail.fppz || detail.fplxDm;
         if (fppz) this.form.lzfppzDm = fppz;
       }
-      // 购货单位类型（根据购买方税号判断，如果有税号则为组织，否则为自然人）
-      if (detail.gmfnsrsbh) {
-        this.form.gmfzrrbz = '1'; // 组织
+      if (detail.gmfzrrbz) {
+        this.form.gmfzrrbz = detail.gmfzrrbz;
       }
       
       // 销售方信息
@@ -264,30 +235,30 @@ export default {
       if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
       if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
       
-      // 开票详细信息（明细列表）
+      // 开票详细信息
       const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
       if (details.length > 0) {
         this.form.fpmxList = details.map((item, index) => {
-          const je = Number(item.je || item.amount || 0);
-          const se = Number(item.se || item.tax || 0);
-          const hsje = Number(item.hsje || item.amountWithTax || (je + se));
+          const je = Number(item.je || 0);
+          const se = Number(item.se  || 0);
+          const hsje = Number(item.hsje || (je + se));
           return {
             lzmxxh: item.mxxh || (index + 1),
             xmmc: item.xmmc || '',
             ggxh: item.ggxh || '',
             dw: item.dw || item.unit || '',
-            sl: Number(item.sl || item.quantity || 0),
-            dj: Number(item.dj || item.price || 0),
-            je: je > 0 ? -je : je,
-            slv: Number(item.slv || item.rate || 0),
-            se: se > 0 ? -se : se,
-            hsje: hsje > 0 ? -hsje : hsje,
+            sl: Number(item.sl || 0),
+            dj: Number(item.dj || 0),
+            je:  je,
+            slv: Number(item.slv  || 0),
+            se:  se,
+            hsje: hsje,
             kce: Number(item.kce || 0),
-            sphfwssflhbbm: item.sphfwssflhbbm || item.taxCode || '',
+            sphfwssflhbbm: item.sphfwssflhbbm || '',
             hwhyslwfwmc: item.hwhyslwfwmc || '',
-            spfwjc: item.spfwjc || item.itemShortName || '',
+            spfwjc: item.spfwjc || '',
             yhzcbs: item.yhzcbs || '',
-            fphxz: item.fphxz || item.lineNature || '00'
+            fphxz: item.fphxz || '00'
           };
         });
         // 重新计算合计
@@ -302,14 +273,11 @@ export default {
         this.recalcTotals();
       }
     },
-    // 行变更，重算单行与合计
     onRowChange(row) {
       if (this.readonly) return;
       this.recalcRow(row);
       this.recalcTotals();
     },
-    // 单行计算：金额(含税)=数量*单价；税额=金额*税率；含税金额=金额+税额
-    // 红字发票的金额和税额必须是负数
     recalcRow(row) {
       const qty = this.toFixedNumber(row.sl, 6);
       const price = this.toFixedNumber(row.dj, 6);
@@ -317,10 +285,9 @@ export default {
       const amount = this.toFixedNumber(qty * price, 2);
       const tax = this.toFixedNumber(amount * rate, 2);
       const amountWithTax = this.toFixedNumber(amount + tax, 2);
-      // 红字发票金额和税额必须是负数
-      row.je = amount > 0 ? -amount : amount;
-      row.se = tax > 0 ? -tax : tax;
-      row.hsje = amountWithTax > 0 ? -amountWithTax : amountWithTax;
+      row.je = amount;
+      row.se = tax;
+      row.hsje = amountWithTax;
     },
     // 合计计算
     recalcTotals() {
@@ -332,14 +299,12 @@ export default {
         totalAmount += amt;
         totalTax += tax;
       });
-      // 红字冲销金额和税额必须是负数
-      this.form.hzcxje = this.toFixedNumber( -Math.abs(totalAmount), 2);
-      this.form.hzcxse = this.toFixedNumber( -Math.abs(totalTax), 2);
+      this.form.hzcxje = this.toFixedNumber(totalAmount, 2);
+      this.form.hzcxse = this.toFixedNumber(totalTax, 2);
       this.form.jshj = this.toFixedNumber(this.form.hzcxje + this.form.hzcxse, 2);
     },
-    // 从会话回填所选商品（支持单个与多个）
+
     fillSelectedGoods() {
-      console.log("从会话回填所选商品");
       if (this.readonly) return;
       try {
         const listJson = sessionStorage.getItem('taxInvoice.selectedGoodsList');
@@ -372,7 +337,7 @@ export default {
         sl: 1,
         dj: 0,
         je: 0,
-        slv: this.defaultTaxRate(item),
+        slv: 0,
         se: 0,
         hsje: 0,
         kce: 0,
@@ -383,12 +348,6 @@ export default {
       this.recalcRow(row);
       this.form.fpmxList.push(row);
     },
-    defaultTaxRate(item) {
-      // 简单默认税率：若有 rate 字段用之，否则 0.13
-      const r = Number(item.rate);
-      if (!isNaN(r) && r >= 0) return this.toFixedNumber(r, 6);
-      return 0.13;
-    },
     toFixedNumber(val, digits = 2) {
       const n = Number(val);
       if (isNaN(n)) return 0;
@@ -398,48 +357,14 @@ export default {
       const n = this.toFixedNumber(val, 2);
       return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
-    // 表单持久化：在跨路由选择场景保留用户输入
-    saveFormData() {
-      if (this.readonly) return;
-      try {
-        sessionStorage.setItem('taxInvoice.redSellerCreate.form', JSON.stringify(this.form));
-      } catch (e) {
-        console.error('保存表单数据失败:', e);
-        if (this.$message) this.$message.error('保存数据失败，请重试');
-      }
-    },
-    restoreFormData() {
-      if (this.readonly) return;
-      try {
-        const json = sessionStorage.getItem('taxInvoice.redSellerCreate.form');
-        if (json) {
-          const saved = JSON.parse(json) || {};
-          // 仅在当前值为空时回填，避免覆盖最新输入
-          Object.keys(saved).forEach(k => {
-            const cur = this.form[k];
-            if (cur === '' || cur === null || (Array.isArray(cur) && cur.length === 0)) {
-              this.form[k] = saved[k];
-            }
-          });
-        }
-      } catch (e) {
-        console.error('恢复表单数据失败:', e);
-      }
-    },
     fetchDetail() {
       if (!this.confirmId) return;
       this.saving = true;
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.queryRedConfirmDetail;
-      if (!svc) {
-        this.saving = false;
-        this.$message.error('查询接口未配置');
-        return;
-      }
       const payload = {
         confirmId: this.confirmId
       };
       this.API.send(
-        svc,
+        this.CFG.services.kailing.queryRedConfirmDetail,
         payload,
         (res) => {
           this.saving = false;
@@ -461,16 +386,15 @@ export default {
       );
     },
     applyDetailToForm(detail = {}) {
-      console.log(detail);
       const detailList = (detail.detailList || []).map((item, index) => ({
-        id: item.id || '', // 明细ID，编辑时需要
-        lzmxxh: item.lzmxxh || index + 1,
+        id: item.id || '', 
+        lzmxxh: item.lzmxxh,
         xh: item.xh || index + 1,
         xmmc: item.xmmc || '',
         ggxh: item.ggxh || '',
         dw: item.dw || '',
-        sl: Number(item.fpspsl || item.sl || 0),
-        dj: Number(item.fpspdj || item.dj || 0),
+        sl: Number(item.fpspsl || 0),
+        dj: Number(item.fpspdj || 0),
         je: Number(item.je || 0),
         slv: Number(item.sl1 || 0),
         se: Number(item.se || 0),
@@ -492,7 +416,7 @@ export default {
       this.form.gmfmc = detail.gmfmc || '';
       this.form.lzfppzDm = detail.lzfppzDm || '02';
       this.form.chyyDm = detail.chyyDm || '01';
-      this.form.tdys = detail.tdys || detail.lzfpTdyslxDm || '';
+      this.form.tdys = detail.lzfpTdyslxDm || '';
       this.form.xsfnsrsbh = detail.xsfnsrsbh || '';
       this.form.xsfdz = detail.xsfdz || '';
       this.form.xsfdh = detail.xsfdh || '';
@@ -529,8 +453,8 @@ export default {
     buildSubmitPayload() {
       const detailList = (this.form.fpmxList || []).map((item, index) => {
         const detailItem = {
-          id: item.id || '', // 编辑时传入明细ID
-          lzmxxh: item.lzmxxh || index + 1,
+          id: item.id || '', 
+          lzmxxh: item.lzmxxh,
           xh: item.xh || index + 1,
           sphfwssflhbbm: item.sphfwssflhbbm || '',
           hwhyslwfwmc: item.hwhyslwfwmc || '',
@@ -551,10 +475,10 @@ export default {
       });
       
       const payload = {
-        id: this.form.id || '', // 编辑时传入确认单ID
-        taxpayerId: this.form.taxpayerId || '', // 纳税人ID
+        id: this.form.id || '', 
+        taxpayerId: this.form.taxpayerId || '', 
         blueInvoiceId: this.form.blueInvoiceId || '',
-        lrfsf: '0', // 0: 销方
+        lrfsf: '0', 
         xsfnsrsbh: this.form.xsfnsrsbh,
         xsfmc: this.form.xsfmc,
         gmfnsrsbh: this.form.gmfnsrsbh || '', 
@@ -564,16 +488,7 @@ export default {
         chyyDm: this.form.chyyDm,
         detailList: detailList
       };
-      
-      // 新增时移除id字段
-      if (!payload.id) {
-        delete payload.id;
-      }
-      // 如果没有taxpayerId，也移除
-      if (!payload.taxpayerId) {
-        delete payload.taxpayerId;
-      }
-      
+
       return payload;
     },
     submit() {
