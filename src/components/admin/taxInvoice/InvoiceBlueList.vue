@@ -145,20 +145,14 @@
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="zdr"
-                  label="制单人"
-                  min-width="140"
-                ></el-table-column>
-                <el-table-column prop="zdrq" label="申请日期" min-width="140">
-                  <template slot-scope="scope">{{ formatDateTime(scope.row.zdrq) }}</template>
-                </el-table-column>
-                <el-table-column
-                  prop="fhr"
+                  prop="fhrxm"
                   label="审核人"
                   min-width="140"
                 ></el-table-column>
-                <el-table-column prop="shrq" label="审核时间" min-width="140">
-                  <template slot-scope="scope">{{ formatDateTime(scope.row.shrq) }}</template>
+                <el-table-column prop="reviewTime" label="审核时间" min-width="140">
+                  <template slot-scope="scope">{{
+                    formatDateTime(scope.row.reviewTime)
+                  }}</template>
                 </el-table-column>
                 <el-table-column
                   prop="reviewStatus"
@@ -174,7 +168,15 @@
                   <template slot-scope="scope">
                     <p>
                       <span class="link" @click="viewRow(scope.row)">查看</span>
-                      <span class="link ml10" @click="editRow(scope.row)"
+                      <span
+                        v-if="scope.row.reviewStatus === '01'"
+                        class="ml10 darkgray"
+                        >编辑</span
+                      >
+                      <span
+                        v-else
+                        class="link ml10"
+                        @click="editRow(scope.row)"
                         >编辑</span
                       >
                     </p>
@@ -182,7 +184,15 @@
                       <span class="link" @click="previewRow(scope.row)"
                         >预览</span
                       >
-                      <span class="link ml10" @click="auditRow(scope.row)"
+                      <span
+                        v-if="scope.row.reviewStatus === '01'"
+                        class="ml10 darkgray"
+                        >审核</span
+                      >
+                      <span
+                        v-else
+                        class="link ml10"
+                        @click="auditRow(scope.row)"
                         >审核</span
                       >
                     </p>
@@ -307,11 +317,11 @@
                     <td>{{ mx.ggxh || '-' }}</td>
                     <td>{{ mx.dw || '-' }}</td>
                     <td>{{ mx.sl }}</td>
-                    <td>{{ (mx.dj || 0).toFixed(8) }}</td>
-                    <td>{{ (mx.je || 0).toFixed(2) }}</td>
+                    <td>{{ Number(mx.dj || 0).toFixed(8) }}</td>
+                    <td>{{ Number(mx.je || 0).toFixed(2) }}</td>
                     <td>
                       {{
-                        mx.slv != null ? (mx.slv * 100).toFixed(0) + '%' : '-'
+                        mx.slv != null ? Number(mx.slv * 100).toFixed(0) + '%' : '-'
                       }}
                     </td>
                   </tr>
@@ -322,7 +332,7 @@
                 <div class="fr">
                   <span class="mr20"
                     >¥{{
-                      ((previewData && previewData.hjje) || 0).toFixed(2)
+                      Number((previewData && previewData.hjje) || 0).toFixed(2)
                     }}</span
                   >
                 </div>
@@ -338,7 +348,7 @@
                   <label class="invoice-info__color">（小写）</label>
                   <span
                     >¥{{
-                      ((previewData && previewData.jshj) || 0).toFixed(2)
+                      Number((previewData && previewData.jshj) || 0).toFixed(2)
                     }}</span
                   >
                 </div>
@@ -411,7 +421,7 @@ export default {
     },
     buildQueryPayload() {
       const payload = {
-        current: this.pager.current - 1, 
+        current: this.pager.current - 1,
         rowCount: this.pager.size
       };
       const { fphm, status, gmfmc, kprqRange } = this.search;
@@ -436,6 +446,7 @@ export default {
       }
       const payload = {
         invoiceId: row.id,
+        reviewer: this.CFG.userinfo.name,
         reviewStatus: auditStatus,
         reviewRemark: reviewRemark || ''
       };
@@ -483,8 +494,36 @@ export default {
       return taxInvoiceUtils.formatDateTime(v);
     },
     previewRow(row) {
-      this.previewData = row;
+      if (!row || !row.id) {
+        this.$message.warning('缺少发票ID，无法预览');
+        return;
+      }
       this.dialog.preview = true;
+      this.loading = true;
+      this.API.send(
+        this.CFG.services.kailing.digitalInvoiceQuery,
+        { invoiceId: row.id },
+        (res) => {
+          this.loading = false;
+          const { success, message, data } = this.parseServiceResult(res || {});
+          if (success && data) {
+            const formattedData = { ...data };
+            if (formattedData.kprq) {
+              formattedData.kprq = taxInvoiceUtils.formatTimestampToDate(
+                formattedData.kprq,
+                'yyyy-MM-dd'
+              );
+            }
+            this.previewData = formattedData;
+          } else if (message) {
+            this.$message.warning(message || '获取发票详情失败');
+          }
+        },
+        () => {
+          this.loading = false;
+        },
+        this
+      );
     },
     viewRow(row) {
       this.$router.push({
@@ -499,7 +538,7 @@ export default {
       });
     },
     auditRow(row) {
-      let inputValue = ''; 
+      let inputValue = '';
       this.$prompt('请输入审核意见（可选）', '审核发票', {
         confirmButtonText: '审核通过',
         cancelButtonText: '审核退回',
@@ -510,7 +549,7 @@ export default {
         closeOnClickModal: false,
         inputValidator: (value) => {
           inputValue = value || '';
-          return true; 
+          return true;
         }
       })
         .then(({ value }) => {
@@ -558,7 +597,6 @@ export default {
       );
     },
     parsePagedResult(payload = {}) {
-      console.log('parsePagedResult', payload);
       const success = payload ? payload.success : undefined;
       const reason = payload ? payload.reason : '';
       const errorMsg = payload ? payload.error : '';
@@ -576,16 +614,15 @@ export default {
       };
     },
     parseServiceResult(payload = {}) {
-      let body = payload;
-      if (body && body.serviceResult) {
-        body = body.serviceResult;
-      }
-      const successFlag = body && body.success !== undefined ? body.success : undefined;
-      const code = body && (body.code !== undefined ? body.code : payload.code);
-      const success = successFlag !== false && (code === undefined || code === null || code === '0');
-      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
-      const data = body && (body.data !== undefined ? body.data : body.result || body.record || body.entity) || {};
-      return { success, message, data };
+      const success = payload ? payload.success : undefined;
+      const reason = payload ? payload.reason : '';
+      const errorMsg = payload ? payload.error : '';
+      const data = payload && (payload.data !== undefined ? payload.data : {});
+      return {
+        success: success !== false,
+        message: reason || errorMsg || '',
+        data
+      };
     },
 
     numberToChinese(num) {

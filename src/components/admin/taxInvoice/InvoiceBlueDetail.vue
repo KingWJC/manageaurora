@@ -114,21 +114,20 @@
                           <el-button size="small" type="primary" @click="openSelectGoods">添加明细</el-button>
                         </div>
                           <el-table :data="form.fpmxList" border style="width:100%">
-                            <el-table-column prop="xmmc" label="商品服务简称" min-width="140"><template slot-scope="{row}"><el-input v-model="row.spfwjc" class="full-width" :disabled="isViewMode" /></template></el-table-column>
+                            <el-table-column prop="spfwjc" label="商品服务简称" min-width="140"><template slot-scope="{row}"><span>{{ row.spfwjc }}</span></template></el-table-column>
                             <el-table-column prop="xmmc" label="项目名称" min-width="140"><template slot-scope="{row}"><span>{{ row.xmmc }}</span></template></el-table-column>
                             <el-table-column prop="ggxh" label="规格型号" width="120"><template slot-scope="{row}"><span>{{ row.ggxh }}</span></template></el-table-column>
                             <el-table-column prop="dw" label="单位" width="90"><template slot-scope="{row}"><span>{{ row.dw }}</span></template></el-table-column>
                             <el-table-column prop="sl" label="数量" width="150"><template slot-scope="{row}"><el-input-number v-model="row.sl" @change="onRowChange(row)" :min="0" :step="1" size="small" class="full-width power-minw90" :disabled="isViewMode" /></template></el-table-column>
-                            <el-table-column prop="dj" label="单价(含税)" width="150"><template slot-scope="{row}"><el-input-number v-model="row.dj" @change="onRowChange(row)" :precision="6" :step="0.01" :min="0" size="small" class="full-width power-minw90" :disabled="isViewMode" /></template></el-table-column>
+                            <el-table-column prop="dj" label="单价(含税)" width="150"><template slot-scope="{row}"><el-input-number v-model="row.dj" @change="onRowChange(row)" :precision="2" :step="0.01" :min="0" size="small" class="full-width power-minw90" :disabled="isViewMode" /></template></el-table-column>
                             <el-table-column prop="je" label="金额(含税)" width="150">
                               <template slot-scope="{row}">¥{{ formatMoney(row.je) }}</template>
                             </el-table-column>
-                            <el-table-column prop="slv" label="增值税税率/征收率" width="150"><template slot-scope="{row}"><span>{{ Number(row.slv || 0).toFixed(4) }}</span></template></el-table-column>
+                            <el-table-column prop="slv" label="增值税税率/征收率" width="150"><template slot-scope="{row}"><span>{{ Number(row.slv || 0).toFixed(2) }}</span></template></el-table-column>
                             <el-table-column prop="se" label="税额" width="150"><template slot-scope="{row}">¥{{ formatMoney(row.se) }}</template></el-table-column>
                             <el-table-column prop="hsje" label="含税金额" width="150"><template slot-scope="{row}">¥{{ formatMoney(row.hsje) }}</template></el-table-column>
                             <el-table-column prop="kce" label="扣除额" width="150"><template slot-scope="{row}"><el-input-number v-model="row.kce" :precision="2" :step="0.01" :min="0" size="small" class="full-width" :disabled="isViewMode" /></template></el-table-column>
                             <el-table-column prop="sphfwssflhbbm" label="商品和服务税收分类合并编码" min-width="220"><template slot-scope="{row}"><span>{{ row.sphfwssflhbbm }}</span></template></el-table-column>
-                            <el-table-column prop="fphxz" label="发票行性质" width="130"><template slot-scope="{row}"><span>{{ row.fphxz }}</span></template></el-table-column>
                             <el-table-column prop="yhzcbs" label="优惠政策标识" width="140"><template slot-scope="{row}"><el-input v-model="row.yhzcbs" class="full-width" :disabled="isViewMode" /></template></el-table-column>
                             <el-table-column label="操作" width="80" fixed="right" v-if="!isViewMode"><template slot-scope="scope"><p><span class="link" @click="deleteDetailRow(scope.$index)">删除</span></p></template></el-table-column>
                           </el-table>
@@ -190,6 +189,14 @@ export default {
         okFn: (selectedItems) => {
           this.handleGoodsSelected(selectedItems);
         }
+      },
+      productType: {
+        '101': '药品',
+        '102': '器械',
+        '103': '食品',
+        '104': '消毒用品',
+        '105': '化妆品',
+        '199': '其他'
       },
       form: {
         id: '', taxInvoiceNo: '', fphm: '', ptbh: '', fppz: '', kprq: '', qyDm: '', lzfpbz: '0',
@@ -454,7 +461,7 @@ export default {
     },
     toFixedNumber(v, p) { return Number((v || 0).toFixed(p)); },
     formatMoney(v) {
-      const n = Number(v || 0).toFixed(8);
+      const n = Number(v || 0).toFixed(2);
       return n;
     },
     addBuyer() {
