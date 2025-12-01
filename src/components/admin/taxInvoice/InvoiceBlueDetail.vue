@@ -123,12 +123,49 @@
                             <el-table-column prop="je" label="金额(含税)" width="150">
                               <template slot-scope="{row}">¥{{ formatMoney(row.je) }}</template>
                             </el-table-column>
-                            <el-table-column prop="slv" label="增值税税率/征收率" width="150"><template slot-scope="{row}"><span>{{ Number(row.slv || 0).toFixed(2) }}</span></template></el-table-column>
+                            <el-table-column prop="slv" label="增值税税率/征收率" width="150">
+                              <template slot-scope="{row}">
+                                <el-input-number 
+                                  v-model="row.slv" 
+                                  @change="onRowChange(row)"
+                                  :precision="4" 
+                                  :step="0.01" 
+                                  :min="0" 
+                                  :max="1"
+                                  size="small" 
+                                  class="full-width power-minw90" 
+                                  :disabled="isViewMode"
+                                />
+                              </template>
+                            </el-table-column>
                             <el-table-column prop="se" label="税额" width="150"><template slot-scope="{row}">¥{{ formatMoney(row.se) }}</template></el-table-column>
                             <el-table-column prop="hsje" label="含税金额" width="150"><template slot-scope="{row}">¥{{ formatMoney(row.hsje) }}</template></el-table-column>
                             <el-table-column prop="kce" label="扣除额" width="150"><template slot-scope="{row}"><el-input-number v-model="row.kce" :precision="2" :step="0.01" :min="0" size="small" class="full-width" :disabled="isViewMode" /></template></el-table-column>
                             <el-table-column prop="sphfwssflhbbm" label="商品和服务税收分类合并编码" min-width="220"><template slot-scope="{row}"><span>{{ row.sphfwssflhbbm }}</span></template></el-table-column>
-                            <el-table-column prop="yhzcbs" label="优惠政策标识" width="140"><template slot-scope="{row}"><el-input v-model="row.yhzcbs" class="full-width" :disabled="isViewMode" /></template></el-table-column>
+                            <el-table-column prop="yhzcbs" label="优惠政策" width="180">
+                              <template slot-scope="{row}">
+                                <el-select v-model="row.yhzcbs" @change="onPreferentialPolicyChange(row)" size="small" class="full-width" :disabled="isViewMode" clearable placeholder="请选择">
+                                  <el-option label="简易征收" value="01"></el-option>
+                                  <el-option label="稀土产品" value="02"></el-option>
+                                  <el-option label="免税" value="03"></el-option>
+                                  <el-option label="不征税" value="04"></el-option>
+                                  <el-option label="先征后退" value="05"></el-option>
+                                  <el-option label="100%先征后退" value="06"></el-option>
+                                  <el-option label="50%先征后退" value="07"></el-option>
+                                  <el-option label="按3%简易征收" value="08"></el-option>
+                                  <el-option label="按5%简易征收" value="09"></el-option>
+                                  <el-option label="按5%简易征收减按1.5%计征" value="10"></el-option>
+                                  <el-option label="即征即退30%" value="11"></el-option>
+                                  <el-option label="即征即退50%" value="12"></el-option>
+                                  <el-option label="即征即退70%" value="13"></el-option>
+                                  <el-option label="即征即退100%" value="14"></el-option>
+                                  <el-option label="超税负3%即征即退" value="15"></el-option>
+                                  <el-option label="超税负8%即征即退" value="16"></el-option>
+                                  <el-option label="超税负12%即征即退" value="17"></el-option>
+                                  <el-option label="超税负6%即征即退" value="18"></el-option>
+                                </el-select>
+                              </template>
+                            </el-table-column>
                             <el-table-column label="操作" width="80" fixed="right" v-if="!isViewMode"><template slot-scope="scope"><p><span class="link" @click="deleteDetailRow(scope.$index)">删除</span></p></template></el-table-column>
                           </el-table>
                           <div class="mt10 darkgray">
@@ -327,7 +364,12 @@ export default {
           sl: Number(item.sl || 0),
           dj: Number(item.dj || 0),
           je: Number(item.je || 0),
-          slv: Number(item.slv || 0),
+          slv: (() => {
+            if (item.slv !== undefined && item.slv !== null && item.slv !== '') {
+              return Number(item.slv);
+            }
+            return item.yhzcbs ? 0 : 0.13;
+          })(),
           se: Number(item.se || 0),
           hsje: Number(item.hsje || 0),
           kce: Number(item.kce || 0),
@@ -424,7 +466,7 @@ export default {
           sl: Number(g.sl) || 1,
           dj: Number(g.dj) || 0,
           je: 0,
-          slv: Number(g.slv) || 0,
+          slv: 0.13,
           se: 0,
           hsje: 0,
           kce: 0,
@@ -433,14 +475,45 @@ export default {
           yhzcbs: g.yhzcbs || ''
         };
         this.form.fpmxList.push(newRow);
-        this.onRowChange(newRow);
       });
     },
     deleteDetailRow(i) { this.form.fpmxList.splice(i, 1); this.recalcTotals(); },
+    onPreferentialPolicyChange(row) {
+      const yhzcbs = row.yhzcbs;
+      let newSlv = 0.13;
+
+      // 根据优惠政策限制税率
+      if (yhzcbs === '03') {
+        // 免税：税率为0
+        newSlv = 0;
+      } else if (yhzcbs === '04') {
+        // 不征税：税率为0
+        newSlv = 0;
+      } else if (yhzcbs === '08') {
+        // 按3%简易征收：税率限制为3%
+        newSlv = 0.03;
+      } else if (yhzcbs === '09') {
+        // 按5%简易征收：税率限制为5%
+        newSlv = 0.05;
+      } else if (yhzcbs === '10') {
+        // 按5%简易征收减按1.5%计征：税率限制为1.5%
+        newSlv = 0.015;
+      }
+
+        this.$set(row, 'slv', newSlv);
+        this.onRowChange(row);
+    },
     onRowChange(row) {
       const sl = Number(row.sl) || 0;
       const dj = Number(row.dj) || 0;
-      const slv = Number(row.slv) || 0;
+
+      let slv = 0;
+      if (row.slv !== null && row.slv !== undefined && row.slv !== '') {
+        slv = Number(row.slv);
+        if (isNaN(slv)) {
+          slv = 0;
+        }
+      }
       const je = dj * sl;
       const se = je * slv;
       row.je = this.toFixedNumber(je, 2);
@@ -657,7 +730,12 @@ export default {
           sl: Number.isFinite(quantity) ? quantity.toString() : '0',
           dj: Number.isFinite(price) ? price.toString() : '0',
           je: Number.isFinite(amount) ? amount : 0,
-          slv: Number(item.slv || 0),
+          slv: (() => {
+            if (item.slv !== undefined && item.slv !== null && item.slv !== '') {
+              return Number(item.slv);
+            }
+            return item.yhzcbs ? 0 : 0.13;
+          })(),
           se: Number.isFinite(tax) ? tax : 0,
           hsje: Number(item.hsje || 0),
           kce: Number(item.kce || 0),

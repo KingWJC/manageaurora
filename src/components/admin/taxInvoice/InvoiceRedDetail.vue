@@ -448,17 +448,12 @@
                         ><span>{{ row.sphfwssflhbbm }}</span></template
                       ></el-table-column
                     >
-                    <el-table-column prop="fphxz" label="发票行性质" width="130"
-                      ><template slot-scope="{ row }"
-                        ><span>{{ row.fphxz }}</span></template
-                      ></el-table-column
-                    >
                     <el-table-column
                       prop="yhzcbs"
-                      label="优惠政策标识"
-                      width="140"
+                      label="优惠政策"
+                      width="180"
                       ><template slot-scope="{ row }"
-                        ><span>{{ row.yhzcbs || '-' }}</span></template
+                        ><span>{{ getPreferentialPolicyText(row.yhzcbs) }}</span></template
                       ></el-table-column
                     >
                   </el-table>
@@ -593,6 +588,26 @@ export default {
         kpr: '', // 开票人
         // 其他信息
         bz: ''
+      },
+      policyMap: {
+        '01': '简易征收',
+        '02': '稀土产品',
+        '03': '免税',
+        '04': '不征税',
+        '05': '先征后退',
+        '06': '100%先征后退',
+        '07': '50%先征后退',
+        '08': '按3%简易征收',
+        '09': '按5%简易征收',
+        '10': '按5%简易征收减按1.5%计征',
+        '11': '即征即退30%',
+        '12': '即征即退50%',
+        '13': '即征即退70%',
+        '14': '即征即退100%',
+        '15': '超税负3%即征即退',
+        '16': '超税负8%即征即退',
+        '17': '超税负12%即征即退',
+        '18': '超税负6%即征即退'
       }
     };
   },
@@ -828,6 +843,13 @@ export default {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
+    },
+    // 将优惠政策标识代码转换为描述
+    getPreferentialPolicyText(code) {
+      if (!code) {
+        return '-';
+      }
+      return policyMap[code] || code;
     },
     validateForm() {
       if (!this.form.chyyDm || this.form.chyyDm === '') {
