@@ -1,5 +1,5 @@
 <template>
-  <Preprocess :permissions="permissions" :params="$route.query" v-if="isHasAccessPermision" />
+  <Preprocess :permissions="permissions" v-if="isHasAccessPermision" />
 </template>
 
 <script>

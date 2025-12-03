@@ -1,5 +1,5 @@
 <template>
-  <InvoiceDownloadList :permissions="permissions" :params="$route.query" v-if="isHasAccessPermision" />
+  <InvoiceDownloadList :permissions="permissions" v-if="isHasAccessPermision" />
 </template>
 
 <script>

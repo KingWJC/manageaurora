@@ -1,5 +1,5 @@
 <template>
-  <QuotaOps :permissions="permissions" :params="$route.query" v-if="isHasAccessPermision" />
+  <QuotaOps :permissions="permissions"  v-if="isHasAccessPermision" />
 </template>
 
 <script>

@@ -1,5 +1,5 @@
 <template>
-  <InvoiceBlueDetail :permissions="permissions" :params="$route.query" v-if="isHasAccessPermision" />
+  <InvoiceBlueDetail :permissions="permissions" v-if="isHasAccessPermision" />
 </template>
 
 <script>

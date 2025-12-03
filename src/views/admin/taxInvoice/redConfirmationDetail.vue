@@ -1,5 +1,5 @@
 <template>
-  <RedConfirmationDetail :permissions="permissions" :params="$route.query" v-if="isHasAccessPermision" />
+  <RedConfirmationDetail :permissions="permissions" v-if="isHasAccessPermision" />
 </template>
 
 <script>
