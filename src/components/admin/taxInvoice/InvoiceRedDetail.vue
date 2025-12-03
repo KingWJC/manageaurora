@@ -11,16 +11,6 @@
         </button>
       </div>
     </div>
-    <div
-      class="viewport-footer viewport-footer-padded flex flex-column flex-content-center"
-      v-if="isViewMode"
-    >
-      <div class="flex flex-content-center">
-        <button class="btn btn-primary btn-xl" type="button" @click="auditRow">
-          审核
-        </button>
-      </div>
-    </div>
     <div class="viewport-view">
       <div class="viewport-view-body flex flex-column">
         <div class="panel-content-padded">
@@ -138,6 +128,34 @@
                             label="服务中止"
                             value="03" /><el-option label="销售折让" value="04"
                         /></el-select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">红字确认信息单编号:</label>
+                      <div class="flex-flex-auto">
+                        <el-input
+                          v-model="form.hzqrxxdbh"
+                          size="small"
+                          class="full-width"
+                          placeholder="红字确认信息单编号"
+                          disabled
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">红字确认单UUID:</label>
+                      <div class="flex-flex-auto">
+                        <el-input
+                          v-model="form.hzqrduuid"
+                          size="small"
+                          class="full-width"
+                          placeholder="红字确认单UUID"
+                          disabled
+                        />
                       </div>
                     </div>
                   </div>
@@ -509,34 +527,6 @@
                           class="full-width"
                           placeholder="请输入开票人"
                           :disabled="isViewMode || isFromRedConfirm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">红字确认信息单编号:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.hzqrxxdbh"
-                          size="small"
-                          class="full-width"
-                          placeholder="红字确认信息单编号"
-                          disabled
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">红字确认单UUID:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.hzqrduuid"
-                          size="small"
-                          class="full-width"
-                          placeholder="红字确认单UUID"
-                          disabled
                         />
                       </div>
                     </div>
@@ -1053,91 +1043,16 @@ export default {
       );
     },
     parseServiceResult(payload = {}) {
-      if (payload && payload.serviceResult) {
-        payload = payload.serviceResult;
-      }
       const success = payload ? payload.success : undefined;
       const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.errorMsg : '';
-      const data =
-        (payload &&
-          (payload.data || payload.result || payload.records || payload)) ||
-        {};
+      const errorMsg = payload ? payload.error : '';
+      const data = payload && (payload.data !== undefined ? payload.data : {});
       return {
         success: success !== false,
         message: reason || errorMsg || '',
         data
       };
     },
-    sendAuditRequest(svc, row, auditStatus, reviewRemark) {
-      const payload = {
-        invoiceId: row.id,
-        reviewStatus: auditStatus,
-        reviewRemark: reviewRemark || ''
-      };
-      this.saving = true;
-      this.API.send(
-        svc,
-        payload,
-        (res) => {
-          this.saving = false;
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
-            this.$message.success('审核成功');
-            this.$router.push({ name: 'taxInvoiceRedList' });
-          } else {
-            this.$message.warning(message);
-          }
-        },
-        () => {
-          this.saving = false;
-        },
-        this
-      );
-    },
-    auditRow() {
-      const invoiceId =
-        this.$route && this.$route.query && this.$route.query.id;
-      if (!invoiceId) {
-        this.$message.warning('缺少发票ID，无法审核');
-        return;
-      }
-      const row = { id: invoiceId };
-      let inputValue = '';
-      this.$prompt('请输入审核意见（可选）', '审核发票', {
-        confirmButtonText: '审核通过',
-        cancelButtonText: '审核退回',
-        showCancelButton: true,
-        distinguishCancelAndClose: true,
-        inputType: 'textarea',
-        inputPlaceholder: '请输入审核意见',
-        closeOnClickModal: false,
-        inputValidator: (value) => {
-          inputValue = value || '';
-          return true;
-        }
-      })
-        .then(({ value }) => {
-          // 审核通过：reviewStatus = '01'
-          this.sendAuditRequest(
-            this.CFG.services.kailing.digitalInvoiceAudit,
-            row,
-            '01',
-            value || ''
-          );
-        })
-        .catch((action) => {
-          if (action === 'cancel') {
-            // 审核退回：reviewStatus = '02'
-            this.sendAuditRequest(
-              this.CFG.services.kailing.digitalInvoiceAudit,
-              row,
-              '02',
-              inputValue || ''
-            );
-          }
-        });
-    }
   }
 };
 </script>

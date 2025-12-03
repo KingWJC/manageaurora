@@ -93,39 +93,6 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">录入方身份:</label>
-                      <div class="flex-flex-auto">
-                        <el-select
-                          v-model="form.lrfsf"
-                          size="small"
-                          class="full-width"
-                          :disabled="readonly || true"
-                        >
-                          <el-option label="销方" value="0" />
-                          <el-option label="购方" value="1" />
-                        </el-select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">录入日期:</label>
-                      <div class="flex-flex-auto">
-                        <el-date-picker
-                          v-model="form.lrrq"
-                          type="datetime"
-                          size="small"
-                          class="full-width"
-                          placeholder="选择录入日期"
-                          format="yyyy-MM-dd HH:mm:ss"
-                          value-format="yyyy-MM-dd HH:mm:ss"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
                       <label class="nowrap"
                         ><span class="red">*</span>红字发票冲红原因代码:</label
                       >
@@ -171,7 +138,7 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">发票类型:</label>
+                      <label class="nowrap">发票标志:</label>
                       <div class="flex-flex-auto">
                         <el-select
                           v-model="form.sfzzfpbz"
@@ -525,7 +492,7 @@ export default {
         taxpayerId: '',
         blueInvoiceId: '',
         hzfpxxqrdbh: '',
-        lrfsf: '',
+        lrfsf: '0',
         lrrq: '',
         xsfnsrsbh: '',
         xsfmc: '',
@@ -533,7 +500,7 @@ export default {
         gmfmc: '',
         lzfpdm: '',
         lzfphm: '',
-        sfzzfpbz: '',
+        sfzzfpbz: 'N',
         lzkprq: '',
         lzhjje: '',
         lzhjse: '',
@@ -640,9 +607,6 @@ export default {
       }
       if (detail.tdyslxDm) {
         this.form.lzfpTdyslxDm = detail.tdyslxDm;
-      }
-      if (detail.sfzzfpbz) {
-        this.form.sfzzfpbz = detail.sfzzfpbz;
       }
 
       // 开票详细信息
