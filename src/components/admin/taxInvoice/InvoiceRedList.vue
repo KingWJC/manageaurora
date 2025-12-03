@@ -216,16 +216,15 @@ export default {
       );
     },
     parseServiceResult(payload = {}) {
-      let body = payload;
-      if (body && body.serviceResult) {
-        body = body.serviceResult;
-      }
-      const successFlag = body && body.success !== undefined ? body.success : undefined;
-      const code = body && (body.code !== undefined ? body.code : payload.code);
-      const success = successFlag !== false && (code === undefined || code === null || code === '0');
-      const message = body && (body.msg || body.message || body.reason || body.errorMsg) || payload.msg || payload.message || '';
-      const data = body && (body.data !== undefined ? body.data : body.result || body.record || body.entity) || {};
-      return { success, message, data };
+      const success = payload ? payload.success : undefined;
+      const reason = payload ? payload.reason : '';
+      const errorMsg = payload ? payload.error : '';
+      const data = payload && (payload.data !== undefined ? payload.data : {});
+      return {
+        success: success !== false,
+        message: reason || errorMsg || '',
+        data
+      };
     },
     statusText(v) {
       if (v === '00') return '未提交';
@@ -247,7 +246,7 @@ export default {
       }
       const payload = {
         invoiceId: row.id,
-        reviewer: this.CFG.userinfo.name,
+        reviewer: this.CFG.userInfo.name,
         reviewStatus: auditStatus,
         reviewRemark: reviewRemark || ''
       };

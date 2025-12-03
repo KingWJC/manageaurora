@@ -74,9 +74,9 @@
                           size="small"
                           class="full-width"
                           disabled
-                          ><el-option label="自然人" value="0" /><el-option
+                          ><el-option label="自然人" value="Y" /><el-option
                             label="组织"
-                            value="1"
+                            value="N"
                         /></el-select>
                       </div>
                     </div>
@@ -513,6 +513,34 @@
                       </div>
                     </div>
                   </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">红字确认信息单编号:</label>
+                      <div class="flex-flex-auto">
+                        <el-input
+                          v-model="form.hzqrxxdbh"
+                          size="small"
+                          class="full-width"
+                          placeholder="红字确认信息单编号"
+                          disabled
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">红字确认单UUID:</label>
+                      <div class="flex-flex-auto">
+                        <el-input
+                          v-model="form.hzqrduuid"
+                          size="small"
+                          class="full-width"
+                          placeholder="红字确认单UUID"
+                          disabled
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <div class="lc-col-12">
                     <div class="flex flex-content-start flex-items-center">
                       <label class="nowrap">备注:</label>
@@ -742,7 +770,7 @@ export default {
           const hsje = je + se;
           return {
             mxxh: item.mxxh || index + 1,
-            dylzfpmxxh: item.dylzfpmxxh || 0,
+            dylzfpmxxh: item.lzmxxh || 0,
             xmmc: item.xmmc || '',
             spfwjc: item.spfwjc || '',
             ggxh: item.ggxh || '',
@@ -764,6 +792,20 @@ export default {
       } else {
         console.warn('红字确认单详情中未找到明细列表数据');
       }
+    },
+    // 合计计算
+    recalcTotals() {
+      let totalAmount = 0;
+      let totalTax = 0;
+      (this.form.fpmxList || []).forEach((item) => {
+        const amt = this.toFixedNumber(item.je, 2);
+        const tax = this.toFixedNumber(item.se, 2);
+        totalAmount += amt;
+        totalTax += tax;
+      });
+      this.form.hjjc = this.toFixedNumber(totalAmount, 2);
+      this.form.hjs = this.toFixedNumber(totalTax, 2);
+      this.form.jshj = this.toFixedNumber(this.form.hjjc + this.form.hjs, 2);
     },
     fetchInvoiceDetail(invoiceId) {
       if (!invoiceId) {
@@ -788,8 +830,8 @@ export default {
       if (detail.lzfphm) this.form.lzfphm = detail.lzfphm;
       if (detail.gmfmc) this.form.gmfmc = detail.gmfmc;
       if (detail.xsfmc) this.form.xsfmc = detail.xsfmc;
-      if (detail.fppz || detail.lzfppzDm)
-        this.form.lzfppzDm = detail.fppz || detail.lzfppzDm;
+      if (detail.fppz)
+        this.form.lzfppzDm = detail.fppz;
       if (detail.xsfnsrsbh) this.form.xsfnsrsbh = detail.xsfnsrsbh;
       if (detail.xsfdz) this.form.xsfdz = detail.xsfdz;
       if (detail.xsfdh) this.form.xsfdh = detail.xsfdh;
@@ -807,6 +849,9 @@ export default {
       if (detail.hjje !== undefined) this.form.hjjc = Number(detail.hjje);
       if (detail.hjse !== undefined) this.form.hjs = Number(detail.hjse);
       if (detail.jshj !== undefined) this.form.jshj = Number(detail.jshj);
+      // 红字确认单相关信息
+      if (detail.hzqrxxdbh) this.form.hzqrxxdbh = detail.hzqrxxdbh;
+      if (detail.hzqrduuid) this.form.hzqrduuid = detail.hzqrduuid;
 
       // 应用明细
       const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
@@ -849,7 +894,7 @@ export default {
       if (!code) {
         return '-';
       }
-      return policyMap[code] || code;
+      return this.policyMap[code] || code;
     },
     validateForm() {
       if (!this.form.chyyDm || this.form.chyyDm === '') {
@@ -898,7 +943,7 @@ export default {
         id: this.form.id || '',
         taxInvoiceNo: this.form.taxInvoiceNo || '',
         lzfpbz: '1', // 红字发票
-        fppz: this.form.lzfppzDm || this.form.fppz || '02',
+        fppz: this.form.lzfppzDm || '',
         gmfzrrbz: this.form.gmfzrrbz || '',
         tdys: this.form.tdys || '',
         cezslxDm: this.form.cezslxDm || '',

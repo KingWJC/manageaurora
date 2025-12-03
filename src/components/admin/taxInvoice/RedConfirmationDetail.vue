@@ -23,7 +23,7 @@
                 : '销方红字确认单 - 新增'
             }}
           </h2>
-          <!-- 基本信息 -->
+          <!-- 基础信息 -->
           <div class="card card-shadow">
             <div class="card-body">
               <div class="card-header"><strong>基础信息</strong></div>
@@ -32,142 +32,7 @@
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
                       <label class="nowrap"
-                        ><span class="red">*</span>销方单位:</label
-                      >
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.xsfmc"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入销方单位"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap"
-                        ><span class="red">*</span>蓝字发票号码:</label
-                      >
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.lzfphm"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入蓝字发票号码"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap"
-                        ><span class="red">*</span>购货单位类型:</label
-                      >
-                      <div class="flex-flex-auto">
-                        <el-select
-                          v-model="form.gmfzrrbz"
-                          size="small"
-                          class="full-width"
-                          :disabled="readonly || true"
-                          ><el-option label="自然人" value="0" /><el-option
-                            label="组织"
-                            value="1"
-                        /></el-select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap"
-                        ><span class="red">*</span>购货单位:</label
-                      >
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.gmfmc"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入购货单位"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap"
-                        ><span class="red">*</span>发票类型:</label
-                      >
-                      <div class="flex-flex-auto">
-                        <el-select
-                          v-model="form.lzfppzDm"
-                          size="small"
-                          class="full-width"
-                          :disabled="readonly || true"
-                          ><el-option
-                            label="增值税专用发票"
-                            value="01" /><el-option
-                            label="普通发票"
-                            value="02" /><el-option
-                            label="机动车统一销售发票"
-                            value="03" /><el-option
-                            label="二手车统一销售发票"
-                            value="04"
-                        /></el-select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap"
-                        ><span class="red">*</span>开具红字发票原因:</label
-                      >
-                      <div class="flex-flex-auto">
-                        <el-select
-                          v-model="form.chyyDm"
-                          size="small"
-                          class="full-width"
-                          :disabled="readonly"
-                          ><el-option label="开票有误" value="01" /><el-option
-                            label="销货退回"
-                            value="02" /><el-option
-                            label="服务中止"
-                            value="03" /><el-option label="销售折让" value="04"
-                        /></el-select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">特定要素:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.tdys"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入特定要素"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 销售方信息 -->
-          <div class="card card-shadow">
-            <div class="card-body">
-              <div class="card-header"><strong>销售方信息</strong></div>
-              <div class="card-content-padded">
-                <div class="lc-row lc-space16">
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap"
-                        ><span class="red">*</span>销售方税号:</label
+                        ><span class="red">*</span>销售方纳税人识别号:</label
                       >
                       <div class="flex-flex-auto">
                         <el-input
@@ -198,85 +63,18 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">地址:</label>
+                      <label class="nowrap">购买方纳税人识别号:</label>
                       <div class="flex-flex-auto">
                         <el-input
-                          v-model="form.xsfdz"
+                          v-model="form.gmfnsrsbh"
                           size="small"
                           class="full-width"
-                          placeholder="请输入销售方地址"
+                          placeholder="请输入购买方纳税人识别号"
                           :disabled="readonly || true"
                         />
                       </div>
                     </div>
                   </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">手机号:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.xsfdh"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入销售方电话"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">销售方开户行:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.xsfkhh"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入销售方开户行"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">销售方账号:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.xsfzh"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入销售方账号"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div class="lc-col-12 lc-col-xs6">
-                    <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">差额征税类型:</label>
-                      <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.cezzslx"
-                          size="small"
-                          class="full-width"
-                          placeholder="请输入差额征税类型"
-                          :disabled="readonly || true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 购买方信息 -->
-          <div class="card card-shadow">
-            <div class="card-body">
-              <div class="card-header"><strong>购买方信息</strong></div>
-              <div class="card-content-padded">
-                <div class="lc-row lc-space16">
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
                       <label class="nowrap"
@@ -295,13 +93,32 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">购买方税号:</label>
+                      <label class="nowrap">录入方身份:</label>
                       <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.gmfnsrsbh"
+                        <el-select
+                          v-model="form.lrfsf"
                           size="small"
                           class="full-width"
-                          placeholder="开具专票时必填"
+                          :disabled="readonly || true"
+                        >
+                          <el-option label="销方" value="0" />
+                          <el-option label="购方" value="1" />
+                        </el-select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">录入日期:</label>
+                      <div class="flex-flex-auto">
+                        <el-date-picker
+                          v-model="form.lrrq"
+                          type="datetime"
+                          size="small"
+                          class="full-width"
+                          placeholder="选择录入日期"
+                          format="yyyy-MM-dd HH:mm:ss"
+                          value-format="yyyy-MM-dd HH:mm:ss"
                           :disabled="readonly || true"
                         />
                       </div>
@@ -309,13 +126,44 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">地址:</label>
+                      <label class="nowrap"
+                        ><span class="red">*</span>红字发票冲红原因代码:</label
+                      >
                       <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.gmfdz"
+                        <el-select
+                          v-model="form.chyyDm"
                           size="small"
                           class="full-width"
-                          placeholder="请输入购买方地址"
+                          :disabled="readonly"
+                        >
+                          <el-option label="开票有误" value="01" />
+                          <el-option label="销货退回" value="02" />
+                          <el-option label="服务中止" value="03" />
+                          <el-option label="销售折让" value="04" />
+                        </el-select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 蓝字发票信息 -->
+          <div class="card card-shadow">
+            <div class="card-body">
+              <div class="card-header"><strong>蓝字发票信息</strong></div>
+              <div class="card-content-padded">
+                <div class="lc-row lc-space16">
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">蓝字发票号码:</label>
+                      <div class="flex-flex-auto">
+                        <el-input
+                          v-model="form.lzfphm"
+                          size="small"
+                          class="full-width"
+                          placeholder="请输入蓝字发票号码"
                           :disabled="readonly || true"
                         />
                       </div>
@@ -323,13 +171,32 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">手机号:</label>
+                      <label class="nowrap">发票类型:</label>
                       <div class="flex-flex-auto">
-                        <el-input
-                          v-model="form.gmfdh"
+                        <el-select
+                          v-model="form.sfzzfpbz"
                           size="small"
                           class="full-width"
-                          placeholder="请输入购买方电话"
+                          :disabled="readonly || true"
+                        >
+                          <el-option label="纸质发票" value="Y" />
+                          <el-option label="电子发票" value="N" />
+                        </el-select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">蓝字发票开票日期:</label>
+                      <div class="flex-flex-auto">
+                        <el-date-picker
+                          v-model="form.lzkprq"
+                          type="datetime"
+                          size="small"
+                          class="full-width"
+                          placeholder="选择蓝字发票开票日期"
+                          format="yyyy-MM-dd HH:mm:ss"
+                          value-format="yyyy-MM-dd HH:mm:ss"
                           :disabled="readonly || true"
                         />
                       </div>
@@ -337,29 +204,74 @@
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">购买方开户行:</label>
+                      <label class="nowrap">蓝字发票合计金额:</label>
                       <div class="flex-flex-auto">
                         <el-input
-                          v-model="form.gmfkhh"
+                          v-model="form.lzhjje"
                           size="small"
                           class="full-width"
-                          placeholder="请输入购买方开户行"
+                          placeholder="蓝字发票合计金额"
                           :disabled="readonly || true"
-                        />
+                        >
+                          <template slot="prepend">¥</template>
+                        </el-input>
                       </div>
                     </div>
                   </div>
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
-                      <label class="nowrap">购买方账号:</label>
+                      <label class="nowrap">蓝字发票合计税额:</label>
                       <div class="flex-flex-auto">
                         <el-input
-                          v-model="form.gmfzh"
+                          v-model="form.lzhjse"
                           size="small"
                           class="full-width"
-                          placeholder="请输入购买方账号"
+                          placeholder="蓝字发票合计税额"
                           :disabled="readonly || true"
-                        />
+                        >
+                          <template slot="prepend">¥</template>
+                        </el-input>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">蓝字发票票种类型:</label>
+                      <div class="flex-flex-auto">
+                        <el-select
+                          v-model="form.lzfppzDm"
+                          size="small"
+                          class="full-width"
+                          :disabled="readonly || true"
+                        >
+                          <el-option label="增值税专用发票" value="01" />
+                          <el-option label="普通发票" value="02" />
+                          <el-option label="机动车统一销售发票" value="03" />
+                          <el-option label="二手车统一销售发票" value="04" />
+                        </el-select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="lc-col-12 lc-col-xs6">
+                    <div class="flex flex-content-start flex-items-center">
+                      <label class="nowrap">蓝字发票特定要素类型:</label>
+                      <div class="flex-flex-auto">
+                        <el-select
+                          v-model="form.lzfpTdyslxDm"
+                          size="small"
+                          class="full-width"
+                          :disabled="readonly || true"
+                        >
+                          <el-option label="成品油发票" value="01" />
+                          <el-option label="稀土发票" value="02" />
+                          <el-option label="建筑服务发票" value="03" />
+                          <el-option label="货物运输服务发票" value="04" />
+                          <el-option label="不动产销售服务发票" value="05" />
+                          <el-option label="不动产租赁服务发票" value="06" />
+                          <el-option label="代收车船税" value="07" />
+                          <el-option label="通行费" value="08" />
+                          <el-option label="旅客运输服务发票" value="09" />
+                        </el-select>
                       </div>
                     </div>
                   </div>
@@ -471,15 +383,15 @@
                       ></el-table-column
                     >
                     <el-table-column prop="yhzcbs" label="优惠政策" width="180">
-                      <template slot-scope="{row}">
-                        <el-select 
-                          v-if="!readonly" 
-                          v-model="row.yhzcbs" 
-                          @change="onPreferentialPolicyChange(row)" 
-                          size="small" 
-                          class="full-width" 
-                          :disabled="isViewMode" 
-                          clearable 
+                      <template slot-scope="{ row }">
+                        <el-select
+                          v-if="!readonly"
+                          v-model="row.yhzcbs"
+                          @change="onPreferentialPolicyChange(row)"
+                          size="small"
+                          class="full-width"
+                          :disabled="isViewMode"
+                          clearable
                           placeholder="请选择"
                         >
                           <el-option label="简易征收" value="01"></el-option>
@@ -487,21 +399,50 @@
                           <el-option label="免税" value="03"></el-option>
                           <el-option label="不征税" value="04"></el-option>
                           <el-option label="先征后退" value="05"></el-option>
-                          <el-option label="100%先征后退" value="06"></el-option>
+                          <el-option
+                            label="100%先征后退"
+                            value="06"
+                          ></el-option>
                           <el-option label="50%先征后退" value="07"></el-option>
-                          <el-option label="按3%简易征收" value="08"></el-option>
-                          <el-option label="按5%简易征收" value="09"></el-option>
-                          <el-option label="按5%简易征收减按1.5%计征" value="10"></el-option>
+                          <el-option
+                            label="按3%简易征收"
+                            value="08"
+                          ></el-option>
+                          <el-option
+                            label="按5%简易征收"
+                            value="09"
+                          ></el-option>
+                          <el-option
+                            label="按5%简易征收减按1.5%计征"
+                            value="10"
+                          ></el-option>
                           <el-option label="即征即退30%" value="11"></el-option>
                           <el-option label="即征即退50%" value="12"></el-option>
                           <el-option label="即征即退70%" value="13"></el-option>
-                          <el-option label="即征即退100%" value="14"></el-option>
-                          <el-option label="超税负3%即征即退" value="15"></el-option>
-                          <el-option label="超税负8%即征即退" value="16"></el-option>
-                          <el-option label="超税负12%即征即退" value="17"></el-option>
-                          <el-option label="超税负6%即征即退" value="18"></el-option>
+                          <el-option
+                            label="即征即退100%"
+                            value="14"
+                          ></el-option>
+                          <el-option
+                            label="超税负3%即征即退"
+                            value="15"
+                          ></el-option>
+                          <el-option
+                            label="超税负8%即征即退"
+                            value="16"
+                          ></el-option>
+                          <el-option
+                            label="超税负12%即征即退"
+                            value="17"
+                          ></el-option>
+                          <el-option
+                            label="超税负6%即征即退"
+                            value="18"
+                          ></el-option>
                         </el-select>
-                        <span v-else>{{ getPreferentialPolicyText(row.yhzcbs) }}</span>
+                        <span v-else>{{
+                          getPreferentialPolicyText(row.yhzcbs)
+                        }}</span>
                       </template>
                     </el-table-column>
                     <el-table-column
@@ -569,6 +510,8 @@
 </template>
 
 <script>
+import taxInvoiceUtils from './taxInvoiceUtils';
+
 export default {
   components: {
     crumbsBar: () => import('@/common-base/components/crumbs-bar')
@@ -582,24 +525,21 @@ export default {
         taxpayerId: '',
         blueInvoiceId: '',
         hzfpxxqrdbh: '',
-        xsfmc: '',
-        lzfphm: '',
-        gmfzrrbz: '1',
-        gmfmc: '',
-        lzfppzDm: '02',
-        chyyDm: '01',
-        tdys: '',
+        lrfsf: '',
+        lrrq: '',
         xsfnsrsbh: '',
-        xsfdz: '',
-        xsfdh: '',
-        xsfkhh: '',
-        xsfzh: '',
-        cezzslx: '',
+        xsfmc: '',
         gmfnsrsbh: '',
-        gmfdz: '',
-        gmfdh: '',
-        gmfkhh: '',
-        gmfzh: '',
+        gmfmc: '',
+        lzfpdm: '',
+        lzfphm: '',
+        sfzzfpbz: '',
+        lzkprq: '',
+        lzhjje: '',
+        lzhjse: '',
+        lzfppzDm: '02',
+        lzfpTdyslxDm: '',
+        chyyDm: '01',
         fpmxList: [],
         hzcxje: 0,
         hzcxse: 0,
@@ -646,7 +586,7 @@ export default {
     }
 
     if (!this.readonly && !this.isEditMode) {
-      this.fillSelectedGoods(); 
+      this.fillSelectedGoods();
     }
     this.recalcTotals();
   },
@@ -673,33 +613,37 @@ export default {
     },
     // 从蓝字发票详情回填表单
     fillFormFromBlueInvoiceDetail(detail = {}) {
+      // 基础信息
+      if (detail.gmfmc) this.$set(this.form, 'gmfmc', detail.gmfmc);
+      if (detail.xsfmc) this.$set(this.form, 'xsfmc', detail.xsfmc);
+      if (detail.xsfnsrsbh) this.form.xsfnsrsbh = detail.xsfnsrsbh;
+      if (detail.gmfnsrsbh) this.form.gmfnsrsbh = detail.gmfnsrsbh;
+
+      // 蓝字发票信息
+      if (detail.fpdm) {
+        this.$set(this.form, 'lzfpdm', detail.fpdm);
+      }
       if (detail.fphm) {
         this.$set(this.form, 'lzfphm', detail.fphm);
       }
-      if (detail.gmfmc) this.$set(this.form, 'gmfmc', detail.gmfmc);
-      if (detail.xsfmc) this.$set(this.form, 'xsfmc', detail.xsfmc);
-      if (detail.fppz || detail.fplxDm) {
-        const fppz = detail.fppz || detail.fplxDm;
-        if (fppz) this.form.lzfppzDm = fppz;
+      if (detail.fppz ) {
+        this.form.lzfppzDm = detail.fppz;
       }
-      if (detail.gmfzrrbz) {
-        this.form.gmfzrrbz = detail.gmfzrrbz;
+      if (detail.kprq) {
+        this.form.lzkprq = this.formatDateTime(detail.kprq);
       }
-
-      // 销售方信息
-      if (detail.xsfnsrsbh) this.form.xsfnsrsbh = detail.xsfnsrsbh;
-      if (detail.xsfdz) this.form.xsfdz = detail.xsfdz;
-      if (detail.xsfdh) this.form.xsfdh = detail.xsfdh;
-      if (detail.xsfkhh) this.form.xsfkhh = detail.xsfkhh;
-      if (detail.xsfzh) this.form.xsfzh = detail.xsfzh;
-      if (detail.cezzslx) this.form.cezzslx = detail.cezzslx;
-
-      // 购买方信息
-      if (detail.gmfnsrsbh) this.form.gmfnsrsbh = detail.gmfnsrsbh;
-      if (detail.gmfdz) this.form.gmfdz = detail.gmfdz;
-      if (detail.gmfdh) this.form.gmfdh = detail.gmfdh;
-      if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
-      if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
+      if (detail.hjje !== null && detail.hjje !== undefined) {
+        this.form.lzhjje = String(detail.hjje);
+      }
+      if (detail.hjse !== null && detail.hjse !== undefined) {
+        this.form.lzhjse = String(detail.hjse);
+      }
+      if (detail.tdyslxDm) {
+        this.form.lzfpTdyslxDm = detail.tdyslxDm;
+      }
+      if (detail.sfzzfpbz) {
+        this.form.sfzzfpbz = detail.sfzzfpbz;
+      }
 
       // 开票详细信息
       const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
@@ -819,8 +763,8 @@ export default {
         newSlv = 0.015;
       }
 
-        this.$set(row, 'slv', newSlv);
-        this.onRowChange(row);
+      this.$set(row, 'slv', newSlv);
+      this.onRowChange(row);
     },
     onRowChange(row) {
       const sl = Number(row.sl) || 0;
@@ -922,35 +866,40 @@ export default {
         yhzcbs: item.yhzcbs || ''
       }));
 
+      // 基础信息
       this.form.id = detail.id;
-      this.form.uuid = detail.uuid;
+      this.form.uuid = detail.uuid || '';
       this.form.taxpayerId = detail.taxpayerId || '';
       this.form.blueInvoiceId = detail.blueInvoiceId || '';
-      this.form.hzfpxxqrdbh = detail.hzfpxxqrdbh;
-      this.form.xsfmc = detail.xsfmc || '';
-      this.form.lzfphm = detail.lzfphm || '';
-      this.form.gmfzrrbz = detail.gmfzrrbz || '1';
-      this.form.gmfmc = detail.gmfmc || '';
-      this.form.lzfppzDm = detail.lzfppzDm || '02';
-      this.form.chyyDm = detail.chyyDm || '01';
-      this.form.tdys = detail.lzfpTdyslxDm || '';
+      this.form.hzfpxxqrdbh = detail.hzfpxxqrdbh || '';
+      this.form.lrfsf = detail.lrfsf || '';
+      this.form.lrrq = this.formatDateTime(detail.lrrq);
       this.form.xsfnsrsbh = detail.xsfnsrsbh || '';
-      this.form.xsfdz = detail.xsfdz || '';
-      this.form.xsfdh = detail.xsfdh || '';
-      this.form.xsfkhh = detail.xsfkhh || '';
-      this.form.xsfzh = detail.xsfzh || '';
-      this.form.cezzslx = detail.cezzslx || '';
+      this.form.xsfmc = detail.xsfmc || '';
       this.form.gmfnsrsbh = detail.gmfnsrsbh || '';
-      this.form.gmfdz = detail.gmfdz || '';
-      this.form.gmfdh = detail.gmfdh || '';
-      this.form.gmfkhh = detail.gmfkhh || '';
-      this.form.gmfzh = detail.gmfzh || '';
+      this.form.gmfmc = detail.gmfmc || '';
+
+      // 蓝字发票信息
+      this.form.lzfpdm = detail.lzfpdm || '';
+      this.form.lzfphm = detail.lzfphm || '';
+      this.form.sfzzfpbz = detail.sfzzfpbz || '';
+      this.form.lzkprq = this.formatDateTime(detail.lzkprq);
+      this.form.lzhjje = detail.lzhjje !== null && detail.lzhjje !== undefined ? String(detail.lzhjje) : '';
+      this.form.lzhjse = detail.lzhjse !== null && detail.lzhjse !== undefined ? String(detail.lzhjse) : '';
+      this.form.lzfppzDm = detail.lzfppzDm || '02';
+      this.form.lzfpTdyslxDm = detail.lzfpTdyslxDm || '';
+      this.form.chyyDm = detail.chyyDm || '01';
+
+      // 开票详情信息
       this.form.fpmxList = detailList;
       this.form.hzcxje = Number(detail.hzcxje || 0);
       this.form.hzcxse = Number(detail.hzcxse || 0);
       this.form.jshj = Number(this.form.hzcxje + this.form.hzcxse);
       this.form.bz = detail.remark || detail.bz || '';
       this.recalcTotals();
+    },
+    formatDateTime(dateTime) {
+      return taxInvoiceUtils.formatDateTime(dateTime);
     },
     validateForm() {
       if (!this.form.chyyDm || this.form.chyyDm === '') {
@@ -986,7 +935,8 @@ export default {
           fpspsl: String(item.sl || 0),
           je: Number(item.je || 0),
           sl1: Number(item.slv || 0),
-          se: Number(item.se || 0)
+          se: Number(item.se || 0),
+          yhzcbs: item.yhzcbs || ''
         };
         if (!detailItem.id) {
           delete detailItem.id;

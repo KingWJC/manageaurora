@@ -37,7 +37,39 @@
                       </div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">展示销方银行账号标签:</label><div class="flex-flex-auto"><el-select v-model="form.sfzxsfyhzhbq" size="small" class="full-width" :disabled="isViewMode"><el-option label="否" value="0" /><el-option label="是" value="1" /></el-select></div></div></div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">展示购方银行账号标签:</label><div class="flex-flex-auto"><el-select v-model="form.sfzsgmfyhzhbq" size="small" class="full-width" :disabled="isViewMode"><el-option label="否" value="0" /><el-option label="是" value="1" /></el-select></div></div></div>
-                      <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">特定要素:</label><div class="flex-flex-auto"><el-input v-model="form.tdys" size="small" class="full-width" placeholder="请输入特定要素" :disabled="isViewMode" /></div></div></div>
+                      <div class="lc-col-12 lc-col-xs6">
+                        <div class="flex flex-content-start flex-items-center">
+                          <label class="nowrap">特定要素类型:</label>
+                          <div class="flex-flex-auto">
+                            <el-select
+                              v-model="form.tdys"
+                              size="small"
+                              class="full-width"
+                              :disabled="isViewMode"
+                            >
+                              <el-option label="成品油发票" value="01" />
+                              <el-option label="稀土发票" value="02" />
+                              <el-option label="建筑服务发票" value="03" />
+                              <el-option label="货物运输服务发票" value="04" />
+                              <el-option label="不动产销售服务发票" value="05" />
+                              <el-option label="不动产租赁服务发票" value="06" />
+                              <el-option label="代收车船税" value="07" />
+                              <el-option label="通行费" value="08" />
+                              <el-option label="旅客运输服务发票" value="09" />
+                              <el-option label="医疗服务(住院)发票" value="10" />
+                              <el-option label="医疗服务(门诊)发票" value="11" />
+                              <el-option label="自产农产品销售发票" value="12" />
+                              <el-option label="拖拉机和联合收割机发票" value="13" />
+                              <el-option label="机动车" value="14" />
+                              <el-option label="二手车" value="15" />
+                              <el-option label="农产品收购发票" value="16" />
+                              <el-option label="光伏收购发票" value="17" />
+                              <el-option label="卷烟发票" value="18" />
+                              <el-option label="农产品" value="20" />
+                            </el-select>
+                          </div>
+                        </div>
+                      </div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">增值税即征即退代码:</label><div class="flex-flex-auto"><el-input v-model="form.zzsjzjtDm" size="small" class="full-width" placeholder="请输入增值税即征即退代码" :disabled="isViewMode" /></div></div></div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">收款银行名称:</label><div class="flex-flex-auto"><el-input v-model="form.skyhmc" size="small" class="full-width" placeholder="请输入收款银行名称" :disabled="isViewMode" /></div></div></div>
                       <div class="lc-col-12 lc-col-xs6"><div class="flex flex-content-start flex-items-center"><label class="nowrap">收款银行账号:</label><div class="flex-flex-auto"><el-input v-model="form.skyhzh" size="small" class="full-width" placeholder="请输入收款银行账号" :disabled="isViewMode" /></div></div></div>
