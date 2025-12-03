@@ -539,17 +539,13 @@ export default {
     }
 
     // 从蓝字发票查询带入数据
-    try {
-      const json = sessionStorage.getItem('taxInvoice.selectedBlueInvoice');
-      if (json) {
-        const inv = JSON.parse(json) || {};
-        if (inv.id) {
-          this.form.blueInvoiceId = inv.id;
-          this.fetchBlueInvoiceDetail(inv.id);
-        }
+    const json = sessionStorage.getItem('taxInvoice.selectedBlueInvoice');
+    if (json) {
+      const inv = JSON.parse(json) || {};
+      if (inv.id) {
+        this.form.blueInvoiceId = inv.id;
+        this.fetchBlueInvoiceDetail(inv.id);
       }
-    } catch (e) {
-      console.error('读取蓝字发票数据失败:', e);
     }
 
     if (!this.readonly && !this.isEditMode) {
@@ -593,7 +589,7 @@ export default {
       if (detail.fphm) {
         this.$set(this.form, 'lzfphm', detail.fphm);
       }
-      if (detail.fppz ) {
+      if (detail.fppz) {
         this.form.lzfppzDm = detail.fppz;
       }
       if (detail.kprq) {
@@ -683,26 +679,21 @@ export default {
 
     fillSelectedGoods() {
       if (this.readonly) return;
-      try {
-        const listJson = sessionStorage.getItem('taxInvoice.selectedGoodsList');
-        const oneJson = sessionStorage.getItem('taxInvoice.selectedGoods');
-        const added = [];
-        if (listJson) {
-          const arr = JSON.parse(listJson) || [];
-          arr.forEach((it) => added.push(it));
-          sessionStorage.removeItem('taxInvoice.selectedGoodsList');
-        }
-        if (oneJson) {
-          const it = JSON.parse(oneJson) || null;
-          if (it) added.push(it);
-          sessionStorage.removeItem('taxInvoice.selectedGoods');
-        }
-        if (added.length) {
-          added.forEach((item) => this.addGoodsRowFromItem(item));
-        }
-      } catch (e) {
-        console.error('回填商品数据失败:', e);
-        if (this.$message) this.$message.error('加载商品数据失败');
+      const listJson = sessionStorage.getItem('taxInvoice.selectedGoodsList');
+      const oneJson = sessionStorage.getItem('taxInvoice.selectedGoods');
+      const added = [];
+      if (listJson) {
+        const arr = JSON.parse(listJson) || [];
+        arr.forEach((it) => added.push(it));
+        sessionStorage.removeItem('taxInvoice.selectedGoodsList');
+      }
+      if (oneJson) {
+        const it = JSON.parse(oneJson) || null;
+        if (it) added.push(it);
+        sessionStorage.removeItem('taxInvoice.selectedGoods');
+      }
+      if (added.length) {
+        added.forEach((item) => this.addGoodsRowFromItem(item));
       }
     },
     onPreferentialPolicyChange(row) {
@@ -848,8 +839,14 @@ export default {
       this.form.lzfphm = detail.lzfphm || '';
       this.form.sfzzfpbz = detail.sfzzfpbz || '';
       this.form.lzkprq = this.formatDateTime(detail.lzkprq);
-      this.form.lzhjje = detail.lzhjje !== null && detail.lzhjje !== undefined ? String(detail.lzhjje) : '';
-      this.form.lzhjse = detail.lzhjse !== null && detail.lzhjse !== undefined ? String(detail.lzhjse) : '';
+      this.form.lzhjje =
+        detail.lzhjje !== null && detail.lzhjje !== undefined
+          ? String(detail.lzhjje)
+          : '';
+      this.form.lzhjse =
+        detail.lzhjse !== null && detail.lzhjse !== undefined
+          ? String(detail.lzhjse)
+          : '';
       this.form.lzfppzDm = detail.lzfppzDm || '02';
       this.form.lzfpTdyslxDm = detail.lzfpTdyslxDm || '';
       this.form.chyyDm = detail.chyyDm || '01';
@@ -944,11 +941,7 @@ export default {
           const { success, message } = this.parseServiceResult(res || {});
           if (success) {
             this.$message.success(this.isEditMode ? '更新成功' : '保存成功');
-            try {
-              sessionStorage.removeItem('taxInvoice.redSellerCreate.form');
-            } catch (e) {
-              console.error('清理表单数据失败:', e);
-            }
+            sessionStorage.removeItem('taxInvoice.redSellerCreate.form');
             this.$router.push({ name: 'taxInvoiceRedSellerList' });
           } else {
             this.$message.warning(message || '保存失败');
@@ -993,15 +986,15 @@ export default {
         '07': '50%先征后退',
         '08': '按3%简易征收',
         '09': '按5%简易征收',
-        '10': '按5%简易征收减按1.5%计征',
-        '11': '即征即退30%',
-        '12': '即征即退50%',
-        '13': '即征即退70%',
-        '14': '即征即退100%',
-        '15': '超税负3%即征即退',
-        '16': '超税负8%即征即退',
-        '17': '超税负12%即征即退',
-        '18': '超税负6%即征即退'
+        10: '按5%简易征收减按1.5%计征',
+        11: '即征即退30%',
+        12: '即征即退50%',
+        13: '即征即退70%',
+        14: '即征即退100%',
+        15: '超税负3%即征即退',
+        16: '超税负8%即征即退',
+        17: '超税负12%即征即退',
+        18: '超税负6%即征即退'
       };
       return policyMap[code] || code;
     }

@@ -444,7 +444,6 @@ export default {
     },
     // 回填选择的数据
     fillSelectedData() {
-      try {
         const orgJson = sessionStorage.getItem('taxInvoice.selectedOrg');
         if (orgJson) {
           const org = JSON.parse(orgJson) || {};
@@ -474,10 +473,6 @@ export default {
           if (Array.isArray(list) && list.length) this.appendGoodsRows(list);
           sessionStorage.removeItem('taxInvoice.selectedGoodsList');
         }
-      } catch (e) {
-        console.error('回填选择数据失败:', e);
-        if (this.$message) this.$message.error('加载数据失败，请重试');
-      }
     },
     appendGoodsRows(list) {
       (list || []).forEach((g) => {
@@ -696,15 +691,9 @@ export default {
       }
     },
     saveFormData() {
-      try {
         sessionStorage.setItem('taxInvoice.formData', JSON.stringify(this.form || {}));
-      } catch (e) {
-        console.error('保存表单数据失败:', e);
-        if (this.$message) this.$message.error('保存数据失败，请重试');
-      }
     },
     restoreFormData() {
-      try {
         const saved = sessionStorage.getItem('taxInvoice.formData');
         if (saved) {
           const savedData = JSON.parse(saved) || {};
@@ -721,9 +710,6 @@ export default {
           });
           sessionStorage.removeItem('taxInvoice.formData');
         }
-      } catch (e) {
-        console.error('恢复表单数据失败:', e);
-      }
     },
     validateForm() {
       const required = [
@@ -884,11 +870,7 @@ export default {
             } else {
               this.$message.success('上传完成');
             }
-            try {
               sessionStorage.removeItem('taxInvoice.formData');
-            } catch (e) {
-              console.error('清理表单数据失败:', e);
-            }
             // 返回列表页
             this.$router.push({ name: 'taxInvoiceBlueList' });
           } else {
