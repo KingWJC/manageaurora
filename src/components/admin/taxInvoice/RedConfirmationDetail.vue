@@ -790,13 +790,13 @@ export default {
             this.applyDetailToForm(detail);
           } else {
             this.$message.warning(message || '加载详情失败');
-            this.$router.push({ name: 'taxInvoiceRedSellerList' });
+            this.$router.go(-1);
           }
         },
         () => {
           this.saving = false;
           this.$message.error('加载详情失败，请重试');
-          this.$router.push({ name: 'taxInvoiceRedSellerList' });
+            this.$router.go(-1);
         },
         this
       );
@@ -946,7 +946,7 @@ export default {
           if (success) {
             this.$message.success(this.isEditMode ? '更新成功' : '保存成功');
             sessionStorage.removeItem('taxInvoice.redSellerCreate.form');
-            this.$router.push({ name: 'taxInvoiceRedSellerList' });
+            this.$router.go(-1);
           } else {
             this.$message.warning(message || '保存失败');
           }

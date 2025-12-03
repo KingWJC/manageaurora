@@ -1033,7 +1033,7 @@ export default {
             } else {
               this.$message.success('保存成功');
             }
-            this.$router.push({ name: 'taxInvoiceRedList' });
+            this.$router.go(-1);
           } else {
             this.$message.warning(message);
           }

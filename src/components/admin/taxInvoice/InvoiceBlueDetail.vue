@@ -876,7 +876,7 @@ export default {
             }
               sessionStorage.removeItem('taxInvoice.formData');
             // 返回列表页
-            this.$router.push({ name: 'taxInvoiceBlueList' });
+            this.$router.go(-1);
           } else {
             this.$message.warning(message);
           }
