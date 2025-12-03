@@ -6,7 +6,7 @@
       v-if="!readonly"
     >
       <div class="flex flex-content-center">
-        <button class="btn btn-primary btn-xl" type="button" @click="submit">
+        <button class="btn btn-primary btn-xl" type="button" @click="submit" :disabled="saving">
           保存
         </button>
       </div>
@@ -924,6 +924,10 @@ export default {
     },
     submit() {
       if (this.readonly) return;
+      // 防暴击：如果正在保存，直接返回
+      if (this.saving) {
+        return;
+      }
 
       const validationMsg = this.validateForm();
       if (validationMsg) {

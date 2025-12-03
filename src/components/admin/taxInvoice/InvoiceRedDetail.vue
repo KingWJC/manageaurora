@@ -6,7 +6,7 @@
       v-if="!isViewMode"
     >
       <div class="flex flex-content-center">
-        <button class="btn btn-primary btn-xl" type="button" @click="submit">
+        <button class="btn btn-primary btn-xl" type="button" @click="submit" :disabled="saving">
           保存
         </button>
       </div>
@@ -1003,11 +1003,13 @@ export default {
       return payload;
     },
     submit() {
+      // 防暴击：如果正在保存，直接返回
+      if (this.saving) {
+        return;
+      }
       const validationMessage = this.validateForm();
       if (validationMessage) {
-        this.$toast
-          ? this.$toast({ text: validationMessage })
-          : this.$message.warning(validationMessage);
+        this.$toast({ text: validationMessage });
         return;
       }
       this.recalcTotals();

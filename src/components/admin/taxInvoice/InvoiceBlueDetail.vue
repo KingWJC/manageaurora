@@ -6,7 +6,7 @@
       <!-- 底部保存按钮 -->
       <div class="viewport-footer viewport-footer-padded flex flex-column flex-content-center" v-if="!isViewMode">
         <div class="flex flex-content-center">
-          <button class="btn btn-primary btn-xl" type="button" @click="submit">保存</button>
+          <button class="btn btn-primary btn-xl" type="button" @click="submit" :disabled="saving">保存</button>
         </div>
       </div>
       <div class="viewport-view">
@@ -841,10 +841,14 @@ export default {
       };
     },
     submit() {
+      // 防暴击：如果正在保存，直接返回
+      if (this.saving) {
+        return;
+      }
       const validationMessage = this.validateForm();
       if (validationMessage) {
-        this.$toast ? this.$toast({ text: validationMessage }) : this.$message.warning(validationMessage);
-        return;
+         this.$toast({ text: validationMessage });
+         return;
       }
       this.recalcTotals();
       if (!this.form.taxInvoiceNo) {
