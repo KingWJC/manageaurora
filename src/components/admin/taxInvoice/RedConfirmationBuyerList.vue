@@ -93,14 +93,14 @@
                     <span>{{ statusText(scope.row.hzqrxxztDm) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="140" fixed="right">
+                <el-table-column label="操作" min-width="100" fixed="right">
                   <template slot-scope="scope">
                     <p>
                       <span class="link" @click="handleView(scope.row)">查看</span>
-                      <span class="link ml10" v-if="canConfirm(scope.row)" @click="confirmRow(scope.row, 'Y')">确认</span>
+                      <span class="link ml10" :class="{ 'link-disabled': !canConfirm(scope.row) }" @click="confirmRow(scope.row, 'Y')">确认</span>
                     </p>
                     <p>
-                      <span class="link" v-if="canReject(scope.row)" @click="confirmRow(scope.row, 'N')">拒绝</span>
+                      <span class="link" :class="{ 'link-disabled': !canReject(scope.row) }" @click="confirmRow(scope.row, 'N')">拒绝</span>
                     </p>
                   </template>
                 </el-table-column>
@@ -159,7 +159,8 @@ export default {
     buildQueryPayload() {
       const payload = {
         current: this.pager.current - 1, 
-        rowCount: this.pager.size
+        rowCount: this.pager.size,
+        lrfsf: '0' // 购方：1，销方：0
       };
       const { gmfmc, lzfphm, hzqrxxztDm, lrrqRange } = this.search;
       if (gmfmc) payload.gmfmc = gmfmc.trim();
@@ -174,10 +175,11 @@ export default {
     },
     handleView(row) {
       this.$router.push({
-        name: 'taxInvoiceRedBuyerDetail',
-        query: { confirmId: row.id }
+        name: 'taxInvoiceRedConfirmationDetail',
+        query: { id: row.id , mode: 'view' }
       });
     },
+    
     canConfirm(row) {
       // 只有状态为"02销方录入待购方确认"时才能确认
       return row.hzqrxxztDm === '02';
@@ -189,38 +191,49 @@ export default {
 
     confirmRow(row, qrlx) {
       const actionText = qrlx === 'Y' ? '确认' : '拒绝';
-      this.$confirm(`确定要${actionText}此红字确认单吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        const payload = {
-          confirmationId: row.id,
-          xsfnsrsbh: row.xsfnsrsbh,
-          qrlx: qrlx
-        };
-        this.loading = true;
-        this.API.send(
-          this.CFG.services.kailing.confirmRedConfirm,
-          payload,
-          (res) => {
-            this.loading = false;
-            const { success, message } = this.parseServiceResult(res || {});
-            if (success) {
-              this.$message.success(`${actionText}成功`);
-              this.getData();
-            } else {
-              this.$message.warning(message || `${actionText}失败`);
+
+      this.$confirm({
+        title: '提示',
+        text: `确定要${actionText}此红字确认单吗？`,
+        buttons: [
+          {
+            text: '取消',
+            type: 'follow',
+            callback: () => {
             }
           },
-          () => {
-            this.loading = false;
-            this.$message.error(`${actionText}失败，请重试`);
-          },
-          this
-        );
-      }).catch(() => {
-        // 用户取消操作
+          {
+            text: '确定',
+            type: 'primary',
+            callback: () => {
+              const payload = {
+                confirmationId: row.id,
+                xsfnsrsbh: row.xsfnsrsbh,
+                qrlx: qrlx
+              };
+              this.loading = true;
+              this.API.send(
+                this.CFG.services.kailing.confirmRedConfirm,
+                payload,
+                (res) => {
+                  this.loading = false;
+                  const { success, message } = this.parseServiceResult(res || {});
+                  if (success) {
+                    this.$message.success(`${actionText}成功`);
+                    this.getData();
+                  } else {
+                    this.$message.warning(message || `${actionText}失败`);
+                  }
+                },
+                () => {
+                  this.loading = false;
+                  this.$message.error(`${actionText}失败，请重试`);
+                },
+                this
+              );
+            }
+          }
+        ]
       });
     },
     statusText(v) {
@@ -250,13 +263,8 @@ export default {
     getData() {
       this.loading = true;
       const payload = this.buildQueryPayload();
-      const svc = this.CFG && this.CFG.services && this.CFG.services.kailing && this.CFG.services.kailing.pageRedConfirmList;
-      if (!svc) {
-        this.useMock();
-        return;
-      }
       this.API.send(
-        svc,
+        this.CFG.services.kailing.pageRedConfirmList,
         payload,
         (res) => {
           this.loading = false;
@@ -264,7 +272,7 @@ export default {
           if (!success && message) {
             this.$message.warning(message);
           }
-          this.rows = (records || []).map(item => this.normalizeRow(item));
+          this.rows = records;
           this.pager.total = total || 0;
         },
         () => {
@@ -274,30 +282,20 @@ export default {
         this
       );
     },
-    useMock() {
-      this.loading = false;
-      const now = taxInvoiceUtils.formatDateTime(new Date().getTime());
-      this.rows = [
-        { id: '1', uuid: 'uuid1', hzfpxxqrdbh: 'HZQRD1001', lzfphm: '00010001', xsfmc: '销方X', gmfmc: '购方X', lrrq: now, qrrq: now, hzqrxxztDm: '02', chyyDm: '01', lrfsf: '0', lzhjje: 1000, lzhjse: 130, hzcxje: 1000, hzcxse: 130, xsfnsrsbh: '123456789012345' },
-        { id: '2', uuid: 'uuid2', hzfpxxqrdbh: 'HZQRD1002', lzfphm: '00010002', xsfmc: '销方Y', gmfmc: '购方Y', lrrq: now, qrrq: now, hzqrxxztDm: '02', chyyDm: '02', lrfsf: '0', lzhjje: 2000, lzhjse: 260, hzcxje: 2000, hzcxse: 260, xsfnsrsbh: '123456789012346' }
-      ];
-      this.rows = this.rows.map(item => this.normalizeRow(item));
-      this.pager.total = this.rows.length;
-    },
     parsePagedResult(payload = {}) {
       const serviceResult = payload && payload.serviceResult;
-      const success = serviceResult ? serviceResult.success : undefined;
-      const reason = serviceResult ? serviceResult.reason : '';
-      const errorMsg = serviceResult ? serviceResult.errorCode : '';
+
+      const successFlag = serviceResult && serviceResult.success !== undefined ? serviceResult.success : undefined;
+      const reason = serviceResult && (serviceResult.reason || serviceResult.errorMsg || serviceResult.errorCode) || '';
       let records = [];
       let total = 0;
-      if (serviceResult && serviceResult.data) {
-        records = serviceResult.data.rows || [];
-        total = serviceResult.data.total || 0;
-      }
+      if (serviceResult) {
+        records = serviceResult.rows || [];
+        total = serviceResult.total !== undefined ? serviceResult.total : 0;
+      } 
       return {
-        success: success !== false,
-        message: reason || errorMsg || '',
+        success: successFlag !== false,
+        message: reason || '',
         records,
         total
       };
@@ -314,15 +312,6 @@ export default {
     },
     formatDateTime(value) {
       return taxInvoiceUtils.formatDateTime(value);
-    },
-    normalizeRow(row = {}) {
-      return {
-        ...row,
-        lrrq: this.formatDateTime(row.lrrq),
-        qrrq: this.formatDateTime(row.qrrq),
-        createTime: this.formatDateTime(row.createTime),
-        updateTime: this.formatDateTime(row.updateTime)
-      };
     }
   }
 };

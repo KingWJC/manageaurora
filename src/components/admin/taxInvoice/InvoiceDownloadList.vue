@@ -472,15 +472,16 @@ export default {
       return payload;
     },
     dlStatusText(v) {
-      if (v === '02' || v === '成功') return '成功';
-      if (v === '01' || v === '处理中') return '处理中';
-      if (v === '03' || v === '失败') return '失败';
-      if (v === '00' || v === '待处理') return '待处理';
+      if (v === '02') return '成功';
+      if (v === '01') return '处理中';
+      if (v === '03') return '失败';
+      if (v === '00') return '待处理';
       return v || '';
     },
     cljgText(v) {
-      if (v === 'success' || v === '成功') return '成功';
-      if (v === 'fail' || v === '失败') return '失败';
+      if (v === '1') return '成功';
+      if (v=== '2') return '不存在符合条件的发票';
+      if (v === '3') return '失败';
       return v || '-';
     },
     fplxText(v) {
@@ -589,19 +590,19 @@ export default {
       return taxInvoiceUtils.formatDateTime(v);
     },
     parsePagedResult(payload = {}) {
-      console.log('parsePagedResult', payload);
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.error : '';
+      const serviceResult = payload && payload.serviceResult;
+
+      const successFlag = serviceResult && serviceResult.success !== undefined ? serviceResult.success : undefined;
+      const reason = serviceResult && (serviceResult.reason || serviceResult.errorMsg || serviceResult.errorCode) || '';
       let records = [];
       let total = 0;
-      if (payload && payload.serviceResult && payload.serviceResult.data) {
-        records = payload.serviceResult.data.rows || [];
-        total = payload.serviceResult.data.total || 0;
-      }
+      if (serviceResult) {
+        records = serviceResult.rows || [];
+        total = serviceResult.total !== undefined ? serviceResult.total : 0;
+      } 
       return {
-        success: success !== false,
-        message: reason || errorMsg || '',
+        success: successFlag !== false,
+        message: reason || '',
         records,
         total
       };

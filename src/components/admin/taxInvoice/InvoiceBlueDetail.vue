@@ -458,7 +458,6 @@ export default {
         
         const newRow = {
           mxxh: (this.form.fpmxList.length || 0) + 1,
-          dylzfpmxxh: 0,
           xmmc: g.productName || g.name || g.xmmc || '', 
           spfwjc: spfwjc,
           ggxh: g.specification || g.specificationAndModel || g.spec || g.ggxh || '', 
@@ -722,7 +721,6 @@ export default {
         const tax = Number(item.se || 0);
         return {
           mxxh: item.mxxh || index + 1,
-          dylzfpmxxh: item.dylzfpmxxh || 0,
           xmmc: item.xmmc || '',
           spfwjc: item.spfwjc || '',
           ggxh: item.ggxh || '',

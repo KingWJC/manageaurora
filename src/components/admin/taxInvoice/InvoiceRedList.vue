@@ -80,17 +80,15 @@
                     <span>{{ statusText(scope.row.taskStatus) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="zdr" label="制单人" min-width="140"></el-table-column>
-                <el-table-column prop="zdrq" label="申请日期" min-width="140">
-                  <template slot-scope="scope">
-                    <span>{{ formatDateTime(scope.row.zdrq) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="shr" label="审核人" min-width="140"></el-table-column>
-                <el-table-column prop="shrq" label="审核时间" min-width="140">
-                  <template slot-scope="scope">
-                    <span>{{ formatDateTime(scope.row.shrq) }}</span>
-                  </template>
+                <el-table-column
+                  prop="fhrxm"
+                  label="审核人"
+                  min-width="140"
+                ></el-table-column>
+                <el-table-column prop="reviewTime" label="审核时间" min-width="140">
+                  <template slot-scope="scope">{{
+                    formatDateTime(scope.row.reviewTime)
+                  }}</template>
                 </el-table-column>
                 <el-table-column prop="reviewStatus" label="审核状态" min-width="100" align="center">
                   <template slot-scope="scope">
@@ -249,6 +247,7 @@ export default {
       }
       const payload = {
         invoiceId: row.id,
+        reviewer: this.CFG.userinfo.name,
         reviewStatus: auditStatus,
         reviewRemark: reviewRemark || ''
       };

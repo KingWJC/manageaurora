@@ -472,7 +472,16 @@
                     >
                     <el-table-column prop="yhzcbs" label="优惠政策" width="180">
                       <template slot-scope="{row}">
-                        <el-select v-model="row.yhzcbs" @change="onPreferentialPolicyChange(row)" size="small" class="full-width" :disabled="isViewMode" clearable placeholder="请选择">
+                        <el-select 
+                          v-if="!readonly" 
+                          v-model="row.yhzcbs" 
+                          @change="onPreferentialPolicyChange(row)" 
+                          size="small" 
+                          class="full-width" 
+                          :disabled="isViewMode" 
+                          clearable 
+                          placeholder="请选择"
+                        >
                           <el-option label="简易征收" value="01"></el-option>
                           <el-option label="稀土产品" value="02"></el-option>
                           <el-option label="免税" value="03"></el-option>
@@ -492,6 +501,7 @@
                           <el-option label="超税负12%即征即退" value="17"></el-option>
                           <el-option label="超税负6%即征即退" value="18"></el-option>
                         </el-select>
+                        <span v-else>{{ getPreferentialPolicyText(row.yhzcbs) }}</span>
                       </template>
                     </el-table-column>
                     <el-table-column
@@ -636,8 +646,7 @@ export default {
     }
 
     if (!this.readonly && !this.isEditMode) {
-      this.restoreFormData();
-      this.fillSelectedGoods();
+      this.fillSelectedGoods(); 
     }
     this.recalcTotals();
   },
@@ -664,7 +673,6 @@ export default {
     },
     // 从蓝字发票详情回填表单
     fillFormFromBlueInvoiceDetail(detail = {}) {
-      console.log('蓝字发票详情:', detail);
       if (detail.fphm) {
         this.$set(this.form, 'lzfphm', detail.fphm);
       }
@@ -697,15 +705,15 @@ export default {
       const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
       if (details.length > 0) {
         this.form.fpmxList = details.map((item, index) => {
-          const je = Number(item.je || 0);
-          const se = Number(item.se || 0);
-          const hsje = Number(item.hsje || je + se);
+          const je = Number(-item.je || 0);
+          const se = Number(-item.se || 0);
+          const hsje = Number(-item.hsje);
           return {
             lzmxxh: item.mxxh || index + 1,
             xmmc: item.xmmc || '',
             ggxh: item.ggxh || '',
-            dw: item.dw || item.unit || '',
-            sl: Number(item.sl || 0),
+            dw: item.dw || '',
+            sl: Number(-item.sl || 0),
             dj: Number(item.dj || 0),
             je: je,
             slv: Number(item.slv || 0),
@@ -975,7 +983,7 @@ export default {
           ggxh: item.ggxh || '',
           dw: item.dw || '',
           fpspdj: String(item.dj || 0),
-          fpspsl: String(-item.sl || 0),
+          fpspsl: String(item.sl || 0),
           je: Number(item.je || 0),
           sl1: Number(item.slv || 0),
           se: Number(item.se || 0)
@@ -1055,6 +1063,33 @@ export default {
         message: reason || errorMsg || '',
         data
       };
+    },
+    // 将优惠政策标识代码转换为描述
+    getPreferentialPolicyText(code) {
+      if (!code) {
+        return '-';
+      }
+      const policyMap = {
+        '01': '简易征收',
+        '02': '稀土产品',
+        '03': '免税',
+        '04': '不征税',
+        '05': '先征后退',
+        '06': '100%先征后退',
+        '07': '50%先征后退',
+        '08': '按3%简易征收',
+        '09': '按5%简易征收',
+        '10': '按5%简易征收减按1.5%计征',
+        '11': '即征即退30%',
+        '12': '即征即退50%',
+        '13': '即征即退70%',
+        '14': '即征即退100%',
+        '15': '超税负3%即征即退',
+        '16': '超税负8%即征即退',
+        '17': '超税负12%即征即退',
+        '18': '超税负6%即征即退'
+      };
+      return policyMap[code] || code;
     }
   }
 };

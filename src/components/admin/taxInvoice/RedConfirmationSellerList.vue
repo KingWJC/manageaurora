@@ -170,7 +170,8 @@ export default {
     buildQueryPayload() {
       const payload = {
         current: this.pager.current - 1, 
-        rowCount: this.pager.size
+        rowCount: this.pager.size,
+        lrfsf: '0' // 购方：1，销方：0
       };
       const { gmfmc, lzfphm, hzqrxxztDm, lrrqRange } = this.search;
       if (gmfmc) payload.gmfmc = gmfmc.trim();
@@ -186,18 +187,18 @@ export default {
     toCreate() { 
       this.$router.push({ 
         name: 'taxInvoiceBlueInvoiceQuery', 
-        query: { next: 'taxInvoiceRedSellerCreate' } 
+        query: { next: 'taxInvoiceRedConfirmationDetail' } 
       }); 
     },
     handleView(row) {
       this.$router.push({
-        name: 'taxInvoiceRedSellerCreate',
+        name: 'taxInvoiceRedConfirmationDetail',
         query: { id: row.id , mode: 'view' }
       });
     },
     handleEdit(row) {
       this.$router.push({
-        name: 'taxInvoiceRedSellerCreate',
+        name: 'taxInvoiceRedConfirmationDetail',
         query: { id: row.id , mode: 'edit' }
       });
     },

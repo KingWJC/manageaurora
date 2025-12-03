@@ -23,21 +23,6 @@ export default [
     beforeEnter: requireAuth,
     component: () => import('./blueDetail.vue')
   },
-  // 销方红字确认单开具
-  {
-    path: '/admin/taxInvoice/red/seller/list',
-    name: 'taxInvoiceRedSellerList',
-    meta: { name: '销方红字确认单开具', keepAlive: true },
-    beforeEnter: requireAuth,
-    component: () => import('./redSellerList.vue')
-  },
-  {
-    path: '/admin/taxInvoice/red/seller/create',
-    name: 'taxInvoiceRedSellerCreate',
-    meta: { name: '销方红字确认单新增单据', keepAlive: false },
-    beforeEnter: requireAuth,
-    component: () => import('./redSellerCreate.vue')
-  },
   {
     path: '/admin/taxInvoice/red/blueInvoiceQuery',
     name: 'taxInvoiceBlueInvoiceQuery',
@@ -45,21 +30,28 @@ export default [
     beforeEnter: requireAuth,
     component: () => import('./blueInvoiceQuery.vue')
   },
-
-  // 购方红字确认单操作
+  // 销方红字确认单
+  {
+    path: '/admin/taxInvoice/red/seller/list',
+    name: 'taxInvoiceRedSellerList',
+    meta: { name: '销方红字确认单', keepAlive: true },
+    beforeEnter: requireAuth,
+    component: () => import('./redConfirmationSellerList.vue')
+  },
+  // 购方红字确认单
   {
     path: '/admin/taxInvoice/red/buyer/list',
     name: 'taxInvoiceRedBuyerList',
-    meta: { name: '购方红字确认单列表', keepAlive: true },
+    meta: { name: '购方红字确认单', keepAlive: true },
     beforeEnter: requireAuth,
-    component: () => import('./redBuyerList.vue')
+    component: () => import('./redConfirmationBuyerList.vue')
   },
   {
     path: '/admin/taxInvoice/red/buyer/detail',
-    name: 'taxInvoiceRedBuyerDetail',
-    meta: { name: '购方红字确认单详情', keepAlive: false },
+    name: 'taxInvoiceRedConfirmationDetail',
+    meta: { name: '红字确认单详情', keepAlive: false },
     beforeEnter: requireAuth,
-    component: () => import('./redBuyerDetail.vue')
+    component: () => import('./redConfirmationDetail.vue')
   },
 
   // 数电红字发票开具

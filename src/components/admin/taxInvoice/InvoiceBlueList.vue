@@ -444,9 +444,10 @@ export default {
         this.$message.warning('缺少发票ID，无法审核');
         return;
       }
+
       const payload = {
         invoiceId: row.id,
-        reviewer: this.CFG.userinfo.name,
+        reviewer: this.CFG.userInfo.name,
         reviewStatus: auditStatus,
         reviewRemark: reviewRemark || ''
       };
@@ -482,7 +483,7 @@ export default {
       if (v === '01') return '开票中';
       if (v === '02') return '开票成功';
       if (v === '03') return '开票失败';
-      return v || '';
+      return v || '未提交';
     },
     auditStatusText(v) {
       if (v === '00') return '待审核';
