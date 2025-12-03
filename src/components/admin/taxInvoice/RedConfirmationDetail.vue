@@ -6,7 +6,12 @@
       v-if="!readonly"
     >
       <div class="flex flex-content-center">
-        <button class="btn btn-primary btn-xl" type="button" @click="submit" :disabled="saving">
+        <button
+          class="btn btn-primary btn-xl"
+          type="button"
+          @click="submit"
+          :disabled="saving"
+        >
           保存
         </button>
       </div>
@@ -477,8 +482,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   components: {
     crumbsBar: () => import('@/common-base/components/crumbs-bar')
@@ -539,17 +542,10 @@ export default {
     }
 
     // 从蓝字发票查询带入数据
-    const json = sessionStorage.getItem('taxInvoice.selectedBlueInvoice');
-    if (json) {
-      const inv = JSON.parse(json) || {};
-      if (inv.id) {
-        this.form.blueInvoiceId = inv.id;
-        this.fetchBlueInvoiceDetail(inv.id);
-      }
-    }
-
-    if (!this.readonly && !this.isEditMode) {
-      this.fillSelectedGoods();
+    const blueInvoiceId = this.$route.query.blueInvoiceId ;
+    if (blueInvoiceId) {
+      this.form.blueInvoiceId = blueInvoiceId;
+      this.fetchBlueInvoiceDetail(blueInvoiceId);
     }
     this.recalcTotals();
   },
@@ -561,11 +557,10 @@ export default {
         this.CFG.services.kailing.digitalInvoiceQuery,
         { invoiceId },
         (res) => {
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
-            this.fillFormFromBlueInvoiceDetail(data);
+          if (res && res.data) {
+            this.fillFormFromBlueInvoiceDetail(res.data);
           } else {
-            this.$message.warning(message || '获取蓝字发票详情失败');
+            this.$message.warning('获取蓝字发票详情失败');
           }
         },
         () => {
@@ -609,9 +604,10 @@ export default {
       const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
       if (details.length > 0) {
         this.form.fpmxList = details.map((item, index) => {
-          const je = Number(-item.je || 0);
-          const se = Number(-item.se || 0);
-          const hsje = Number(-item.hsje);
+          const BN = this.BigNumber;
+          const je = BN(item.je || 0).negated();
+          const se = BN(item.se || 0).negated();
+          const hsje = BN(item.hsje || 0).negated();
           return {
             lzmxxh: item.mxxh || index + 1,
             xmmc: item.xmmc || '',
@@ -619,10 +615,10 @@ export default {
             dw: item.dw || '',
             sl: Number(-item.sl || 0),
             dj: Number(item.dj || 0),
-            je: je,
+            je: Number(je),
             slv: Number(item.slv || 0),
-            se: se,
-            hsje: hsje,
+            se: Number(se),
+            hsje: Number(hsje),
             kce: Number(item.kce || 0),
             sphfwssflhbbm: item.sphfwssflhbbm || '',
             hwhyslwfwmc: item.hwhyslwfwmc || '',
@@ -649,52 +645,36 @@ export default {
       this.recalcTotals();
     },
     recalcRow(row) {
-      const qty = this.toFixedNumber(row.sl, 6);
-      const price = this.toFixedNumber(row.dj, 6);
-      const rate = this.toFixedNumber(row.slv, 6);
-      const amount = this.toFixedNumber(qty * price, 2);
-      const tax = this.toFixedNumber(amount * rate, 2);
-      const amountWithTax = this.toFixedNumber(amount + tax, 2);
+      const BN = this.BigNumber;
+      const qty = BN(row.sl || 0);
+      const price = BN(row.dj || 0);
+      const rate = BN(row.slv || 0);
+      // 金额 = 数量 * 单价
+      const amount = qty.multipliedBy(price);
+      // 税额 = 金额 * 税率
+      const tax = amount.multipliedBy(rate);
+      // 含税金额 = 金额 + 税额
+      const amountWithTax = amount.plus(tax);
       row.je = amount;
       row.se = tax;
       row.hsje = amountWithTax;
     },
     // 合计计算
     recalcTotals() {
-      let totalAmount = 0;
-      let totalTax = 0;
+      const BN = this.BigNumber;
+      let totalAmount = BN(0);
+      let totalTax = BN(0);
       (this.form.fpmxList || []).forEach((item) => {
-        const amt = this.toFixedNumber(item.je, 2);
-        const tax = this.toFixedNumber(item.se, 2);
-        totalAmount += amt;
-        totalTax += tax;
+        const amt = BN(item.je || 0);
+        const tax = BN(item.se || 0);
+        totalAmount = totalAmount.plus(amt);
+        totalTax = totalTax.plus(tax);
       });
-      this.form.hzcxje = this.toFixedNumber(totalAmount, 2);
-      this.form.hzcxse = this.toFixedNumber(totalTax, 2);
-      this.form.jshj = this.toFixedNumber(
-        this.form.hzcxje + this.form.hzcxse,
-        2
-      );
-    },
-
-    fillSelectedGoods() {
-      if (this.readonly) return;
-      const listJson = sessionStorage.getItem('taxInvoice.selectedGoodsList');
-      const oneJson = sessionStorage.getItem('taxInvoice.selectedGoods');
-      const added = [];
-      if (listJson) {
-        const arr = JSON.parse(listJson) || [];
-        arr.forEach((it) => added.push(it));
-        sessionStorage.removeItem('taxInvoice.selectedGoodsList');
-      }
-      if (oneJson) {
-        const it = JSON.parse(oneJson) || null;
-        if (it) added.push(it);
-        sessionStorage.removeItem('taxInvoice.selectedGoods');
-      }
-      if (added.length) {
-        added.forEach((item) => this.addGoodsRowFromItem(item));
-      }
+      this.form.hzcxje = totalAmount;
+      this.form.hzcxse = totalTax;
+      // 价税合计 = 合计金额 + 合计税额
+      const jshj = BN(this.form.hzcxje).plus(BN(this.form.hzcxse));
+      this.form.jshj = jshj;
     },
     onPreferentialPolicyChange(row) {
       const yhzcbs = row.yhzcbs;
@@ -722,46 +702,33 @@ export default {
       this.onRowChange(row);
     },
     onRowChange(row) {
-      const sl = Number(row.sl) || 0;
-      const dj = Number(row.dj) || 0;
+      const BN = this.BigNumber;
+      const sl = BN(row.sl || 0);
+      const dj = BN(row.dj || 0);
 
-      let slv = 0;
+      let slv = BN(0);
       if (row.slv !== null && row.slv !== undefined && row.slv !== '') {
-        slv = Number(row.slv);
-        if (isNaN(slv)) {
-          slv = 0;
+        const slvNum = BN(row.slv);
+        if (!slvNum.isNaN()) {
+          slv = slvNum;
         }
       }
-      const je = dj * sl;
-      const se = je * slv;
-      row.je = this.toFixedNumber(je, 2);
-      row.se = this.toFixedNumber(se, 2);
-      row.hsje = this.toFixedNumber(row.je + row.se, 2);
+      // 使用 BigNumber 进行运算：金额 = 单价 * 数量
+      const je = dj.multipliedBy(sl);
+      // 税额 = 金额 * 税率
+      const se = je.multipliedBy(slv);
+      row.je = je;
+      row.se = se;
+      // 含税金额 = 金额 + 税额
+      const hsje = BN(row.je).plus(BN(row.se));
+      row.hsje = hsje;
       this.recalcTotals();
     },
-    addGoodsRowFromItem(item) {
-      const row = {
-        xmmc: item.name || '',
-        ggxh: item.spec || item.model || '',
-        dw: item.packSpec || item.unit || '',
-        sl: 1,
-        dj: 0,
-        je: 0,
-        slv: 0,
-        se: 0,
-        hsje: 0,
-        kce: 0,
-        sphfwssflhbbm: item.code || '',
-        fphxz: '0',
-        yhzcbs: ''
-      };
-      this.recalcRow(row);
-      this.form.fpmxList.push(row);
-    },
     toFixedNumber(val, digits = 2) {
-      const n = Number(val);
-      if (isNaN(n)) return 0;
-      return Number(n.toFixed(digits));
+      const BN = this.BigNumber;
+      const num = BN(val || 0);
+      if (num.isNaN()) return 0;
+      return Number(num.toFixed(digits));
     },
     formatMoney(val) {
       const n = this.toFixedNumber(val, 2);
@@ -781,8 +748,8 @@ export default {
         payload,
         (res) => {
           this.saving = false;
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
+          if (res && res.data) {
+            const data = res.data;
             const detail =
               Array.isArray(data.rows) && data.rows.length > 0
                 ? data.rows[0]
@@ -796,7 +763,7 @@ export default {
         () => {
           this.saving = false;
           this.$message.error('加载详情失败，请重试');
-            this.$router.go(-1);
+          this.$router.go(-1);
         },
         this
       );
@@ -853,14 +820,17 @@ export default {
 
       // 开票详情信息
       this.form.fpmxList = detailList;
-      this.form.hzcxje = Number(detail.hzcxje || 0);
-      this.form.hzcxse = Number(detail.hzcxse || 0);
-      this.form.jshj = Number(this.form.hzcxje + this.form.hzcxse);
+      const BN = this.BigNumber;
+      this.form.hzcxje = Number(BN(detail.hzcxje || 0));
+      this.form.hzcxse = Number(BN(detail.hzcxse || 0));
+      // 价税合计 = 合计金额 + 合计税额
+      const jshj = BN(this.form.hzcxje).plus(BN(this.form.hzcxse));
+      this.form.jshj = Number(jshj);
       this.form.bz = detail.remark || detail.bz || '';
       this.recalcTotals();
     },
     formatDateTime(dateTime) {
-      return taxInvoiceUtils.formatDateTime(dateTime);
+      return this.utils.formatDate(dateTime);
     },
     validateForm() {
       if (!this.form.chyyDm || this.form.chyyDm === '') {
@@ -942,13 +912,11 @@ export default {
         payload,
         (res) => {
           this.saving = false;
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
+          if (res && res.data) {
             this.$message.success(this.isEditMode ? '更新成功' : '保存成功');
-            sessionStorage.removeItem('taxInvoice.redSellerCreate.form');
-            this.$router.go(-1);
+            this.$router.go(-2);
           } else {
-            this.$message.warning(message || '保存失败');
+            this.$message.warning('保存失败');
           }
         },
         () => {
@@ -957,23 +925,6 @@ export default {
         },
         this
       );
-    },
-    parseServiceResult(payload = {}) {
-      if (payload && payload.serviceResult) {
-        payload = payload.serviceResult;
-      }
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.errorMsg : '';
-      const data =
-        (payload &&
-          (payload.data || payload.result || payload.records || payload)) ||
-        {};
-      return {
-        success: success !== false,
-        message: reason || errorMsg || '',
-        data
-      };
     },
     // 将优惠政策标识代码转换为描述
     getPreferentialPolicyText(code) {

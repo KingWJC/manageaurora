@@ -558,8 +558,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   components: {
     crumbsBar: () => import('@/common-base/components/crumbs-bar')
@@ -662,8 +660,8 @@ export default {
         this.CFG.services.kailing.queryRedConfirmDetail,
         { confirmId },
         (res) => {
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
+          if (res && res.data) {
+            const data=res.data;
             const detail =
               Array.isArray(data.rows) && data.rows.length > 0
                 ? data.rows[0]
@@ -691,8 +689,8 @@ export default {
         this.CFG.services.kailing.digitalInvoiceQuery,
         queryParam,
         (res) => {
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
+          if (res && res.data) {
+            const data=res.data;
             const invoiceDetail =
               Array.isArray(data.rows) && data.rows.length > 0
                 ? data.rows[0]
@@ -730,7 +728,7 @@ export default {
       if (invoiceDetail.gmfzh) this.form.gmfzh = invoiceDetail.gmfzh;
 
       if (invoiceDetail.kprq)
-        this.form.kprq = taxInvoiceUtils.formatTimestampToDate(
+        this.form.kprq = this.utils.formatDate(
           invoiceDetail.kprq
         );
       if (invoiceDetail.kpr) this.form.kpr = invoiceDetail.kpr;
@@ -752,12 +750,14 @@ export default {
       const detailList = detail.detailList || [];
       if (detailList && detailList.length > 0) {
         this.form.fpmxList = detailList.map((item, index) => {
-          const je = Number(item.je || 0);
-          const se = Number(item.se || 0);
-          const sl = Number(item.fpspsl || 0);
-          const dj = Number(item.fpspdj || 0);
-          const slv = Number(item.sl1 || 0);
-          const hsje = je + se;
+          const BN = this.BigNumber;
+          const je = BN(item.je || 0);
+          const se = BN(item.se || 0);
+          const sl = BN(item.fpspsl || 0);
+          const dj = BN(item.fpspdj || 0);
+          const slv = BN(item.sl1 || 0);
+          // 含税金额 = 金额 + 税额
+          const hsje = je.plus(se);
           return {
             mxxh: item.mxxh || index + 1,
             dylzfpmxxh: item.lzmxxh || 0,
@@ -765,12 +765,12 @@ export default {
             spfwjc: item.spfwjc || '',
             ggxh: item.ggxh || '',
             dw: item.dw || '',
-            sl: sl,
-            dj: dj,
-            je: je,
-            slv: slv,
-            se: se,
-            hsje: hsje,
+            sl: Number(sl),
+            dj: Number(dj),
+            je: Number(je),
+            slv: Number(slv),
+            se: Number(se),
+            hsje: Number(hsje),
             kce: Number(item.kce || 0),
             sphfwssflhbbm: item.sphfwssflhbbm || '',
             fphxz: item.fphxz || '00',
@@ -785,17 +785,20 @@ export default {
     },
     // 合计计算
     recalcTotals() {
-      let totalAmount = 0;
-      let totalTax = 0;
+      const BN = this.BigNumber;
+      let totalAmount = BN(0);
+      let totalTax = BN(0);
       (this.form.fpmxList || []).forEach((item) => {
-        const amt = this.toFixedNumber(item.je, 2);
-        const tax = this.toFixedNumber(item.se, 2);
-        totalAmount += amt;
-        totalTax += tax;
+        const amt = BN(item.je || 0);
+        const tax = BN(item.se || 0);
+        totalAmount = totalAmount.plus(amt);
+        totalTax = totalTax.plus(tax);
       });
-      this.form.hjjc = this.toFixedNumber(totalAmount, 2);
-      this.form.hjs = this.toFixedNumber(totalTax, 2);
-      this.form.jshj = this.toFixedNumber(this.form.hjjc + this.form.hjs, 2);
+      this.form.hjjc = totalAmount;
+      this.form.hjs =totalTax;
+      // 价税合计 = 合计金额 + 合计税额
+      const jshj = BN(this.form.hjjc).plus(BN(this.form.hjs));
+      this.form.jshj = jshj;
     },
     fetchInvoiceDetail(invoiceId) {
       if (!invoiceId) {
@@ -805,11 +808,10 @@ export default {
         this.CFG.services.kailing.digitalInvoiceQuery,
         { invoiceId },
         (res) => {
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
-            this.applyInvoiceDetail(data);
-          } else if (message) {
-            this.$message.warning(message);
+          if (res && res.data) {
+            this.applyInvoiceDetail(res.data);
+          } else {
+            this.$message.warning('查询失败');
           }
         },
         () => {},
@@ -833,7 +835,7 @@ export default {
       if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
       if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
       if (detail.kprq)
-        this.form.kprq = taxInvoiceUtils.formatTimestampToDate(detail.kprq);
+        this.form.kprq = this.utils.formatDate(detail.kprq);
       if (detail.kpr) this.form.kpr = detail.kpr;
       if (detail.bz) this.form.bz = detail.bz;
       if (detail.hjje !== undefined) this.form.hjjc = Number(detail.hjje);
@@ -868,9 +870,10 @@ export default {
       }
     },
     toFixedNumber(val, digits = 2) {
-      const n = Number(val);
-      if (isNaN(n)) return 0;
-      return Number(n.toFixed(digits));
+      const BN = this.BigNumber;
+      const num = BN(val || 0);
+      if (num.isNaN()) return 0;
+      return Number(num.toFixed(digits));
     },
     formatMoney(val) {
       const n = this.toFixedNumber(val, 2);
@@ -966,7 +969,7 @@ export default {
         kprzjhm: this.form.kprzjhm || '',
         kprzjlx: this.form.kprzjlx || '',
         kprq: this.form.kprq
-          ? taxInvoiceUtils.formatDateToTimestamp(this.form.kprq)
+          ? new Date(this.form.kprq).getTime()
           : Math.floor(Date.now() / 1000),
         dylzfphm: this.form.lzfphm || '',
         hzqrxxdbh: this.form.hzqrxxdbh || '',
@@ -993,7 +996,7 @@ export default {
           fphm: item.fphm || '',
           cezphm: item.cezphm || '',
           kjrq: item.kjrq
-            ? taxInvoiceUtils.formatDateToTimestamp(item.kjrq)
+            ? new Date(item.kjrq).getTime()
             : Math.floor(Date.now() / 1000),
           pzhjje: Number(item.pzhjje || 0),
           bckcje: Number(item.bckcje || 0),
@@ -1020,8 +1023,8 @@ export default {
         payload,
         (res) => {
           this.saving = false;
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success) {
+          if (res && res.data) {
+            const data=res.data;
             const invoiceId = data && data.id;
             const fphm = data && data.fphm;
             const resultMessage = data && data.message;
@@ -1043,17 +1046,6 @@ export default {
         },
         this
       );
-    },
-    parseServiceResult(payload = {}) {
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.error : '';
-      const data = payload && (payload.data !== undefined ? payload.data : {});
-      return {
-        success: success !== false,
-        message: reason || errorMsg || '',
-        data
-      };
     },
   }
 };

@@ -132,8 +132,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -173,17 +171,6 @@ export default {
       const v = row && row.isInit;
       return v === true;
     },
-    
-    parseServiceResult(payload = {}) {
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const list = payload && Array.isArray(payload.data) ? payload.data : [];
-      return {
-        success: success !== false,
-        message: reason || payload?.errorMsg || '',
-        list
-      };
-    },
     getRecords() {
       this.loading = true;
       const args = {
@@ -197,12 +184,11 @@ export default {
         args,
         (res) => {
           this.loading = false;
-          const { success, message, list } = this.parseServiceResult(res || {});
-          if (!success && message) {
-            this.$message.warning(message);
+          if (res && res.data) {
+            this.rows = res.data;
+            this.pager.total = res.data.length;
           }
-          this.rows = list;
-          this.pager.total = list.length;
+
         },
         () => {
           this.loading = false;
@@ -214,7 +200,7 @@ export default {
       );
     },
     formatDateTime(v) {
-      return taxInvoiceUtils.formatDateTime(v);
+      return this.utils.formatDate(v);
     },
     executePreprocess(row, actionLabel) {
       if (!row || !row.nsrsbh) {
@@ -242,12 +228,11 @@ export default {
         payload,
         (res) => {
           this.closeActionLoading();
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
+          if (res && res.data) {
             this.$message.success(`${actionLabel}任务已触发`);
             this.getRecords();
           } else {
-            this.$message.error(message || `${actionLabel}任务触发失败`);
+            this.$message.error( `${actionLabel}任务触发失败`);
           }
         },
         () => {

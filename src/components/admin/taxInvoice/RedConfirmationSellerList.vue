@@ -125,8 +125,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -178,9 +176,8 @@ export default {
       if (lzfphm) payload.lzfphm = lzfphm.trim();
       if (hzqrxxztDm) payload.hzqrxxztDm = hzqrxxztDm;
       if (Array.isArray(lrrqRange) && lrrqRange.length === 2) {
-        const { lrrqStart, lrrqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(lrrqRange);
-        if (lrrqStart !== undefined) payload.lrrqStart = String(lrrqStart);
-        if (lrrqEnd !== undefined) payload.lrrqEnd = String(lrrqEnd);
+        if (lrrqStart !== undefined) payload.lrrqStart = String(new Date(lrrqRange[0]+ 'T00:00:00').getTime());
+        if (lrrqEnd !== undefined) payload.lrrqEnd = String(new Date(lrrqRange[1]+ 'T23:59:59').getTime());
       }
       return payload;
     },
@@ -243,12 +240,11 @@ export default {
                 payload,
                 (res) => {
                   this.loading = false;
-                  const { success, message } = this.parseServiceResult(res || {});
-                  if (success) {
+                  if (res && res.data) {
                     this.$message.success('提交成功');
                     this.getData();
                   } else {
-                    this.$message.warning(message || '提交失败');
+                    this.$message.warning('提交失败');
                   }
                 },
                 () => {
@@ -289,12 +285,11 @@ export default {
                 payload,
                 (res) => {
                   this.loading = false;
-                  const { success, message } = this.parseServiceResult(res || {});
-                  if (success) {
+                  if (res && res.data) {
                     this.$message.success(`${actionText}成功`);
                     this.getData();
                   } else {
-                    this.$message.warning(message || `${actionText}失败`);
+                    this.$message.warning(`${actionText}失败`);
                   }
                 },
                 () => {
@@ -384,18 +379,8 @@ export default {
         total
       };
     },
-    parseServiceResult(payload = {}) {
-      const serviceResult = payload && payload.serviceResult;
-      const success = serviceResult ? serviceResult.success : undefined;
-      const reason = serviceResult ? serviceResult.reason : '';
-      const errorMsg = serviceResult ? serviceResult.errorCode : '';
-      return {
-        success: success !== false,
-        message: reason || errorMsg || ''
-      };
-    },
     formatDateTime(value) {
-      return taxInvoiceUtils.formatDateTime(value);
+      return this.utils.formatDate(value);
     }
   }
 };

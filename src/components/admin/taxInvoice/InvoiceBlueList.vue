@@ -149,7 +149,11 @@
                   label="审核人"
                   min-width="140"
                 ></el-table-column>
-                <el-table-column prop="reviewTime" label="审核时间" min-width="140">
+                <el-table-column
+                  prop="reviewTime"
+                  label="审核时间"
+                  min-width="140"
+                >
                   <template slot-scope="scope">{{
                     formatDateTime(scope.row.reviewTime)
                   }}</template>
@@ -173,10 +177,7 @@
                         class="ml10 darkgray"
                         >编辑</span
                       >
-                      <span
-                        v-else
-                        class="link ml10"
-                        @click="editRow(scope.row)"
+                      <span v-else class="link ml10" @click="editRow(scope.row)"
                         >编辑</span
                       >
                     </p>
@@ -321,7 +322,9 @@
                     <td>{{ Number(mx.je || 0).toFixed(2) }}</td>
                     <td>
                       {{
-                        mx.slv != null ? Number(mx.slv * 100).toFixed(0) + '%' : '-'
+                        mx.slv != null
+                          ? Number(mx.slv * 100).toFixed(0) + '%'
+                          : '-'
                       }}
                     </td>
                   </tr>
@@ -379,8 +382,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -430,10 +431,8 @@ export default {
       if (status) payload.taskStatus = status;
       if (Array.isArray(kprqRange) && kprqRange.length === 2) {
         // 转换为时间戳格式
-        const { kprqStart, kprqEnd } =
-          taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
-        payload.kprqStart = kprqStart;
-        payload.kprqEnd = kprqEnd;
+        payload.kprqStart = new Date(kprqRange[0] + 'T00:00:00').getTime();
+        payload.kprqEnd = new Date(kprqRange[1] + 'T23:59:59').getTime();
       }
       // 只查询蓝字发票
       payload.lzfpbz = '0';
@@ -457,12 +456,9 @@ export default {
         payload,
         (res) => {
           this.loading = false;
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
+          if (res && res.data) {
             this.$message.success('审核成功');
             this.getData();
-          } else {
-            this.$message.warning(message);
           }
         },
         () => {
@@ -492,7 +488,7 @@ export default {
       return v || '';
     },
     formatDateTime(v) {
-      return taxInvoiceUtils.formatDateTime(v);
+      return this.utils.formatDate(v);
     },
     previewRow(row) {
       if (!row || !row.id) {
@@ -506,11 +502,10 @@ export default {
         { invoiceId: row.id },
         (res) => {
           this.loading = false;
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
-            const formattedData = { ...data };
+          if (res && res.data) {
+            const formattedData = { ...res.data };
             if (formattedData.kprq) {
-              formattedData.kprq = taxInvoiceUtils.formatTimestampToDate(
+              formattedData.kprq = this.utils.formatDate(
                 formattedData.kprq,
                 'yyyy-MM-dd'
               );

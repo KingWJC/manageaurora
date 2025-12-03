@@ -390,8 +390,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -544,12 +542,11 @@ export default {
         (res) => {
           this.saving = false;
           this.dialog.apply = false;
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
+          if (res && res.data) {
             this.$message.success('申请已提交');
             this.getData();
           } else {
-            this.$message.warning(message || '申请失败');
+            this.$message.warning('申请失败');
           }
         },
         () => {
@@ -587,7 +584,7 @@ export default {
       );
     },
     formatDateTime(v) {
-      return taxInvoiceUtils.formatDateTime(v);
+      return this.utils.formatDate(v);
     },
     parsePagedResult(payload = {}) {
       const serviceResult = payload && payload.serviceResult;
@@ -606,32 +603,6 @@ export default {
         records,
         total
       };
-    },
-    parseServiceResult(payload = {}) {
-      let body = payload;
-      if (body && body.serviceResult) {
-        body = body.serviceResult;
-      }
-      const successFlag =
-        body && body.success !== undefined ? body.success : undefined;
-      const code =
-        body && (body.code !== undefined ? body.code : payload.code);
-      const success =
-        successFlag !== false &&
-        (code === undefined || code === null || code === '0');
-      const message =
-        (body &&
-          (body.msg || body.message || body.reason || body.errorMsg)) ||
-        payload.msg ||
-        payload.message ||
-        '';
-      const data =
-        (body &&
-          (body.data !== undefined
-            ? body.data
-            : body.result || body.record || body.entity)) ||
-        {};
-      return { success, message, data };
     }
   }
 };

@@ -202,8 +202,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   components: {
     crumbsBar: () => import('@/common-base/components/crumbs-bar')
@@ -230,10 +228,8 @@ export default {
       if (fphm) payload.fphm = fphm.trim();
       if (gmfmc) payload.gmfmc = gmfmc.trim();
       if (Array.isArray(kprqRange) && kprqRange.length === 2) {
-        const { kprqStart, kprqEnd } =
-          taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
-        payload.kprqStart = kprqStart;
-        payload.kprqEnd = kprqEnd;
+        payload.kprqStart = new Date(kprqRange[0] + 'T00:00:00').getTime();
+        payload.kprqEnd = new Date(kprqRange[1] + 'T23:59:59').getTime();
       }
       // 只查询蓝字发票
       payload.lzfpbz = '0';
@@ -311,33 +307,15 @@ export default {
       };
     },
     formatDateTime(value) {
-      return taxInvoiceUtils.formatDateTime(value);
+      return this.utils.formatDate(value);
     },
     fppzText(v) {
       return v === '01' ? '数电专票' : v === '02' ? '数电普票' : v || '-';
     },
     chooseAndNext(item) {
-      // 保存选中的蓝字发票信息
-      const blueInvoiceData = {
-        id: item.id,
-        fphm: item.fphm,
-        gmfmc: item.gmfmc,
-        xsfmc: item.xsfmc,
-        fplxDm: item.fppz,
-        kprq: item.kprq,
-        gmfnsrsbh: item.gmfnsrsbh,
-        hjjc: item.hjje,
-        hjs: item.hjse,
-        jshj: item.jshj
-      };
-      sessionStorage.setItem(
-        'taxInvoice.selectedBlueInvoice',
-        JSON.stringify(blueInvoiceData)
-      );
-
       const next = this.$route.query && this.$route.query.next;
       if (next) {
-        this.$router.push({ name: next });
+        this.$router.push({ name: next, query: { blueInvoiceId: item.id } });
       }
     }
   }

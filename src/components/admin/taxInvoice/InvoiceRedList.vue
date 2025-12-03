@@ -286,8 +286,6 @@
 </template>
 
 <script>
-import taxInvoiceUtils from './taxInvoiceUtils';
-
 export default {
   props: { permissions: Object, params: Object },
   data() {
@@ -331,9 +329,8 @@ export default {
       if (gmfmc) payload.gmfmc = gmfmc.trim();
       if (status) payload.taskStatus = status;
       if (Array.isArray(kprqRange) && kprqRange.length === 2) {
-        const { kprqStart, kprqEnd } = taxInvoiceUtils.formatDateRangeToTimestamp(kprqRange);
-        payload.kprqStart = kprqStart;
-        payload.kprqEnd = kprqEnd;
+        payload.kprqStart = new Date(kprqRange[0] + 'T00:00:00').getTime();
+        payload.kprqEnd = new Date(kprqRange[1] + 'T23:59:59').getTime();
       }
       // 只查询蓝字发票
       payload.lzfpbz = '1';
@@ -380,11 +377,10 @@ export default {
         { invoiceId: row.id },
         (res) => {
           this.loading = false;
-          const { success, message, data } = this.parseServiceResult(res || {});
-          if (success && data) {
-            const formattedData = { ...data };
+          if (res && res.data) {
+            const formattedData = { ...res.data };
             if (formattedData.kprq) {
-              formattedData.kprq = taxInvoiceUtils.formatTimestampToDate(
+              formattedData.kprq = this.utils.formatDate(
                 formattedData.kprq,
                 'yyyy-MM-dd'
               );
@@ -399,17 +395,6 @@ export default {
         },
         this
       );
-    },
-    parseServiceResult(payload = {}) {
-      const success = payload ? payload.success : undefined;
-      const reason = payload ? payload.reason : '';
-      const errorMsg = payload ? payload.error : '';
-      const data = payload && (payload.data !== undefined ? payload.data : {});
-      return {
-        success: success !== false,
-        message: reason || errorMsg || '',
-        data
-      };
     },
     statusText(v) {
       if (v === '00') return '未提交';
@@ -441,12 +426,11 @@ export default {
         payload,
         (res) => {
           this.loading = false;
-          const { success, message } = this.parseServiceResult(res || {});
-          if (success) {
+          if (res && res.data) {
             this.$message.success('审核成功');
             this.getData();
           } else {
-            this.$message.warning(message);
+            this.$message.warning('审核失败');
           }
         },
         () => {
@@ -578,7 +562,7 @@ export default {
       };
     },
     formatDateTime(value) {
-      return taxInvoiceUtils.formatDateTime(value);
+      return this.utils.formatDate(value);
     }
   }
 };
