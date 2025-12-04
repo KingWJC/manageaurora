@@ -47,82 +47,11 @@
           </div>
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
-              <el-table
-                :data="rows"
+              <tableView
                 v-loading="loading"
-                style="width: 100%"
-                border
-              >
-                <el-table-column
-                  prop="nsrsbh"
-                  label="纳税人识别号"
-                  min-width="220"
-                />
-                <el-table-column
-                  prop="nsrmc"
-                  label="纳税人名称"
-                  min-width="220"
-                />
-                <el-table-column
-                  prop="isInit"
-                  label="是否已初始化"
-                  min-width="140"
-                  align="center"
-                >
-                  <template slot-scope="scope">
-                    {{ scope.row.isInit ? '是' : '否' }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="initTime"
-                  label="初始化时间"
-                  min-width="140"
-                >
-               <templage slot-scope="scope">{{ formatDateTime(scope.row.initTime) }}</templage>
-              </el-table-column>
-                <el-table-column
-                  prop="updateTime"
-                  label="更新时间"
-                  min-width="140"
-                >
-                 <templage slot-scope="scope">{{ formatDateTime(scope.row.updateTime) }}</templage>
-              </el-table-column>
-                <el-table-column label="操作" min-width="120" fixed="right">
-                  <template slot-scope="scope">
-                    <p>
-                      <span
-                        :class="[
-                          'link',
-                          {
-                            disabled: actionLoading || isInitialized(scope.row)
-                          }
-                        ]"
-                        @click="
-                          actionLoading || isInitialized(scope.row)
-                            ? null
-                            : initPreprocess(scope.row)
-                        "
-                        >初始化</span
-                      >
-                      <span
-                        :class="[
-                          'link',
-                          'ml10',
-                          {
-                            disabled: actionLoading || !isInitialized(scope.row)
-                          }
-                        ]"
-                        @click="
-                          actionLoading || !isInitialized(scope.row)
-                            ? null
-                            : updatePreprocess(scope.row)
-                        "
-                        >更新</span
-                      >
-                    </p>
-                  </template>
-                </el-table-column>
-              </el-table>
+                :list="rows"
+                :cols="tableCols"
+              ></tableView>
             </div>
           </div>
         </div>
@@ -132,7 +61,12 @@
 </template>
 
 <script>
+import tableView from '@/common-base/components/pubComponents/tableView';
+
 export default {
+  components: {
+    tableView
+  },
   props: { permissions: Object, params: Object },
   data() {
     return {
@@ -144,7 +78,67 @@ export default {
       rows: [],
       pager: { current: 1, size: 10, total: 0 },
       actionLoading: false,
-      actionLoadingInstance: null
+      actionLoadingInstance: null,
+      tableCols: [
+        { label: '纳税人识别号', id: 'nsrsbh', width: '220' },
+        { label: '纳税人名称', id: 'nsrmc', width: '220' },
+        {
+          label: '是否已初始化',
+          id: 'isInit',
+          width: '140',
+          align: 'center',
+          render: (row) => {
+            return row.isInit ? '是' : '否';
+          }
+        },
+        {
+          label: '初始化时间',
+          id: 'initTime',
+          width: '140',
+          render: (row) => {
+            return this.formatDateTime(row.initTime);
+          }
+        },
+        {
+          label: '更新时间',
+          id: 'updateTime',
+          width: '140',
+          render: (row) => {
+            return this.formatDateTime(row.updateTime);
+          }
+        },
+        {
+          label: '操作',
+          width: '120',
+          fixed: 'right',
+          btns: [
+            {
+              name: '初始化',
+              click: (row) => {
+                this.initPreprocess(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: (row) => {
+                return this.actionLoading || this.isInitialized(row);
+              }
+            },
+            {
+              name: '更新',
+              click: (row) => {
+                this.updatePreprocess(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: (row) => {
+                return this.actionLoading || !this.isInitialized(row);
+              }
+            }
+          ]
+        }
+      ]
     };
   },
   mounted() {
@@ -180,7 +174,7 @@ export default {
         nsrmc: this.form.nsrmc
       };
       this.API.send(
-        this.CFG.services.kailing.queryPreprocess,
+        this.CFG.services.taxinvoice.queryPreprocess,
         args,
         (res) => {
           this.loading = false;
@@ -224,7 +218,7 @@ export default {
         isInit: !row.isInit
       };
       this.API.send(
-        this.CFG.services.kailing.executePreprocess,
+        this.CFG.services.taxinvoice.executePreprocess,
         payload,
         (res) => {
           this.closeActionLoading();

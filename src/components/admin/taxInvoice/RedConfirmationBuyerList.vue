@@ -49,62 +49,11 @@
           </div>
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
-              <el-table :data="rows" v-loading="loading" style="width:100%" border>
-                <el-table-column prop="id" label="单据ID" min-width="130"></el-table-column>
-                <el-table-column prop="hzfpxxqrdbh" label="红字确认单编号" min-width="150"></el-table-column>
-                <el-table-column prop="lzfphm" label="蓝字发票号码" min-width="130"></el-table-column>
-                <el-table-column prop="redInvoiceId" label="红字发票ID" min-width="130" v-if="false"></el-table-column>
-                <el-table-column prop="xsfmc" label="销方名称" min-width="150"></el-table-column>
-                <el-table-column prop="gmfmc" label="购方名称" min-width="150"></el-table-column>
-                <el-table-column prop="lzhjje" label="蓝字发票合计金额" min-width="140">
-                  <template slot-scope="scope">¥{{ Number(scope.row.lzhjje || 0).toFixed(2) }}</template>
-                </el-table-column>
-                <el-table-column prop="lzhjse" label="蓝字发票合计税额" min-width="140">
-                  <template slot-scope="scope">¥{{ Number(scope.row.lzhjse || 0).toFixed(2) }}</template>
-                </el-table-column>
-                <el-table-column prop="hzcxje" label="红字冲销金额" min-width="120">
-                  <template slot-scope="scope">
-                    <span :class="{ 'text-red': Number(scope.row.hzcxje || 0) < 0 }">
-                      ¥{{ Number(scope.row.hzcxje || 0) < 0 ? Number(scope.row.hzcxje || 0).toFixed(2) : (-Number(scope.row.hzcxje || 0)).toFixed(2) }}
-                    </span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="hzcxse" label="红字冲销税额" min-width="120">
-                  <template slot-scope="scope">
-                    <span :class="{ 'text-red': Number(scope.row.hzcxse || 0) < 0 }">
-                      ¥{{ Number(scope.row.hzcxse || 0) < 0 ? Number(scope.row.hzcxse || 0).toFixed(2) : (-Number(scope.row.hzcxse || 0)).toFixed(2) }}
-                    </span>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="chyyDm" label="冲红原因" min-width="120">
-                  <template slot-scope="scope">{{ chyyText(scope.row.chyyDm) }}</template>
-                </el-table-column>
-                <el-table-column prop="lrfsf" label="录入方身份" min-width="120">
-                  <template slot-scope="scope">{{ lrfsfText(scope.row.lrfsf) }}</template>
-                </el-table-column>
-                <el-table-column prop="lrrq" label="录入日期" min-width="160">
-                  <template slot-scope="scope">{{ formatDateTime(scope.row.lrrq) }}</template>
-                </el-table-column>
-                <el-table-column prop="qrrq" label="确认日期" min-width="160">
-                  <template slot-scope="scope">{{ formatDateTime(scope.row.qrrq) }}</template>
-                </el-table-column>
-                <el-table-column prop="hzqrxxztDm" label="状态" min-width="140" align="center">
-                  <template slot-scope="scope">
-                    <span>{{ statusText(scope.row.hzqrxxztDm) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" min-width="100" fixed="right">
-                  <template slot-scope="scope">
-                    <p>
-                      <span class="link" @click="handleView(scope.row)">查看</span>
-                      <span class="link ml10" :class="{ 'link-disabled': !canConfirm(scope.row) }" @click="confirmRow(scope.row, 'Y')">确认</span>
-                    </p>
-                    <p>
-                      <span class="link" :class="{ 'link-disabled': !canReject(scope.row) }" @click="confirmRow(scope.row, 'N')">拒绝</span>
-                    </p>
-                  </template>
-                </el-table-column>
-              </el-table>
+              <tableView
+                v-loading="loading"
+                :list="rows"
+                :cols="tableCols"
+              ></tableView>
             </div>
           </div>
         </div>
@@ -114,7 +63,12 @@
 </template>
 
 <script>
+import tableView from '@/common-base/components/pubComponents/tableView';
+
 export default {
+  components: {
+    tableView
+  },
   props: { permissions: Object, params: Object },
   data() {
     return { 
@@ -126,11 +80,138 @@ export default {
         lrrqRange: []
       }, 
       rows: [], 
-      pager: { current: 1, size: 10, total: 0 }
+      pager: { current: 1, size: 10, total: 0 },
+      tableCols: [
+        { label: '单据ID', id: 'id', width: '130' },
+        { label: '红字确认单编号', id: 'hzfpxxqrdbh', width: '150' },
+        { label: '蓝字发票号码', id: 'lzfphm', width: '130' },
+        { label: '销方名称', id: 'xsfmc', width: '150' },
+        { label: '购方名称', id: 'gmfmc', width: '150' },
+        {
+          label: '蓝字发票合计金额',
+          id: 'lzhjje',
+          width: '140',
+          render: (row) => {
+            return '¥' + Number(row.lzhjje || 0).toFixed(2);
+          }
+        },
+        {
+          label: '蓝字发票合计税额',
+          id: 'lzhjse',
+          width: '140',
+          render: (row) => {
+            return '¥' + Number(row.lzhjse || 0).toFixed(2);
+          }
+        },
+        {
+          label: '红字冲销金额',
+          id: 'hzcxje',
+          width: '120',
+          render: (row) => {
+            const value = Number(row.hzcxje || 0);
+            const displayValue = value < 0 ? value.toFixed(2) : (-value).toFixed(2);
+            return '<span class="' + (value < 0 ? 'text-red' : '') + '">¥' + displayValue + '</span>';
+          }
+        },
+        {
+          label: '红字冲销税额',
+          id: 'hzcxse',
+          width: '120',
+          render: (row) => {
+            const value = Number(row.hzcxse || 0);
+            const displayValue = value < 0 ? value.toFixed(2) : (-value).toFixed(2);
+            return '<span class="' + (value < 0 ? 'text-red' : '') + '">¥' + displayValue + '</span>';
+          }
+        },
+        {
+          label: '冲红原因',
+          id: 'chyyDm',
+          width: '120',
+          render: (row) => {
+            return this.chyyText(row.chyyDm);
+          }
+        },
+        {
+          label: '录入方身份',
+          id: 'lrfsf',
+          width: '120',
+          render: (row) => {
+            return this.lrfsfText(row.lrfsf);
+          }
+        },
+        {
+          label: '录入日期',
+          id: 'lrrq',
+          width: '160',
+          render: (row) => {
+            return this.formatDateTime(row.lrrq);
+          }
+        },
+        {
+          label: '确认日期',
+          id: 'qrrq',
+          width: '160',
+          render: (row) => {
+            return this.formatDateTime(row.qrrq);
+          }
+        },
+        {
+          label: '状态',
+          id: 'hzqrxxztDm',
+          width: '140',
+          align: 'center',
+          render: (row) => {
+            return this.statusText(row.hzqrxxztDm);
+          }
+        },
+        {
+          label: '操作',
+          width: '100',
+          fixed: 'right',
+          btns: [
+            {
+              name: '查看',
+              click: (row) => {
+                this.handleView(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: () => {
+                return false;
+              }
+            },
+            {
+              name: '确认',
+              click: (row) => {
+                this.confirmRow(row, 'Y');
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: (row) => {
+                return !this.canConfirm(row);
+              }
+            },
+            {
+              name: '拒绝',
+              click: (row) => {
+                this.confirmRow(row, 'N');
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: (row) => {
+                return !this.canReject(row);
+              }
+            }
+          ]
+        }
+      ]
     };
   },
-  mounted() { 
-    this.getData(); 
+  mounted() {
+    this.getData();
   },
   activated() {
     this.getData();
@@ -210,7 +291,7 @@ export default {
               };
               this.loading = true;
               this.API.send(
-                this.CFG.services.kailing.confirmRedConfirm,
+                this.CFG.services.taxinvoice.confirmRedConfirm,
                 payload,
                 (res) => {
                   this.loading = false;
@@ -260,7 +341,7 @@ export default {
       this.loading = true;
       const payload = this.buildQueryPayload();
       this.API.send(
-        this.CFG.services.kailing.pageRedConfirmList,
+        this.CFG.services.taxinvoice.pageRedConfirmList,
         payload,
         (res) => {
           this.loading = false;

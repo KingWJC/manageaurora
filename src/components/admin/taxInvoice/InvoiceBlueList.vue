@@ -72,134 +72,11 @@
           </div>
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
-              <el-table
-                :data="rows"
+              <tableView
                 v-loading="loading"
-                style="width: 100%"
-                border
-              >
-                <el-table-column
-                  prop="id"
-                  label="单据ID"
-                  min-width="130"
-                ></el-table-column>
-                <el-table-column
-                  prop="fphm"
-                  label="发票号码"
-                  min-width="130"
-                ></el-table-column>
-                <el-table-column prop="fppz" label="票种" min-width="80">
-                  <template slot-scope="scope">
-                    {{
-                      scope.row.fppz === '01'
-                        ? '数电专'
-                        : scope.row.fppz === '02'
-                        ? '数电普'
-                        : scope.row.fppz
-                    }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="xsfmc"
-                  label="销方名称"
-                  min-width="150"
-                ></el-table-column>
-                <el-table-column
-                  prop="gmfmc"
-                  label="购方名称"
-                  min-width="150"
-                ></el-table-column>
-                <el-table-column prop="hjje" label="合计金额" min-width="120">
-                  <template slot-scope="scope"
-                    >¥{{ Number(scope.row.hjje || 0).toFixed(2) }}</template
-                  >
-                </el-table-column>
-                <el-table-column prop="hjse" label="合计税额" min-width="120">
-                  <template slot-scope="scope"
-                    >¥{{ Number(scope.row.hjse || 0).toFixed(2) }}</template
-                  >
-                </el-table-column>
-                <el-table-column prop="jshj" label="价税合计" min-width="120">
-                  <template slot-scope="scope"
-                    >¥{{ Number(scope.row.jshj || 0).toFixed(2) }}</template
-                  >
-                </el-table-column>
-                <el-table-column
-                  prop="kpr"
-                  label="开票人"
-                  min-width="140"
-                ></el-table-column>
-                <el-table-column prop="kprq" label="开票日期" min-width="140">
-                  <template slot-scope="scope">{{
-                    formatDateTime(scope.row.kprq)
-                  }}</template>
-                </el-table-column>
-                <el-table-column
-                  prop="taskStatus"
-                  label="状态"
-                  min-width="100"
-                  align="center"
-                >
-                  <template slot-scope="scope">
-                    <span>{{ statusText(scope.row.taskStatus) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="fhrxm"
-                  label="审核人"
-                  min-width="140"
-                ></el-table-column>
-                <el-table-column
-                  prop="reviewTime"
-                  label="审核时间"
-                  min-width="140"
-                >
-                  <template slot-scope="scope">{{
-                    formatDateTime(scope.row.reviewTime)
-                  }}</template>
-                </el-table-column>
-                <el-table-column
-                  prop="reviewStatus"
-                  label="审核状态"
-                  min-width="100"
-                  align="center"
-                >
-                  <template slot-scope="scope">
-                    <span>{{ auditStatusText(scope.row.reviewStatus) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" min-width="100" fixed="right">
-                  <template slot-scope="scope">
-                    <p>
-                      <span class="link" @click="viewRow(scope.row)">查看</span>
-                      <span
-                        v-if="scope.row.reviewStatus === '01'"
-                        class="ml10 darkgray"
-                        >编辑</span
-                      >
-                      <span v-else class="link ml10" @click="editRow(scope.row)"
-                        >编辑</span
-                      >
-                    </p>
-                    <p>
-                      <span class="link" @click="previewRow(scope.row)"
-                        >预览</span
-                      >
-                      <span
-                        v-if="scope.row.reviewStatus === '01'"
-                        class="ml10 darkgray"
-                        >审核</span
-                      >
-                      <span
-                        v-else
-                        class="link ml10"
-                        @click="auditRow(scope.row)"
-                        >审核</span
-                      >
-                    </p>
-                  </template>
-                </el-table-column>
-              </el-table>
+                :list="rows"
+                :cols="tableCols"
+              ></tableView>
             </div>
           </div>
         </div>
@@ -382,7 +259,12 @@
 </template>
 
 <script>
+import tableView from '@/common-base/components/pubComponents/tableView';
+
 export default {
+  components: {
+    tableView
+  },
   props: { permissions: Object, params: Object },
   data() {
     return {
@@ -396,7 +278,136 @@ export default {
       rows: [],
       pager: { current: 1, size: 10, total: 0 },
       dialog: { preview: false },
-      previewData: null
+      previewData: null,
+      tableCols: [
+        { label: '单据ID', id: 'id', width: '130' },
+        { label: '发票号码', id: 'fphm', width: '130' },
+        {
+          label: '票种',
+          id: 'fppz',
+          width: '80',
+          render: (row) => {
+            return row.fppz === '01' ? '数电专' : row.fppz === '02' ? '数电普' : row.fppz || '-';
+          }
+        },
+        { label: '销方名称', id: 'xsfmc', width: '150' },
+        { label: '购方名称', id: 'gmfmc', width: '150' },
+        {
+          label: '合计金额',
+          id: 'hjje',
+          width: '120',
+          render: (row) => {
+            return '¥' + Number(row.hjje || 0).toFixed(2);
+          }
+        },
+        {
+          label: '合计税额',
+          id: 'hjse',
+          width: '120',
+          render: (row) => {
+            return '¥' + Number(row.hjse || 0).toFixed(2);
+          }
+        },
+        {
+          label: '价税合计',
+          id: 'jshj',
+          width: '120',
+          render: (row) => {
+            return '¥' + Number(row.jshj || 0).toFixed(2);
+          }
+        },
+        { label: '开票人', id: 'kpr', width: '140' },
+        {
+          label: '开票日期',
+          id: 'kprq',
+          width: '140',
+          render: (row) => {
+            return this.formatDateTime(row.kprq);
+          }
+        },
+        {
+          label: '状态',
+          id: 'taskStatus',
+          width: '100',
+          align: 'center',
+          render: (row) => {
+            return this.statusText(row.taskStatus);
+          }
+        },
+        { label: '审核人', id: 'fhrxm', width: '140' },
+        {
+          label: '审核时间',
+          id: 'reviewTime',
+          width: '140',
+          render: (row) => {
+            return this.formatDateTime(row.reviewTime);
+          }
+        },
+        {
+          label: '审核状态',
+          id: 'reviewStatus',
+          width: '100',
+          align: 'center',
+          render: (row) => {
+            return this.auditStatusText(row.reviewStatus);
+          }
+        },
+        {
+          label: '操作',
+          width: '100',
+          fixed: 'right',
+          btns: [
+            {
+              name: '查看',
+              click: (row) => {
+                this.viewRow(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: () => {
+                return false;
+              }
+            },
+            {
+              name: '编辑',
+              click: (row) => {
+                this.editRow(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: (row) => {
+                return row.reviewStatus === '01';
+              }
+            },
+            {
+              name: '预览',
+              click: (row) => {
+                this.previewRow(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: () => {
+                return false;
+              }
+            },
+            {
+              name: '审核',
+              click: (row) => {
+                this.auditRow(row);
+              },
+              condition: () => {
+                return true;
+              },
+              isDisabled: (row) => {
+                return row.reviewStatus === '01';
+              }
+            }
+          ]
+        }
+      ]
     };
   },
   mounted() {
@@ -498,7 +509,7 @@ export default {
       this.dialog.preview = true;
       this.loading = true;
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceQuery,
+        this.CFG.services.taxinvoice.digitalInvoiceQuery,
         { invoiceId: row.id },
         (res) => {
           this.loading = false;
@@ -551,7 +562,7 @@ export default {
         .then(({ value }) => {
           // 审核通过：reviewStatus = '01'
           this.sendAuditRequest(
-            this.CFG.services.kailing.digitalInvoiceAudit,
+            this.CFG.services.taxinvoice.digitalInvoiceAudit,
             row,
             '01',
             value || ''
@@ -561,7 +572,7 @@ export default {
           if (action === 'cancel') {
             // 审核退回：reviewStatus = '02'
             this.sendAuditRequest(
-              this.CFG.services.kailing.digitalInvoiceAudit,
+              this.CFG.services.taxinvoice.digitalInvoiceAudit,
               row,
               '02',
               inputValue || ''
@@ -573,7 +584,7 @@ export default {
       this.loading = true;
       const payload = this.buildQueryPayload();
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceList,
+        this.CFG.services.taxinvoice.digitalInvoiceList,
         payload,
         (res) => {
           this.loading = false;

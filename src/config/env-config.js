@@ -123,7 +123,7 @@ const EnvConfig = {
       // wechatrobot: 'http://17.17.1.158:80',
       // wechatrobot: 'http://2.0.1.2:80',
       //invoice: 'https://test-invoicing.lonch.com.cn',
-      kailing: '/kailing',
+      lqa: '/lqa',
       // invoice: 'http://10.20.14.44:8012/invoice',
       // invoice: 'http://17.17.1.219:8012/invoice',
       // invoice: 'http://2.0.1.93:8012/invoice',
@@ -458,8 +458,7 @@ const EnvConfig = {
       agentapi: '/agentapi',
       wechatrobot: '/wechatrobot',
       invoice: '/invoice',
-      kailing: '/kailing',
-      lqadapter: '/lqadapter',
+      lqa: '/lqa',
       crmapi: '/crmapi',
       tyc: '/tyc', // 冯剑飞 天眼查
       sku: '/sku',
@@ -561,8 +560,7 @@ const EnvConfig = {
       agentapi: '/agentapi',
       wechatrobot: '/wechatrobot',
       invoice: '/invoice',
-      kailing: '/kailing',
-      lqadapter: '/lqadapter',
+      lqa: '/lqa',
       crmapi: '/crmapi',
       tyc: '/tyc', // 冯剑飞 天眼查
       sku: '/sku',

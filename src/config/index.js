@@ -38,7 +38,7 @@ import mpmapi from './module/mpmapi';
 import spdm from './module/spdm';
 import ca from './module/ca';
 import ectapi from './module/ectapi';
-import kailing from './module/kailing.js';
+import taxinvoice from './module/taxinvoice';
 
 const config = {
   domainName: 'manageaurora',
@@ -61,7 +61,7 @@ const config = {
   },
   versionConfig: [],
   services: {
-    kailing,
+    taxinvoice,
     spu,
     whStorage,
     pat,

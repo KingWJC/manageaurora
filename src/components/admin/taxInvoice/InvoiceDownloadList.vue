@@ -123,112 +123,11 @@
           </div>
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
-              <el-table
-                :data="rows"
+              <tableView
                 v-loading="loading"
-                style="width: 100%"
-                border
-              >
-                <el-table-column
-                  prop="downloadLsh"
-                  label="下载流水号"
-                  min-width="150"
-                ></el-table-column>
-                <el-table-column
-                  prop="nsrsbh"
-                  label="纳税人识别号"
-                  min-width="150"
-                ></el-table-column>
-                <el-table-column prop="fplx" label="发票类型" min-width="120">
-                  <template slot-scope="scope">
-                    {{ fplxText(scope.row.fplx) }}
-                  </template>
-                </el-table-column>
-                <el-table-column prop="sjlx" label="数据类型" min-width="100">
-                  <template slot-scope="scope">
-                    {{ sjlxText(scope.row.sjlx) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="开票日期范围" min-width="200">
-                  <template slot-scope="scope">
-                    {{ scope.row.kprqq }} ~ {{ scope.row.kprqz }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="processedPackages"
-                  label="已处理包数"
-                  min-width="100"
-                  align="center"
-                ></el-table-column>
-                <el-table-column
-                  prop="totalPackages"
-                  label="总包数"
-                  min-width="100"
-                  align="center"
-                ></el-table-column>
-                <el-table-column
-                  prop="processedCount"
-                  label="已处理数量"
-                  min-width="100"
-                  align="center"
-                ></el-table-column>
-                <el-table-column
-                  prop="invoiceCount"
-                  label="发票数量"
-                  min-width="100"
-                  align="center"
-                ></el-table-column>
-                <el-table-column
-                  prop="taskStatus"
-                  label="任务状态"
-                  min-width="100"
-                  align="center"
-                >
-                  <template slot-scope="scope">
-                    <span>{{ dlStatusText(scope.row.taskStatus) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="cljg"
-                  label="处理结果"
-                  min-width="100"
-                  align="center"
-                >
-                  <template slot-scope="scope">
-                    <span>{{ cljgText(scope.row.cljg) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="executeTime"
-                  label="执行时间"
-                  min-width="160"
-                >
-                  <template slot-scope="scope">
-                    {{ formatDateTime(scope.row.executeTime) }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="completeTime"
-                  label="完成时间"
-                  min-width="160"
-                >
-                  <template slot-scope="scope">
-                    {{ formatDateTime(scope.row.completeTime) }}
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  prop="retryCount"
-                  label="重试次数"
-                  min-width="100"
-                  align="center"
-                ></el-table-column>
-                <el-table-column
-                  prop="errorMessage"
-                  label="错误信息"
-                  min-width="200"
-                  show-overflow-tooltip
-                ></el-table-column>
-              </el-table>
+                :list="rows"
+                :cols="tableCols"
+              ></tableView>
             </div>
           </div>
           <!-- 申请下载 弹窗 -->
@@ -390,7 +289,12 @@
 </template>
 
 <script>
+import tableView from '@/common-base/components/pubComponents/tableView';
+
 export default {
+  components: {
+    tableView
+  },
   props: { permissions: Object, params: Object },
   data() {
     return {
@@ -408,7 +312,74 @@ export default {
         cljg: ''
       },
       rows: [],
-      pager: { current: 1, size: 10, total: 0 }
+      pager: { current: 1, size: 10, total: 0 },
+      tableCols: [
+        { label: '下载流水号', id: 'downloadLsh', width: '150' },
+        { label: '纳税人识别号', id: 'nsrsbh', width: '150' },
+        {
+          label: '发票类型',
+          id: 'fplx',
+          width: '120',
+          render: (row) => {
+            return this.fplxText(row.fplx);
+          }
+        },
+        {
+          label: '数据类型',
+          id: 'sjlx',
+          width: '100',
+          render: (row) => {
+            return this.sjlxText(row.sjlx);
+          }
+        },
+        {
+          label: '开票日期范围',
+          width: '200',
+          render: (row) => {
+            return (row.kprqq || '') + ' ~ ' + (row.kprqz || '');
+          }
+        },
+        { label: '已处理包数', id: 'processedPackages', width: '100', align: 'center' },
+        { label: '总包数', id: 'totalPackages', width: '100', align: 'center' },
+        { label: '已处理数量', id: 'processedCount', width: '100', align: 'center' },
+        { label: '发票数量', id: 'invoiceCount', width: '100', align: 'center' },
+        {
+          label: '任务状态',
+          id: 'taskStatus',
+          width: '100',
+          align: 'center',
+          render: (row) => {
+            return this.dlStatusText(row.taskStatus);
+          }
+        },
+        {
+          label: '处理结果',
+          id: 'cljg',
+          width: '100',
+          align: 'center',
+          render: (row) => {
+            return this.cljgText(row.cljg);
+          }
+        },
+        {
+          label: '执行时间',
+          id: 'executeTime',
+          width: '160',
+          render: (row) => {
+            return this.formatDateTime(row.executeTime);
+          }
+        },
+        {
+          label: '完成时间',
+          id: 'completeTime',
+          width: '160',
+          render: (row) => {
+            return this.formatDateTime(row.completeTime);
+          }
+        },
+        { label: '重试次数', id: 'retryCount', width: '100', align: 'center' },
+        { label: '错误信息', id: 'errorMessage', width: '200' }
+      ]
     };
   },
   mounted() {
@@ -537,7 +508,7 @@ export default {
       };
       this.saving = true;
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceDownloadApply,
+        this.CFG.services.taxinvoice.digitalInvoiceDownloadApply,
         payload,
         (res) => {
           this.saving = false;
@@ -564,7 +535,7 @@ export default {
       this.loading = true;
       const payload = this.buildQueryPayload();
       this.API.send(
-        this.CFG.services.kailing.pageInvoiceDownloadList,
+        this.CFG.services.taxinvoice.pageInvoiceDownloadList,
         payload,
         (res) => {
           this.loading = false;

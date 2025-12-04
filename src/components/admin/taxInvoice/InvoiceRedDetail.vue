@@ -657,7 +657,7 @@ export default {
       if (!confirmId) return;
       this.isFromRedConfirm = true;
       this.API.send(
-        this.CFG.services.kailing.queryRedConfirmDetail,
+        this.CFG.services.taxinvoice.queryRedConfirmDetail,
         { confirmId },
         (res) => {
           if (res && res.data) {
@@ -686,7 +686,7 @@ export default {
     fetchBlueInvoiceForRedConfirm(blueInvoiceId) {
       const queryParam = { invoiceId: blueInvoiceId };
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceQuery,
+        this.CFG.services.taxinvoice.digitalInvoiceQuery,
         queryParam,
         (res) => {
           if (res && res.data) {
@@ -805,7 +805,7 @@ export default {
         return;
       }
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceQuery,
+        this.CFG.services.taxinvoice.digitalInvoiceQuery,
         { invoiceId },
         (res) => {
           if (res && res.data) {
@@ -1019,7 +1019,7 @@ export default {
       this.saving = true;
       const payload = this.buildAddPayload();
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceAdd,
+        this.CFG.services.taxinvoice.digitalInvoiceAdd,
         payload,
         (res) => {
           this.saving = false;

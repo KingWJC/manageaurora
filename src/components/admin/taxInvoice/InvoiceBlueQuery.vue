@@ -268,7 +268,7 @@ export default {
       this.loading = true;
       const payload = this.buildQueryPayload();
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceList,
+        this.CFG.services.taxinvoice.digitalInvoiceList,
         payload,
         (res) => {
           this.loading = false;

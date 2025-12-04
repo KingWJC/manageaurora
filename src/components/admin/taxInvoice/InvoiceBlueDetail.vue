@@ -887,7 +887,7 @@ export default {
   methods: {
     fetchInvoiceDetail(invoiceId) {
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceQuery,
+        this.CFG.services.taxinvoice.digitalInvoiceQuery,
         { invoiceId },
         (res) => {
           if (res && res.data) {
@@ -1281,7 +1281,7 @@ export default {
       ];
       for (const [key, msg] of required) {
         const value = this.form[key];
-        if (value === '' || value === null || value === undefined) {
+        if (value !== 0 && !value) {
           return msg;
         }
       }
@@ -1413,7 +1413,7 @@ export default {
       this.saving = true;
       const payload = this.buildAddPayload();
       this.API.send(
-        this.CFG.services.kailing.digitalInvoiceAdd,
+        this.CFG.services.taxinvoice.digitalInvoiceAdd,
         payload,
         (res) => {
           this.saving = false;
@@ -1424,7 +1424,7 @@ export default {
             const resultMessage = data && data.message;
             if (invoiceId || fphm) {
               const info = fphm && `发票号码: ${fphm}`;
-              this.$message.success(`上传成功，${info}`);
+              this.$message.success(`保存成功，${info}`);
             } else if (resultMessage) {
               this.$message.success(resultMessage);
             } else {

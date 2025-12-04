@@ -47,78 +47,11 @@
           </div>
           <div class="flex-flex-auto panel p15" ref="viewBody">
             <div class="panel-table-content">
-              <el-table
-                :data="rows"
+              <tableView
                 v-loading="loading"
-                style="width: 100%"
-                border
-              >
-                <el-table-column
-                  prop="nsrsbh"
-                  label="纳税人识别号"
-                  width="220"
-                />
-                <el-table-column prop="nsrmc" label="纳税人名称" width="220" />
-                <el-table-column
-                  prop="ztsxbz"
-                  label="暂停赋额标志"
-                  width="140"
-                />
-                <el-table-column
-                  prop="bysxed"
-                  label="本月发票额度"
-                  min-width="120"
-                >
-                  <template slot-scope="scope"
-                    >¥{{ formatCurrency(scope.row.bysxed) }}</template
-                  >
-                </el-table-column>
-                <el-table-column
-                  prop="kysyed"
-                  label="可用剩余额度"
-                  min-width="120"
-                >
-                  <template slot-scope="scope"
-                    >¥{{ formatCurrency(scope.row.kysyed) }}</template
-                  >
-                </el-table-column>
-                <el-table-column
-                  prop="yxzed"
-                  label="已下载额度"
-                  min-width="120"
-                >
-                  <template slot-scope="scope"
-                    >¥{{ formatCurrency(scope.row.yxzed) }}</template
-                  >
-                </el-table-column>
-                <el-table-column
-                  prop="yxzwsyed"
-                  label="已下载未使用额度"
-                  min-width="140"
-                >
-                  <template slot-scope="scope"
-                    >¥{{ formatCurrency(scope.row.yxzwsyed) }}</template
-                  >
-                </el-table-column>
-                <el-table-column prop="sq" label="属期" width="140" />
-                <el-table-column label="操作" width="100" fixed="right">
-                  <template slot-scope="scope">
-                    <p>
-                      <span class="link" @click="openDownload(scope.row)"
-                        >下载</span
-                      >
-                      <span class="link ml10" @click="openReturn(scope.row)"
-                        >退回</span
-                      >
-                    </p>
-                    <p>
-                      <span class="link" @click="dialog.adjust = true"
-                        >调整有效期</span
-                      >
-                    </p>
-                  </template>
-                </el-table-column>
-              </el-table>
+                :list="rows"
+                :cols="tableCols"
+              ></tableView>
             </div>
           </div>
         </div>
@@ -205,7 +138,12 @@
 </template>
 
 <script>
+import tableView from '@/common-base/components/pubComponents/tableView';
+
 export default {
+  components: {
+    tableView
+  },
   props: { permissions: Object, params: Object },
   data() {
     return {
@@ -221,7 +159,70 @@ export default {
       pager: { current: 1, size: 10, total: 0 },
       dialog: { drVisible: false, adjust: false, query: false },
       op: { nsrsbh: '', sqlx: '0', sqed: 0 },
-      adj: { xsfnsrsbh: '', sxedsq: '' }
+      adj: { xsfnsrsbh: '', sxedsq: '' },
+      tableCols: [
+        { label: '纳税人识别号', id: 'nsrsbh', width: '220' },
+        { label: '纳税人名称', id: 'nsrmc', width: '220' },
+        { label: '暂停赋额标志', id: 'ztsxbz', width: '140' },
+        {
+          label: '本月发票额度',
+          id: 'bysxed',
+          width: '120',
+          render: (row) => {
+            return '¥' + this.formatCurrency(row.bysxed);
+          }
+        },
+        {
+          label: '可用剩余额度',
+          id: 'kysyed',
+          width: '120',
+          render: (row) => {
+            return '¥' + this.formatCurrency(row.kysyed);
+          }
+        },
+        {
+          label: '已下载额度',
+          id: 'yxzed',
+          width: '120',
+          render: (row) => {
+            return '¥' + this.formatCurrency(row.yxzed);
+          }
+        },
+        {
+          label: '已下载未使用额度',
+          id: 'yxzwsyed',
+          width: '140',
+          render: (row) => {
+            return '¥' + this.formatCurrency(row.yxzwsyed);
+          }
+        },
+        { label: '属期', id: 'sq', width: '140' },
+        {
+          label: '操作',
+          width: '120',
+          fixed: 'right',
+          btns: [
+            {
+              name: '下载',
+              click: (row) => {
+                this.openDownload(row);
+              }
+            },
+            {
+              name: '退回',
+              click: (row) => {
+                this.openReturn(row);
+              }
+            },
+            {
+              name: '调整有效期',
+              click: (row) => {
+                this.openAdjust(row);
+              }
+            }
+          ]
+        }
+      ]
     };
   },
   mounted() {
@@ -261,7 +262,7 @@ export default {
         nsrmc: this.form.nsrmc
       };
       this.API.send(
-        this.CFG.services.kailing.pageQuotaRecords,
+        this.CFG.services.taxinvoice.pageQuotaRecords,
         demand,
         (res) => {
           this.loading = false;
@@ -281,7 +282,9 @@ export default {
       );
     },
     openAdjust(row) {
-      this.adj.xsfnsrsbh = row.nsrsbh;
+      if (row) {
+        this.adj.xsfnsrsbh = row.nsrsbh;
+      }
       this.dialog.adjust = true;
     },
     openDownload(row) {
@@ -310,7 +313,7 @@ export default {
         sqed: this.op.sqed
       };
       this.API.send(
-        this.CFG.services.kailing.operateQuota,
+        this.CFG.services.taxinvoice.operateQuota,
         args,
         (res) => {
           this.saving = false;
@@ -341,7 +344,7 @@ export default {
       }
       this.saving = true;
       this.API.send(
-        this.CFG.services.kailing.adjustQuotaExpire,
+        this.CFG.services.taxinvoice.adjustQuotaExpire,
         { ...this.adj },
         (res) => {
           this.saving = false;
