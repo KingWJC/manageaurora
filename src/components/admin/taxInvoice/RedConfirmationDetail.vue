@@ -99,7 +99,7 @@
                   <div class="lc-col-12 lc-col-xs6">
                     <div class="flex flex-content-start flex-items-center">
                       <label class="nowrap"
-                        ><span class="red">*</span>红字发票冲红原因代码:</label
+                        ><span class="red">*</span>冲红原因:</label
                       >
                       <div class="flex-flex-auto">
                         <el-select
@@ -107,6 +107,7 @@
                           size="small"
                           class="full-width"
                           :disabled="readonly"
+                          @change="onChyyDmChange"
                         >
                           <el-option label="开票有误" value="01" />
                           <el-option label="销货退回" value="02" />
@@ -287,7 +288,9 @@
                           :step="-1"
                           size="small"
                           class="full-width power-minw90"
-                          :disabled="readonly" /></template
+                          :disabled="
+                            readonly || isQuantityDisabled
+                          " /></template
                     ></el-table-column>
                     <el-table-column prop="dj" label="单价(含税)" width="150"
                       ><template slot-scope="{ row }"
@@ -299,12 +302,24 @@
                           :min="0"
                           size="small"
                           class="full-width power-minw90"
-                          :disabled="readonly" /></template
+                          :disabled="readonly || isPriceDisabled" /></template
                     ></el-table-column>
                     <el-table-column prop="je" label="金额(含税)" width="150">
-                      <template slot-scope="{ row }"
-                        >¥{{ formatMoney(row.je) }}</template
-                      >
+                      <template slot-scope="{ row }">
+                        <el-input-number
+                          v-if="(isSalesDiscount || isServiceTermination) && !readonly"
+                          v-model="row.je"
+                          @change="onAmountChange(row)"
+                          :precision="2"
+                          :step="0.01"
+                          :max="0"
+                          :controls="false"
+                          size="small"
+                          class="full-width power-minw90"
+                          placeholder="请输入折让金额（负数）"
+                        />
+                        <span v-else>¥{{ formatMoney(row.je) }}</span>
+                      </template>
                     </el-table-column>
                     <el-table-column
                       prop="slv"
@@ -314,7 +329,7 @@
                       <template slot-scope="{ row }">
                         <el-input-number
                           v-model="row.slv"
-                          @change="onRowChange(row)"
+                          @change="onTaxRateChange(row)"
                           :precision="4"
                           :step="0.01"
                           :min="0"
@@ -489,6 +504,7 @@ export default {
   data() {
     return {
       saving: false,
+      originalBlueInvoice: null, // 保存蓝字发票原始数据，用于校验
       form: {
         id: '',
         uuid: '',
@@ -533,6 +549,53 @@ export default {
     },
     readonly() {
       return this.isViewMode;
+    },
+    isSalesDiscount() {
+      // 当红冲原因为"销售折让"（04）时，返回true
+      return this.form.chyyDm === '04';
+    },
+    isInvoiceError() {
+      // 当红冲原因为"开票有误"（01）时，返回true
+      return this.form.chyyDm === '01';
+    },
+    isGoodsReturn() {
+      // 当红冲原因为"销货退回"（02）时，返回true
+      return this.form.chyyDm === '02';
+    },
+    isServiceTermination() {
+      // 当红冲原因为"服务中止"（03）时，返回true
+      return this.form.chyyDm === '03';
+    },
+    // 是否禁用单价输入框
+    isPriceDisabled() {
+      // 销售折让：禁用
+      // 开票有误：禁用（必须和蓝字发票一致）
+      // 销货退回：禁用（不允许修改）
+      // 服务中止：禁用（不允许修改）
+      return (
+        this.isSalesDiscount ||
+        this.isInvoiceError ||
+        this.isGoodsReturn ||
+        this.isServiceTermination
+      );
+    },
+    // 是否禁用数量输入框
+    isQuantityDisabled() {
+      // 销售折让：禁用
+      // 开票有误：禁用（必须和蓝字发票一致）
+      return this.isSalesDiscount || this.isInvoiceError;
+    }
+  },
+  watch: {
+    'form.chyyDm'(newVal, oldVal) {
+      // 当选择"销售折让"时，清空所有明细行的单价和数量
+      if (newVal === '04') {
+        this.clearPriceAndQuantity();
+      }
+      // 当选择"开票有误"时，恢复蓝字发票的原始数据
+      if (newVal === '01' && this.originalBlueInvoice) {
+        this.restoreBlueInvoiceData();
+      }
     }
   },
   mounted() {
@@ -542,7 +605,7 @@ export default {
     }
 
     // 从蓝字发票查询带入数据
-    const blueInvoiceId = this.$route.query.blueInvoiceId ;
+    const blueInvoiceId = this.$route.query.blueInvoiceId;
     if (blueInvoiceId) {
       this.form.blueInvoiceId = blueInvoiceId;
       this.fetchBlueInvoiceDetail(blueInvoiceId);
@@ -550,6 +613,90 @@ export default {
     this.recalcTotals();
   },
   methods: {
+    // 当红冲原因改变时的处理
+    onChyyDmChange(value) {
+      // 当选择"销售折让"时，清空所有明细行的单价和数量
+      if (value === '04') {
+        this.clearPriceAndQuantity();
+      }
+    },
+    // 清空所有明细行的单价和数量
+    clearPriceAndQuantity() {
+      if (Array.isArray(this.form.fpmxList)) {
+        this.form.fpmxList.forEach((row) => {
+          this.$set(row, 'sl', null);
+          this.$set(row, 'dj', null);
+        });
+        // 重新计算合计
+        this.recalcTotals();
+      }
+    },
+    // 当金额改变时的处理（用于"销售折让"场景）
+    onAmountChange(row) {
+      if (this.readonly || !this.isSalesDiscount) return;
+
+      // 根据金额和税率重新计算税额和含税金额
+      this.recalcRowFromAmount(row);
+      // 重新计算合计
+      this.recalcTotals();
+    },
+    // 当税率改变时的处理（用于"销售折让"场景）
+    onTaxRateChange(row) {
+      if (this.readonly) return;
+
+      // 如果是"销售折让"，根据金额和税率重新计算税额和含税金额
+      if (this.isSalesDiscount) {
+        this.recalcRowFromAmount(row);
+        this.recalcTotals();
+      } else {
+        // 其他场景使用原有的计算逻辑
+        this.onRowChange(row);
+      }
+    },
+    // 根据金额和税率重新计算税额和含税金额（用于"销售折让"场景）
+    recalcRowFromAmount(row) {
+      const BN = this.BigNumber;
+      const je = BN(row.je || 0);
+      const slv = BN(row.slv || 0);
+
+      // 税额 = 金额 * 税率
+      const se = je.multipliedBy(slv);
+      row.se = Number(se);
+
+      // 含税金额 = 金额 + 税额
+      const hsje = je.plus(se);
+      row.hsje = Number(hsje);
+    },
+    // 恢复蓝字发票原始数据（用于"开票有误"场景）
+    restoreBlueInvoiceData() {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return;
+      }
+      const BN = this.BigNumber;
+      const originalDetails = this.originalBlueInvoice.fpmxList;
+
+      // 恢复每个明细行的单价、数量、金额
+      this.form.fpmxList.forEach((row, index) => {
+        const originalRow = originalDetails[index];
+        if (originalRow) {
+          // 恢复单价和数量（保持负数）
+          this.$set(row, 'dj', Number(originalRow.dj || 0));
+          this.$set(row, 'sl', Number(-(originalRow.sl || 0)));
+          // 恢复金额、税额、含税金额（保持负数）
+          const je = BN(originalRow.je || 0).negated();
+          const se = BN(originalRow.se || 0).negated();
+          const hsje = BN(originalRow.hsje || 0).negated();
+          row.je = Number(je);
+          row.se = Number(se);
+          row.hsje = Number(hsje);
+        }
+      });
+      // 重新计算合计
+      this.recalcTotals();
+    },
     // 获取蓝字发票完整详情
     fetchBlueInvoiceDetail(invoiceId) {
       if (!invoiceId) return;
@@ -558,6 +705,8 @@ export default {
         { invoiceId },
         (res) => {
           if (res && res.data) {
+            // 保存蓝字发票原始数据
+            this.originalBlueInvoice = JSON.parse(JSON.stringify(res.data));
             this.fillFormFromBlueInvoiceDetail(res.data);
           } else {
             this.$message.warning('获取蓝字发票详情失败');
@@ -641,8 +790,175 @@ export default {
     },
     onRowChange(row) {
       if (this.readonly) return;
+
+      // 根据不同的红冲原因进行校验和限制
+      const validationError = this.validateRowChange(row);
+      if (validationError) {
+        this.$message.warning(validationError);
+        // 恢复该行的原始值
+        this.restoreRowValue(row);
+        return;
+      }
+
       this.recalcRow(row);
       this.recalcTotals();
+    },
+    // 校验行数据变更
+    validateRowChange(row) {
+      const chyyDm = this.form.chyyDm;
+
+      // "开票有误"：单价、金额、数量必须和蓝字发票保持一致
+      if (chyyDm === '01') {
+        return this.validateInvoiceError(row);
+      }
+
+      // "销货退回"：只允许修改数量，不允许修改单价
+      if (chyyDm === '02') {
+        return this.validateGoodsReturn(row);
+      }
+
+      // "服务中止"：允许修改总金额和数量，不允许修改单价
+      if (chyyDm === '03') {
+        return this.validateServiceTermination(row);
+      }
+
+      // "销售折让"：单价、数量必须为空
+      if (chyyDm === '04') {
+        if (row.sl !== null && row.sl !== undefined && row.sl !== '') {
+          return '当红冲原因为"销售折让"时，数量必须为空';
+        }
+        if (row.dj !== null && row.dj !== undefined && row.dj !== '') {
+          return '当红冲原因为"销售折让"时，单价必须为空';
+        }
+      }
+
+      return '';
+    },
+    // 校验"开票有误"场景
+    validateInvoiceError(row) {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return '';
+      }
+
+      // 找到对应的蓝字发票明细行
+      const rowIndex = this.form.fpmxList.indexOf(row);
+      const originalRow = this.originalBlueInvoice.fpmxList[rowIndex];
+
+      if (!originalRow) {
+        return '';
+      }
+
+      const BN = this.BigNumber;
+      const originalSl = Math.abs(Number(originalRow.sl || 0));
+      const originalDj = Number(originalRow.dj || 0);
+      const originalJe = Math.abs(Number(originalRow.je || 0));
+
+      const currentSl = Math.abs(Number(row.sl || 0));
+      const currentDj = Number(row.dj || 0);
+      const currentJe = Math.abs(Number(row.je || 0));
+
+      // 校验数量必须一致（绝对值）
+      if (Math.abs(currentSl - originalSl) > 0.0001) {
+        return `"开票有误"时，数量必须和蓝字发票保持一致（蓝字发票数量：${originalSl}）`;
+      }
+
+      // 校验单价必须一致
+      if (Math.abs(currentDj - originalDj) > 0.01) {
+        return `"开票有误"时，单价必须和蓝字发票保持一致（蓝字发票单价：${originalDj}）`;
+      }
+
+      // 校验金额必须一致（绝对值）
+      if (Math.abs(currentJe - originalJe) > 0.01) {
+        return `"开票有误"时，金额必须和蓝字发票保持一致（蓝字发票金额：${originalJe}）`;
+      }
+
+      return '';
+    },
+    // 校验"销货退回"场景
+    validateGoodsReturn(row) {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return '';
+      }
+
+      const rowIndex = this.form.fpmxList.indexOf(row);
+      const originalRow = this.originalBlueInvoice.fpmxList[rowIndex];
+
+      if (!originalRow) {
+        return '';
+      }
+
+      const originalDj = Number(originalRow.dj || 0);
+      const currentDj = Number(row.dj || 0);
+
+      // 不允许修改单价
+      if (Math.abs(currentDj - originalDj) > 0.01) {
+        return '"销货退回"时，不允许修改单价';
+      }
+
+      return '';
+    },
+    // 校验"服务中止"场景
+    validateServiceTermination(row) {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return '';
+      }
+
+      const rowIndex = this.form.fpmxList.indexOf(row);
+      const originalRow = this.originalBlueInvoice.fpmxList[rowIndex];
+
+      if (!originalRow) {
+        return '';
+      }
+
+      const originalDj = Number(originalRow.dj || 0);
+      const currentDj = Number(row.dj || 0);
+
+      // 不允许修改单价
+      if (Math.abs(currentDj - originalDj) > 0.01) {
+        return '"服务中止"时，不允许修改单价';
+      }
+
+      return '';
+    },
+    // 恢复行的原始值
+    restoreRowValue(row) {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return;
+      }
+
+      const rowIndex = this.form.fpmxList.indexOf(row);
+      const originalRow = this.originalBlueInvoice.fpmxList[rowIndex];
+
+      if (!originalRow) {
+        return;
+      }
+
+      const BN = this.BigNumber;
+
+      // 恢复单价和数量
+      if (this.form.chyyDm === '01') {
+        // "开票有误"：恢复原始值
+        this.$set(row, 'dj', Number(originalRow.dj || 0));
+        this.$set(row, 'sl', Number(-(originalRow.sl || 0)));
+      } else if (this.form.chyyDm === '02' || this.form.chyyDm === '03') {
+        // "销货退回"或"服务中止"：只恢复单价
+        this.$set(row, 'dj', Number(originalRow.dj || 0));
+      }
+
+      // 重新计算金额、税额等
+      this.recalcRow(row);
     },
     recalcRow(row) {
       const BN = this.BigNumber;
@@ -793,6 +1109,11 @@ export default {
       this.form.uuid = detail.uuid || '';
       this.form.taxpayerId = detail.taxpayerId || '';
       this.form.blueInvoiceId = detail.blueInvoiceId || '';
+
+      // 如果有蓝字发票ID，获取蓝字发票原始数据用于校验
+      if (detail.blueInvoiceId) {
+        this.fetchBlueInvoiceDetail(detail.blueInvoiceId);
+      }
       this.form.hzfpxxqrdbh = detail.hzfpxxqrdbh || '';
       this.form.lrfsf = detail.lrfsf || '';
       this.form.lrrq = this.formatDateTime(detail.lrrq);
@@ -832,7 +1153,168 @@ export default {
     formatDateTime(dateTime) {
       return this.utils.formatDate(dateTime);
     },
+    // 校验"开票有误"场景：必须全额红冲，并且明细单价、金额、数量必须和蓝字发票保持一致
+    validateFullRedInvoice() {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return '无法获取蓝字发票原始数据，无法进行校验';
+      }
+
+      const BN = this.BigNumber;
+      const originalDetails = this.originalBlueInvoice.fpmxList;
+
+      // 检查是否全额红冲
+      const originalTotalJe = originalDetails.reduce((sum, item) => {
+        return sum.plus(BN(Math.abs(item.je || 0)));
+      }, BN(0));
+
+      const currentTotalJe = this.form.fpmxList.reduce((sum, item) => {
+        return sum.plus(BN(Math.abs(item.je || 0)));
+      }, BN(0));
+
+      // 必须全额红冲（金额绝对值必须相等）
+      if (Math.abs(Number(originalTotalJe) - Number(currentTotalJe)) > 0.01) {
+        return `"开票有误"时必须全额红冲，蓝字发票合计金额：${originalTotalJe.toFixed(
+          2
+        )}，当前红冲金额：${currentTotalJe.toFixed(2)}`;
+      }
+
+      // 检查每条明细的单价、金额、数量是否一致
+      for (let i = 0; i < this.form.fpmxList.length; i++) {
+        const row = this.form.fpmxList[i];
+        const originalRow = originalDetails[i];
+
+        if (!originalRow) {
+          continue;
+        }
+
+        const originalSl = Math.abs(Number(originalRow.sl || 0));
+        const originalDj = Number(originalRow.dj || 0);
+        const originalJe = Math.abs(Number(originalRow.je || 0));
+
+        const currentSl = Math.abs(Number(row.sl || 0));
+        const currentDj = Number(row.dj || 0);
+        const currentJe = Math.abs(Number(row.je || 0));
+
+        if (Math.abs(currentSl - originalSl) > 0.0001) {
+          return `第${
+            i + 1
+          }行：数量必须和蓝字发票保持一致（蓝字发票：${originalSl}，当前：${currentSl}）`;
+        }
+
+        if (Math.abs(currentDj - originalDj) > 0.01) {
+          return `第${
+            i + 1
+          }行：单价必须和蓝字发票保持一致（蓝字发票：${originalDj}，当前：${currentDj}）`;
+        }
+
+        if (Math.abs(currentJe - originalJe) > 0.01) {
+          return `第${
+            i + 1
+          }行：金额必须和蓝字发票保持一致（蓝字发票：${originalJe}，当前：${currentJe}）`;
+        }
+      }
+
+      // 农产品加计扣除的特殊校验逻辑
+      // 根据蓝字发票的"增值税优惠用途标签"进行校验
+      // 字段名可能是：zzsytytbq、zzsytytbqDm、zzsytytbqMc 等，需要根据实际接口返回确认
+      const zzsytytbq =
+        this.originalBlueInvoice.zzsytytbq ||
+        this.originalBlueInvoice.zzsytytbqDm ||
+        '';
+
+      if (zzsytytbq) {
+        // "待农产品全额加计扣除"或"已用于农产品全额加计扣除"：必须全额红冲
+        if (
+          zzsytytbq === '待农产品全额加计扣除' ||
+          zzsytytbq === '已用于农产品全额加计扣除' ||
+          zzsytytbq === '01' ||
+          zzsytytbq === '02'
+        ) {
+          // 已经在上面校验了全额红冲，这里不需要额外校验
+        }
+        // "待农产品部分加计扣除"或"已用于农产品部分加计扣除"：需要校验红冲次数
+        else if (
+          zzsytytbq === '待农产品部分加计扣除' ||
+          zzsytytbq === '已用于农产品部分加计扣除' ||
+          zzsytytbq === '03' ||
+          zzsytytbq === '04'
+        ) {
+          // TODO: 需要查询该蓝字发票已经开具的红字发票数量
+          // 如果是第一次红冲：只能对未加计部分全额冲红或对这张蓝票全额红冲
+          // 如果是第二次红冲：仅允许对剩余部分（即已加计部分）全额红冲
+          // 这个逻辑需要后端提供接口查询已开具的红字发票，暂时跳过详细校验
+        }
+      }
+
+      return '';
+    },
+    // 校验"销货退回"场景：不允许修改单价
+    validateGoodsReturnAll() {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return '';
+      }
+
+      const originalDetails = this.originalBlueInvoice.fpmxList;
+
+      for (let i = 0; i < this.form.fpmxList.length; i++) {
+        const row = this.form.fpmxList[i];
+        const originalRow = originalDetails[i];
+
+        if (!originalRow) {
+          continue;
+        }
+
+        const originalDj = Number(originalRow.dj || 0);
+        const currentDj = Number(row.dj || 0);
+
+        if (Math.abs(currentDj - originalDj) > 0.01) {
+          return `第${
+            i + 1
+          }行："销货退回"时不允许修改单价（蓝字发票单价：${originalDj}）`;
+        }
+      }
+
+      return '';
+    },
+    // 校验"服务中止"场景：不允许修改单价
+    validateServiceTerminationAll() {
+      if (
+        !this.originalBlueInvoice ||
+        !Array.isArray(this.originalBlueInvoice.fpmxList)
+      ) {
+        return '';
+      }
+
+      const originalDetails = this.originalBlueInvoice.fpmxList;
+
+      for (let i = 0; i < this.form.fpmxList.length; i++) {
+        const row = this.form.fpmxList[i];
+        const originalRow = originalDetails[i];
+
+        if (!originalRow) {
+          continue;
+        }
+
+        const originalDj = Number(originalRow.dj || 0);
+        const currentDj = Number(row.dj || 0);
+
+        if (Math.abs(currentDj - originalDj) > 0.01) {
+          return `第${
+            i + 1
+          }行："服务中止"时不允许修改单价（蓝字发票单价：${originalDj}）`;
+        }
+      }
+
+      return '';
+    },
     validateForm() {
+      console.log(this.form.fpmxList);
       if (!this.form.chyyDm || this.form.chyyDm === '') {
         return '请选择开具红字发票原因';
       }
@@ -844,6 +1326,30 @@ export default {
         this.form.fpmxList.length === 0
       ) {
         return '请添加至少一条明细';
+      }
+
+      // 当红冲原因为"开票有误"时，必须全额红冲，并且明细单价、金额、数量必须和蓝字发票保持一致
+      if (this.form.chyyDm === '01') {
+        const errorMsg = this.validateFullRedInvoice();
+        if (errorMsg) {
+          return errorMsg;
+        }
+      }
+
+      // 当红冲原因为"销货退回"时，不允许修改单价
+      if (this.form.chyyDm === '02') {
+        const errorMsg = this.validateGoodsReturnAll();
+        if (errorMsg) {
+          return errorMsg;
+        }
+      }
+
+      // 当红冲原因为"服务中止"时，不允许修改单价
+      if (this.form.chyyDm === '03') {
+        const errorMsg = this.validateServiceTerminationAll();
+        if (errorMsg) {
+          return errorMsg;
+        }
       }
       if (this.form.hzcxje >= 0) {
         return '合计金额必须为负数';
@@ -871,6 +1377,11 @@ export default {
         };
         if (!detailItem.id) {
           delete detailItem.id;
+        }
+
+        if (this.form.chyyDm === '04') {
+          delete detailItem.fpspdj;
+          delete detailItem.fpspsl;
         }
         return detailItem;
       });

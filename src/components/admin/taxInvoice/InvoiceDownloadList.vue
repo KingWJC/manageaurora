@@ -115,7 +115,7 @@
                   >查询</el-button
                 >
                 <el-button size="small" @click="reset">重置</el-button>
-                <el-button size="small" type="primary" @click="openApply"
+                <el-button size="small" type="primary" @click="openApply" v-if="permissions.names.custom1"
                   >申请下载</el-button
                 >
               </div>

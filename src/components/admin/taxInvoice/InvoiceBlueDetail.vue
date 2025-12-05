@@ -215,13 +215,21 @@
                       <div class="flex flex-content-start flex-items-center">
                         <label class="nowrap">结算方式:</label>
                         <div class="flex-flex-auto">
-                          <el-input
+                          <el-select
                             v-model="form.jsfs"
                             size="small"
                             class="full-width"
-                            placeholder="请输入结算方式"
+                            placeholder="请选择结算方式"
                             :disabled="isViewMode"
-                          />
+                            clearable
+                          >
+                            <el-option label="现金" value="01" />
+                            <el-option label="银行转账" value="02" />
+                            <el-option label="票据" value="03" />
+                            <el-option label="第三方支付" value="04" />
+                            <el-option label="预付卡" value="05" />
+                            <el-option label="其他" value="99" />
+                          </el-select>
                         </div>
                       </div>
                     </div>
@@ -342,13 +350,18 @@
                       <div class="flex flex-content-start flex-items-center">
                         <label class="nowrap">差额征税类型:</label>
                         <div class="flex-flex-auto">
-                          <el-input
+                          <el-select
                             v-model="form.cezzslx"
                             size="small"
                             class="full-width"
                             placeholder="请输入差额征税类型"
                             :disabled="isViewMode"
-                          />
+                            clearable
+                          >
+                            <el-option label="非差额发票" value="" />
+                            <el-option label="全额开票" value="01" />
+                            <el-option label="差额开票" value="02" />
+                          </el-select>
                         </div>
                       </div>
                     </div>

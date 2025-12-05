@@ -64,7 +64,7 @@
                   >查询</el-button
                 >
                 <el-button size="small" @click="reset">重置</el-button>
-                <el-button size="small" type="primary" @click="toCreate"
+                <el-button size="small" type="primary" v-if="permissions.names.add" @click="toCreate"
                   >新增</el-button
                 >
               </div>
@@ -375,7 +375,7 @@ export default {
                 this.editRow(row);
               },
               condition: () => {
-                return true;
+                return this.permissions.names.modify;
               },
               isDisabled: (row) => {
                 return row.reviewStatus === '01';
@@ -399,7 +399,7 @@ export default {
                 this.auditRow(row);
               },
               condition: () => {
-                return true;
+                return this.permissions.names.verify ;
               },
               isDisabled: (row) => {
                 return row.reviewStatus === '01';

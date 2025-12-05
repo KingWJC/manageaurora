@@ -206,18 +206,27 @@ export default {
               name: '下载',
               click: (row) => {
                 this.openDownload(row);
+              },
+              condition: () => {
+                return this.permissions.names.custom1;
               }
             },
             {
               name: '退回',
               click: (row) => {
                 this.openReturn(row);
+              },
+              condition: () => {
+                return this.permissions.names.custom2;
               }
             },
             {
               name: '调整有效期',
               click: (row) => {
                 this.openAdjust(row);
+              },
+             condition: () => {
+                return this.permissions.names.custom3;
               }
             }
           ]
@@ -344,7 +353,7 @@ export default {
       }
       this.saving = true;
       this.API.send(
-        this.CFG.services.taxinvoice.adjustQuotaExpire,
+        this.CFG.services.taxinvoice.adjustValidity,
         { ...this.adj },
         (res) => {
           this.saving = false;

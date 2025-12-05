@@ -379,7 +379,10 @@ export default {
               },
               isDisabled: (row) => {
                 return this.canVerify(row);
-              }
+              },
+              condition: () => {
+                return this.permissions.names.verify;
+              },
             }
           ]
         }
@@ -491,8 +494,8 @@ export default {
     statusText(v) {
       if (v === '00') return '未提交';
       if (v === '01') return '开票中';
-      if (v === '02') return '成功';
-      if (v === '03') return '失败';
+      if (v === '02') return '开票成功';
+      if (v === '03') return '开票失败';
       return v || '';
     },
     auditStatusText(v) {
@@ -568,8 +571,8 @@ export default {
         });
     },
     canVerify(row) {
-      // 只有状态为未审核（00）的发票才能进行审核
-      return row.reviewStatus === '00';
+      // 只有状态为审核通过，不能再进行审核
+      return row.reviewStatus === '01';
     },
     numberToChinese(num) {
       const digits = [

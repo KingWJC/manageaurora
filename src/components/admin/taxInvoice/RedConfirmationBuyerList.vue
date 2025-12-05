@@ -26,8 +26,13 @@
                   <el-option label="无需确认" value="01" />
                   <el-option label="销方录入待购方确认" value="02" />
                   <el-option label="购方录入待销方确认" value="03" />
-                  <el-option label="已确认" value="04" />
-                  <el-option label="已撤销" value="08" />
+                  <el-option label="购销双方已确认" value="04" />
+                  <el-option label="作废(销方录入购方否认)" value="05" />
+                  <el-option label="作废(购方录入销方否认)" value="06" />
+                  <el-option label="作废(超72小时未确认)" value="07" />
+                  <el-option label="作废(发起方撤销)" value="08" />
+                  <el-option label="作废(确认后撤销)" value="09" />
+                  <el-option label="作废(异常凭证)" value="10" />
                 </el-select>
               </div>
               <div class="search-bar-item">
@@ -187,7 +192,7 @@ export default {
                 this.confirmRow(row, 'Y');
               },
               condition: () => {
-                return true;
+                return this.permissions.names.confirm;
               },
               isDisabled: (row) => {
                 return !this.canConfirm(row);
@@ -199,7 +204,7 @@ export default {
                 this.confirmRow(row, 'N');
               },
               condition: () => {
-                return true;
+                return this.permissions.names.custom1;
               },
               isDisabled: (row) => {
                 return !this.canReject(row);
@@ -259,12 +264,12 @@ export default {
     },
     
     canConfirm(row) {
-      // 只有状态为"02销方录入待购方确认"时才能确认
-      return row.hzqrxxztDm === '02';
+      // 只有状态为"03购方录入待销方确认"时才能确认
+      return row.hzqrxxztDm === '03';
     },
     canReject(row) {
-      // 只有状态为"02销方录入待购方确认"时才能拒绝
-      return row.hzqrxxztDm === '02';
+      // 只有状态为"03购方录入待销方确认"时才能拒绝
+      return row.hzqrxxztDm === '03';
     },
 
     confirmRow(row, qrlx) {
@@ -318,8 +323,11 @@ export default {
         '01': '无需确认',
         '02': '销方录入待购方确认',
         '03': '购方录入待销方确认',
-        '04': '已确认',
-        '08': '已撤销',
+        '04': '购销双方已确认',
+        '05': '作废(销方录入购方否认)',
+        '06': '作废(购方录入销方否认)',
+        '07': '作废(超72小时未确认)',
+        '08': '作废(发起方撤销)',
         '09': '作废(确认后撤销)',
         '10': '作废(异常凭证)'
       };
