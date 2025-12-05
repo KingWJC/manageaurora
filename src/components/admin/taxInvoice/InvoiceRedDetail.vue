@@ -419,14 +419,14 @@
                         ><span>{{ row.sl || 0 }}</span></template
                       ></el-table-column
                     >
-                    <el-table-column prop="dj" label="单价(含税)" width="150"
+                    <el-table-column prop="dj" label="单价" width="150"
                       ><template slot-scope="{ row }"
                         ><span>{{
                           Number(row.dj || 0).toFixed(6)
                         }}</span></template
                       ></el-table-column
                     >
-                    <el-table-column prop="je" label="金额(含税)" width="150">
+                    <el-table-column prop="je" label="金额" width="150">
                       <template slot-scope="{ row }"
                         >¥{{ formatMoney(row.je) }}</template
                       >
