@@ -35,13 +35,29 @@
                           ><span class="red">*</span>销售方名称:</label
                         >
                         <div class="flex-flex-auto">
-                          <el-input
+                          <el-select
                             v-model="form.xsfmc"
                             size="small"
                             class="full-width"
-                            placeholder="请输入销售方名称"
+                            placeholder="请选择或搜索销售方名称"
                             :disabled="isViewMode"
-                          />
+                            filterable
+                            remote
+                            :remote-method="searchTaxpayer"
+                            :loading="taxpayerLoading"
+                            @change="onTaxpayerChange"
+                            clearable
+                          >
+                            <el-option
+                              v-for="item in taxpayerOptions"
+                              :key="item.id"
+                              :label="item.nsrmc"
+                              :value="item.nsrmc"
+                              :disabled="item.disabled"
+                            >
+                              <span>{{ item.nsrmc }}</span>
+                            </el-option>
+                          </el-select>
                         </div>
                       </div>
                     </div>
@@ -280,13 +296,29 @@
                           ><span class="red">*</span>销售方名称:</label
                         >
                         <div class="flex-flex-auto">
-                          <el-input
+                          <el-select
                             v-model="form.xsfmc"
                             size="small"
                             class="full-width"
-                            placeholder="请输入销售方名称"
+                            placeholder="请选择或搜索销售方名称"
                             :disabled="isViewMode"
-                          />
+                            filterable
+                            remote
+                            :remote-method="searchTaxpayer"
+                            :loading="taxpayerLoading"
+                            @change="onTaxpayerChange"
+                            clearable
+                          >
+                            <el-option
+                              v-for="item in taxpayerOptions"
+                              :key="item.id"
+                              :label="item.nsrmc"
+                              :value="item.nsrmc"
+                              :disabled="item.disabled"
+                            >
+                              <span>{{ item.nsrmc }}</span>
+                            </el-option>
+                          </el-select>
                         </div>
                       </div>
                     </div>
@@ -585,7 +617,7 @@
                             class="full-width power-minw90"
                             :disabled="isViewMode" /></template
                       ></el-table-column>
-                      <el-table-column prop="dj" label="单价" width="150"
+                      <el-table-column prop="dj" label="单价(含税)" width="150"
                         ><template slot-scope="{ row }"
                           ><el-input-number
                             v-model="row.dj"
@@ -597,7 +629,7 @@
                             class="full-width power-minw90"
                             :disabled="isViewMode" /></template
                       ></el-table-column>
-                      <el-table-column prop="je" label="金额" width="150">
+                      <el-table-column prop="je" label="金额(含税)" width="150">
                         <template slot-scope="{ row }"
                           >¥{{ formatMoney(row.je) }}</template
                         >
@@ -819,6 +851,9 @@ export default {
         105: '化妆品',
         199: '其他'
       },
+      taxpayerLoading: false,
+      taxpayerOptions: [],
+      selectedTaxpayer: null, // 当前选中的纳税人对象
       form: {
         id: '',
         taxInvoiceNo: '',
@@ -1148,6 +1183,63 @@ export default {
       const n = Number(v || 0).toFixed(2);
       return n;
     },
+    // 搜索纳税人
+    searchTaxpayer(query) {
+      if (query !== '') {
+        this.taxpayerLoading = true;
+        const payload = {
+          current: 0,
+          size: 20,
+          nsrmc: query.trim()
+        };
+        this.API.send(
+          this.CFG.services.taxinvoice.taxPlayerList,
+          payload,
+          (res) => {
+            this.taxpayerLoading = false;
+            this.taxpayerOptions = [];
+            if (res && res.data) {
+              if (res.data.rows) {
+                this.taxpayerOptions = res.data.rows;
+              }
+            } 
+          },
+          () => {
+            this.taxpayerLoading = false;
+            this.taxpayerOptions = [];
+          },
+          this
+        );
+      } else {
+        this.taxpayerOptions = [];
+      }
+    },
+    // 当选择纳税人时，自动回填销售方信息
+    onTaxpayerChange(value) {
+      if (!value) {
+        // 清空选择时，清空相关字段
+        this.selectedTaxpayer = null;
+        this.form.xsfnsrsbh = '';
+        this.form.xsfdz = '';
+        this.form.xsfdh = '';
+        this.form.xsfkhh = '';
+        this.form.xsfzh = '';
+        return;
+      }
+      
+      // 找到选中的纳税人对象
+      const taxpayer = this.taxpayerOptions.find(item => item.nsrmc === value);
+      if (taxpayer) {
+        this.selectedTaxpayer = taxpayer;
+        // 自动回填销售方信息
+        this.$set(this.form, 'xsfnsrsbh', taxpayer.nsrsbh || '');
+        this.$set(this.form, 'xsfmc', taxpayer.nsrmc || '');
+        this.$set(this.form, 'xsfdz', taxpayer.scjydz || '');
+        this.$set(this.form, 'xsfdh', taxpayer.zcdlxdh || '');
+        this.$set(this.form, 'xsfkhh', taxpayer.khhmc || '');
+        this.$set(this.form, 'xsfzh', taxpayer.yhzh || '');
+      }
+    },
     addBuyer() {
       const type = this.form.gmfzrrbz;
       if (type === 'Y') {
@@ -1253,8 +1345,6 @@ export default {
                   this.form.gmfkhh = row.bankAccount || '';
                   this.form.gmfzh = row.bankName || '';
                   this.form.gmfjbr = row.linkmanName || '';
-                  this.form.gmfbrlxdh = row.linkmanPhone || '';
-                  this.form.jbrsfzjhm = '';
                 }
               }
             ]

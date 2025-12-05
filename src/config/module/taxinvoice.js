@@ -23,7 +23,10 @@ const taxinvoice = {
 
   // 5. 发票批量下载
   digitalInvoiceDownloadApply: { module: 'lqa', url: '/invoiceDownload/apply', method: 'POST', comment: '申请发票批量下载' },
-  pageInvoiceDownloadList: { module: 'lqa', url: '/invoiceDownload/list', method: 'POST', comment: '分页查询批量下载信息' }
+  pageInvoiceDownloadList: { module: 'lqa', url: '/invoiceDownload/list', method: 'POST', comment: '分页查询批量下载信息' },
+
+  // 6. 纳税人信息查询
+  taxPlayerList: { module: 'lqa', url: '/taxpayer/list', method: 'POST', comment: '查询纳税人信息列表' }
 };
 
 export default taxinvoice;
