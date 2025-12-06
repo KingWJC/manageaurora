@@ -617,7 +617,7 @@
                             class="full-width power-minw90"
                             :disabled="isViewMode" /></template
                       ></el-table-column>
-                      <el-table-column prop="dj" label="单价(含税)" width="150"
+                      <el-table-column prop="dj" label="单价" width="150"
                         ><template slot-scope="{ row }"
                           ><el-input-number
                             v-model="row.dj"
@@ -629,7 +629,7 @@
                             class="full-width power-minw90"
                             :disabled="isViewMode" /></template
                       ></el-table-column>
-                      <el-table-column prop="je" label="金额(含税)" width="150">
+                      <el-table-column prop="je" label="金额" width="150">
                         <template slot-scope="{ row }"
                           >¥{{ formatMoney(row.je) }}</template
                         >

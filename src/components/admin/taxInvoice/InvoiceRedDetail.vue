@@ -6,7 +6,12 @@
       v-if="!isViewMode"
     >
       <div class="flex flex-content-center">
-        <button class="btn btn-primary btn-xl" type="button" @click="submit" :disabled="saving">
+        <button
+          class="btn btn-primary btn-xl"
+          type="button"
+          @click="submit"
+          :disabled="saving"
+        >
           保存
         </button>
       </div>
@@ -44,7 +49,7 @@
                       >
                       <div class="flex-flex-auto">
                         <el-input
-                          v-model="form.lzfphm"
+                          v-model="form.dylzfphm"
                           size="small"
                           class="full-width"
                           placeholder="请输入蓝字发票号码"
@@ -466,12 +471,11 @@
                         ><span>{{ row.sphfwssflhbbm }}</span></template
                       ></el-table-column
                     >
-                    <el-table-column
-                      prop="yhzcbs"
-                      label="优惠政策"
-                      width="180"
+                    <el-table-column prop="yhzcbs" label="优惠政策" width="180"
                       ><template slot-scope="{ row }"
-                        ><span>{{ getPreferentialPolicyText(row.yhzcbs) }}</span></template
+                        ><span>{{
+                          getPreferentialPolicyText(row.yhzcbs)
+                        }}</span></template
                       ></el-table-column
                     >
                   </el-table>
@@ -615,15 +619,15 @@ export default {
         '07': '50%先征后退',
         '08': '按3%简易征收',
         '09': '按5%简易征收',
-        '10': '按5%简易征收减按1.5%计征',
-        '11': '即征即退30%',
-        '12': '即征即退50%',
-        '13': '即征即退70%',
-        '14': '即征即退100%',
-        '15': '超税负3%即征即退',
-        '16': '超税负8%即征即退',
-        '17': '超税负12%即征即退',
-        '18': '超税负6%即征即退'
+        10: '按5%简易征收减按1.5%计征',
+        11: '即征即退30%',
+        12: '即征即退50%',
+        13: '即征即退70%',
+        14: '即征即退100%',
+        15: '超税负3%即征即退',
+        16: '超税负8%即征即退',
+        17: '超税负12%即征即退',
+        18: '超税负6%即征即退'
       }
     };
   },
@@ -661,7 +665,7 @@ export default {
         { confirmId },
         (res) => {
           if (res && res.data) {
-            const data=res.data;
+            const data = res.data;
             const detail =
               Array.isArray(data.rows) && data.rows.length > 0
                 ? data.rows[0]
@@ -690,7 +694,7 @@ export default {
         queryParam,
         (res) => {
           if (res && res.data) {
-            const data=res.data;
+            const data = res.data;
             const invoiceDetail =
               Array.isArray(data.rows) && data.rows.length > 0
                 ? data.rows[0]
@@ -708,6 +712,7 @@ export default {
     },
     applyBlueInvoiceInfoToForm(invoiceDetail = {}) {
       if (invoiceDetail.gmfzrrbz) this.form.gmfzrrbz = invoiceDetail.gmfzrrbz;
+      if (invoiceDetail.fphm) this.form.dylzfphm = invoiceDetail.fphm;
       // 销售方信息
       if (invoiceDetail.xsfnsrsbh)
         this.form.xsfnsrsbh = invoiceDetail.xsfnsrsbh;
@@ -728,9 +733,7 @@ export default {
       if (invoiceDetail.gmfzh) this.form.gmfzh = invoiceDetail.gmfzh;
 
       if (invoiceDetail.kprq)
-        this.form.kprq = this.utils.formatDate(
-          invoiceDetail.kprq
-        );
+        this.form.kprq = this.utils.formatDate(invoiceDetail.kprq);
       if (invoiceDetail.kpr) this.form.kpr = invoiceDetail.kpr;
       if (invoiceDetail.bz) this.form.bz = invoiceDetail.bz;
     },
@@ -795,7 +798,7 @@ export default {
         totalTax = totalTax.plus(tax);
       });
       this.form.hjjc = totalAmount;
-      this.form.hjs =totalTax;
+      this.form.hjs = totalTax;
       // 价税合计 = 合计金额 + 合计税额
       const jshj = BN(this.form.hjjc).plus(BN(this.form.hjs));
       this.form.jshj = jshj;
@@ -822,8 +825,7 @@ export default {
       if (detail.lzfphm) this.form.lzfphm = detail.lzfphm;
       if (detail.gmfmc) this.form.gmfmc = detail.gmfmc;
       if (detail.xsfmc) this.form.xsfmc = detail.xsfmc;
-      if (detail.fppz)
-        this.form.lzfppzDm = detail.fppz;
+      if (detail.fppz) this.form.lzfppzDm = detail.fppz;
       if (detail.xsfnsrsbh) this.form.xsfnsrsbh = detail.xsfnsrsbh;
       if (detail.xsfdz) this.form.xsfdz = detail.xsfdz;
       if (detail.xsfdh) this.form.xsfdh = detail.xsfdh;
@@ -834,8 +836,7 @@ export default {
       if (detail.gmfdh) this.form.gmfdh = detail.gmfdh;
       if (detail.gmfkhh) this.form.gmfkhh = detail.gmfkhh;
       if (detail.gmfzh) this.form.gmfzh = detail.gmfzh;
-      if (detail.kprq)
-        this.form.kprq = this.utils.formatDate(detail.kprq);
+      if (detail.kprq) this.form.kprq = this.utils.formatDate(detail.kprq);
       if (detail.kpr) this.form.kpr = detail.kpr;
       if (detail.bz) this.form.bz = detail.bz;
       if (detail.hjje !== undefined) this.form.hjjc = Number(detail.hjje);
@@ -844,6 +845,7 @@ export default {
       // 红字确认单相关信息
       if (detail.hzqrxxdbh) this.form.hzqrxxdbh = detail.hzqrxxdbh;
       if (detail.hzqrduuid) this.form.hzqrduuid = detail.hzqrduuid;
+      if (detail.dylzfphm) this.form.dylzfphm = detail.dylzfphm;
 
       // 应用明细
       const details = Array.isArray(detail.fpmxList) ? detail.fpmxList : [];
@@ -971,7 +973,7 @@ export default {
         kprq: this.form.kprq
           ? new Date(this.form.kprq).getTime()
           : Math.floor(Date.now() / 1000),
-        dylzfphm: this.form.lzfphm || '',
+        dylzfphm: this.form.dylzfphm || '',
         hzqrxxdbh: this.form.hzqrxxdbh || '',
         hzqrduuid: this.form.hzqrduuid || '',
         bz: this.form.bz || '',
@@ -1024,12 +1026,12 @@ export default {
         (res) => {
           this.saving = false;
           if (res && res.data) {
-            const data=res.data;
+            const data = res.data;
             const invoiceId = data && data.id;
             const fphm = data && data.fphm;
             const resultMessage = data && data.message;
             if (invoiceId || fphm) {
-              const info =fphm && `发票号码: ${fphm}`;
+              const info = fphm && `发票号码: ${fphm}`;
               this.$message.success(`保存成功，${info}`);
             } else if (resultMessage) {
               this.$message.success(resultMessage);
@@ -1046,7 +1048,7 @@ export default {
         },
         this
       );
-    },
+    }
   }
 };
 </script>
