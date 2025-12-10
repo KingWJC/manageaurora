@@ -617,13 +617,13 @@
                             class="full-width power-minw90"
                             :disabled="isViewMode" /></template
                       ></el-table-column>
-                      <el-table-column prop="dj" label="单价" width="150"
+                      <el-table-column prop="dj" label="单价" width="190"
                         ><template slot-scope="{ row }"
                           ><el-input-number
                             v-model="row.dj"
                             @change="onRowChange(row)"
-                            :precision="2"
-                            :step="0.01"
+                            :precision="6"
+                            :step="0.000001"
                             :min="0"
                             size="small"
                             class="full-width power-minw90"
@@ -660,13 +660,21 @@
                       >
                       <el-table-column prop="hsje" label="含税金额" width="150"
                         ><template slot-scope="{ row }"
-                          >¥{{ formatMoney(row.hsje) }}</template
-                        ></el-table-column
-                      >
+                          ><el-input-number
+                            v-model="row.hsje"
+                            @change="onHsjeChange(row)"
+                            :precision="2"
+                            :step="0.01"
+                            :min="0"
+                            size="small"
+                            class="full-width power-minw90"
+                            :disabled="isViewMode" /></template
+                      ></el-table-column>
                       <el-table-column prop="kce" label="扣除额" width="150"
                         ><template slot-scope="{ row }"
                           ><el-input-number
                             v-model="row.kce"
+                            @change="onHsjeChange(row)"
                             :precision="2"
                             :step="0.01"
                             :min="0"
@@ -1081,6 +1089,15 @@ export default {
           spfwjc = this.productType[this.ootListConfig.ootType];
         }
 
+        // 优先使用商品数据中的 outTaxRateValue，
+        let defaultSlv = 0.13;
+        if (!g.outTaxRateValue ) {
+          const taxRate = Number(g.outTaxRateValue);
+          if (!isNaN(taxRate)) {
+            defaultSlv = taxRate;
+          }
+        }
+
         const newRow = {
           mxxh: (this.form.fpmxList.length || 0) + 1,
           xmmc: g.productName || g.name || g.xmmc || '',
@@ -1095,7 +1112,7 @@ export default {
           sl: Number(g.sl) || 1,
           dj: Number(g.dj) || 0,
           je: 0,
-          slv: 0.13,
+          slv: defaultSlv,
           se: 0,
           hsje: 0,
           kce: 0,
@@ -1139,6 +1156,7 @@ export default {
       const BN = this.BigNumber;
       const sl = BN(row.sl || 0);
       const dj = BN(row.dj || 0);
+      const kce = BN(row.kce || 0);
 
       let slv = BN(0);
       if (row.slv !== null && row.slv !== undefined && row.slv !== '') {
@@ -1149,14 +1167,59 @@ export default {
       }
       // 使用 BigNumber 进行运算：金额 = 单价 * 数量
       const je = dj.multipliedBy(sl);
-      // 税额 = 金额 * 税率
-      const se = je.multipliedBy(slv);
+      // 税额 = (金额 - 扣除额) * 税率（差额征税）
+      const jeAfterKce = je.minus(kce);
+      const se = jeAfterKce.multipliedBy(slv);
       // 含税金额 = 金额 + 税额
       const hsje = je.plus(se);
       // 将计算结果转换为 Number 并赋值
       row.je = this.toFixedNumber(je, 2);
       row.se = this.toFixedNumber(se, 2);
       row.hsje = this.toFixedNumber(hsje, 2);
+      this.recalcTotals();
+    },
+    onHsjeChange(row) {
+      const BN = this.BigNumber;
+      const hsje = BN(row.hsje || 0);
+      const sl = BN(row.sl || 0);
+      const kce = BN(row.kce || 0);
+
+      // 如果数量为0，无法计算单价
+      if (sl.isZero() || sl.isNaN()) {
+        return;
+      }
+
+      let slv = BN(0);
+      if (row.slv !== null && row.slv !== undefined && row.slv !== '') {
+        const slvNum = BN(row.slv);
+        if (!slvNum.isNaN()) {
+          slv = slvNum;
+        }
+      }
+
+      const onePlusSlv = BN(1).plus(slv);
+      // 如果税率为0，金额等于含税金额，税额为0
+      if (slv.isZero()) {
+        row.je = this.toFixedNumber(hsje, 2);
+        row.se = 0;
+        if (!sl.isZero() && !sl.isNaN()) {
+          row.dj = this.toFixedNumber(hsje.dividedBy(sl), 6);
+        }
+      } else {
+        // 金额 = (含税金额 + 扣除额 × 税率) / (1 + 税率)
+        const kceTax = kce.multipliedBy(slv);
+        const je = hsje.plus(kceTax).dividedBy(onePlusSlv);
+        // 税额 = (金额 - 扣除额) × 税率
+        const jeAfterKce = je.minus(kce);
+        const se = jeAfterKce.multipliedBy(slv);
+        // 单价 = 金额 / 数量（保留6位小数）
+        const dj = je.dividedBy(sl);
+        
+        row.je = this.toFixedNumber(je, 2);
+        row.se = this.toFixedNumber(se, 2);
+        row.dj = this.toFixedNumber(dj, 6);
+      }
+      
       this.recalcTotals();
     },
     recalcTotals() {
